@@ -670,6 +670,46 @@ const SCRIPTS = (await Promise.all(
        ? ''
        : `, first difference: ${consoleNames.find((n, i) => n !== nodeNames[i]) ?? '(length only)'}`));
 
+  /* And neither of them asks an endpoint to write into the Dengage account.
+   *
+   * This is the check that was missing. Two of the assertions posted a body whose behaviour
+   * depended on whether an API user happened to be configured somewhere else: with none, they
+   * previewed a payload, and the day credentials arrived the same body upserted 245 products into
+   * the account's catalogue and wrote an order, on every run of the suite and every load of the
+   * console. Nothing said so, because the reply looked healthy either way.
+   *
+   * The endpoints now preview by default and take the write by name. These rules hold the callers
+   * to it, in both files, by reading their source rather than their behaviour: a rule about what a
+   * request does can only be checked by making it, and making it is the thing being prevented. */
+  const callers = { 'tools/check-backend.mjs': await readFile(
+                      join(ROOT, 'tools/check-backend.mjs'), 'utf8'),
+                    'verify/index.html': html };
+  const near = (src, needle, want, window = 200) =>
+    [...src.matchAll(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'))]
+      .every((m) => want.test(src.slice(m.index, m.index + window)));
+
+  const writes = [];
+  for (const [file, src] of Object.entries(callers)) {
+    /* The catalogue upsert, which is now asked for by name and must never be asked for here. */
+    if (/\bsend:\s*true/.test(src)) writes.push(`${file} sends the catalogue`);
+    /* An order, unless it is the one deliberately refused before anything is written. */
+    if (!near(src, "op: 'order'", /preview: true|order_status: 'shipped'/, 260)) {
+      writes.push(`${file} posts an order without preview`);
+    }
+    /* An operator signal reaches the Event API, and the Event API creates a contact for a key it
+       has not seen. A check that mints a throwaway key would leave one behind on every run. */
+    if (!near(src, "signal: 'usage_80'", /preview: true/, 260)) {
+      writes.push(`${file} raises an operator signal without preview`);
+    }
+    /* The bulk contact upsert has no preview and is not something a check should reach for. */
+    if (/dtelco-persona-seed'[\s\S]{0,200}method: 'POST'/.test(src)) {
+      writes.push(`${file} posts to the persona seed`);
+    }
+  }
+  ok('and neither of them asks an endpoint to write into the Dengage account',
+     writes.length === 0,
+     writes.length ? writes.join('; ') : `${Object.keys(callers).length} files, every write previewed`);
+
   /* The documented counts live in three places that must never disagree: the document a presenter
      reads, the checker that runs in CI, and the console that runs during a demonstration. The
      checker parses the document, so only the console holds a copy, and this is the assertion that

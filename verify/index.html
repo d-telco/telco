@@ -481,7 +481,7 @@
       run: function () {
         return fetch(FN + 'dtelco-ecomm', {
           method: 'POST', headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ op: 'products' })
+          body: JSON.stringify({ op: 'products' })   // a preview; the write is asked for by name
         }).then(function (r) { return r.json(); }).then(function (b) {
           var s = b.sample || {};
           return { ok: b.missing_required === 0 && b.products > 0 && b.variants > 0 &&
@@ -498,7 +498,8 @@
         var id = 'DPS-dtelco-order-' + Date.now();
         return fetch(FN + 'dtelco-ecomm', {
           method: 'POST', headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ op: 'order', contact_key: 'DPS-DTELCO-1', order_id: id,
+          body: JSON.stringify({ op: 'order', preview: true,
+            contact_key: 'DPS-DTELCO-1', order_id: id,
             items: [{ product_id: 'dev-galaxy-a16', quantity: 2 },
                     { product_id: 'acc-buds-airpods-4', quantity: 1 }] })
         }).then(function (r) { return r.json(); }).then(function (b) {
@@ -509,7 +510,8 @@
               items: [{ product_id: 'dev-galaxy-a16' }] })
           }).then(function (r2) {
             return r2.json().then(function (bad) {
-              return { ok: b.stored === true && b.item_count === 3 && b.total_amount === 507 &&
+              return { ok: b.would_store === true && b.sent === false &&
+                           b.item_count === 3 && b.total_amount === 507 &&
                            r2.status === 400 && /success and refund/.test(bad.why || ''),
                        detail: b.item_count + ' items totalling ' + b.total_amount +
                                ', and shipped refused' };
@@ -546,12 +548,13 @@
         var key = 'DPS-DTELCO-CHECK' + Date.now();
         return fetch(FN + 'dtelco-operator', {
           method: 'POST', headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ contact_key: key, signal: 'usage_80' })
+          body: JSON.stringify({ contact_key: key, signal: 'usage_80', preview: true })
         }).then(function (r1) {
           return r1.json().then(function (refused) {
             return fetch(FN + 'dtelco-operator', {
               method: 'POST', headers: { 'content-type': 'application/json' },
-              body: JSON.stringify({ contact_key: key, signal: 'usage_80', adopt: true })
+              body: JSON.stringify({ contact_key: key, signal: 'usage_80', adopt: true,
+                                 preview: true })
             }).then(function (r2) { return r2.json(); }).then(function (b) {
               return fetch(FN + 'dtelco-reset', { method: 'POST' }).then(function () {
                 return { ok: r1.status === 404 && /adopt: true/.test(refused.adopt || '') &&

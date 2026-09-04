@@ -52,7 +52,19 @@ const EVENT_TABLE = Deno.env.get('DTELCO_BSS_EVENT_TABLE') ?? 'dtelco_bss_events
 
 /* Sent after the row is written, never instead of it, and a failure is reported rather than
    thrown: the demonstration's own record is the thing that must not be lost. */
-async function tellDengage(key: string, signal: string, source: string, note: string | null) {
+async function tellDengage(key: string, signal: string, source: string, note: string | null,
+                           preview = false) {
+  /* A preview writes the operator's own row and stops there.
+   *
+   * The Event API creates a contact for a key it has not seen, which is correct for a real visitor
+   * adopting a line and wrong for a check that mints DPS-DTELCO-CHECK<timestamp> and throws it
+   * away. Without this the repository's own suite left one junk contact in the account per run,
+   * and a junk contact is never deleted here, so they accumulate for good. */
+  if (preview) {
+    return { sent: false, preview: true,
+             why: 'a preview. The row is written and the event API was not called, so no contact ' +
+                  'was created for a key nobody will use again.' };
+  }
   if (!ACCOUNT_ID) {
     return { sent: false, why: 'no Dengage account id is configured, so the event API was not called' };
   }
@@ -198,6 +210,10 @@ Deno.serve(async (req) => {
              'line of their own. Their real browsing and the operator signals then land on the ' +
              'same person, instead of the visitor having to become a persona and lose their own ' +
              'history. Adopted lines are marked and the reset clears them.',
+      preview: 'POST with preview: true and the Postgres row is written and the Event API is not ' +
+               'called. It is what the check suite asks for: the Event API creates a contact for ' +
+               'a key it has not seen, and a check that mints a throwaway key would leave one ' +
+               'behind on every run.',
       signals: SIGNALS,
       moves: MOVES,
       rate_cap: `${CAP} per IP per ${WINDOW_MS / 60000} minutes, per instance`,
@@ -407,7 +423,8 @@ Deno.serve(async (req) => {
   /* Now tell Dengage, from here, with no browser involved. The page still sends its own
      sendDeviceEvent when a tab is open, and the two are not a duplicate: one is the device's
      behaviour and one is the operator's record of a fact. A real integration has both. */
-  const told = await tellDengage(key, signal, String(body.source ?? 'bss'), note);
+  const told = await tellDengage(key, signal, String(body.source ?? 'bss'), note,
+                                body.preview === true);
 
   const after = view ? await count(view) : null;
   const isIn = view ? await inView(view, key) : false;

@@ -7,7 +7,18 @@
  * assertions are checked for truth here, and tools/verify.mjs asserts the two lists carry the same
  * names, so neither can drift away from the other unnoticed.
  *
- * Nothing here writes. Every call is a GET.
+ * Nothing here writes into the Dengage account, and that sentence used to be wrong.
+ *
+ * It said "every call is a GET", which was true when it was written and stopped being true as
+ * assertions were added. Two of them posted a body whose behaviour depended on whether an API user
+ * was configured somewhere else: with none they previewed a payload, and the day credentials
+ * arrived the same body upserted 245 products into the account's catalogue and wrote an order, on
+ * every run. The endpoints now preview by default and take the write by name, every caller here
+ * asks for the preview, and tools/verify.mjs reads this file's source and fails if one stops.
+ *
+ * Some calls do write into this demonstration's own Postgres, and one of them adopts a subscriber
+ * and then restores the base with dtelco-reset. That is deliberate, reversible and named where it
+ * happens.
  */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -237,7 +248,7 @@ export const CHECKS = [
          shape rather than the intention. */
       const r = await fetch(BASE + 'dtelco-ecomm', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ op: 'products' }),
+        body: JSON.stringify({ op: 'products' }),   // a preview; the write is asked for by name
       });
       const b = await r.json();
       const s = b.sample ?? {};
@@ -256,7 +267,8 @@ export const CHECKS = [
       const id = `DPS-dtelco-order-${Date.now()}`;
       const r = await fetch(BASE + 'dtelco-ecomm', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ op: 'order', contact_key: 'DPS-DTELCO-1', order_id: id,
+        body: JSON.stringify({ op: 'order', preview: true,
+          contact_key: 'DPS-DTELCO-1', order_id: id,
           items: [{ product_id: 'dev-galaxy-a16', quantity: 2 },
                   { product_id: 'acc-buds-airpods-4', quantity: 1 }] }),
       });
@@ -268,7 +280,8 @@ export const CHECKS = [
           items: [{ product_id: 'dev-galaxy-a16' }] }),
       });
       const badBody = await bad.json();
-      return { ok: b.stored === true && b.item_count === 3 && b.total_amount === 507 &&
+      return { ok: b.would_store === true && b.sent === false &&
+                   b.item_count === 3 && b.total_amount === 507 &&
                    bad.status === 400 && /success and refund/.test(badBody.why ?? ''),
                detail: `${b.item_count} items totalling ${b.total_amount}, and shipped refused` };
     },
@@ -306,12 +319,13 @@ export const CHECKS = [
       const key = `DPS-DTELCO-CHECK${Date.now()}`;
       const refused = await fetch(BASE + 'dtelco-operator', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ contact_key: key, signal: 'usage_80' }),
+        body: JSON.stringify({ contact_key: key, signal: 'usage_80', preview: true }),
       });
       const refusedBody = await refused.json();
       const taken = await fetch(BASE + 'dtelco-operator', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ contact_key: key, signal: 'usage_80', adopt: true }),
+        body: JSON.stringify({ contact_key: key, signal: 'usage_80', adopt: true,
+                               preview: true }),
       });
       const b = await taken.json();
       /* Put the base back, so a check never leaves a subscriber behind. */

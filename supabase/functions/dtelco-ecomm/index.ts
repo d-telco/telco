@@ -224,8 +224,8 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       function: 'dtelco-ecomm',
       ops: {
-        products: 'POST /dataspace/ecomm/product/upsert, the whole catalogue',
-        order: 'POST /dataspace/ecomm/orders_detail/upsert, one order, stored here first',
+        products: 'POST /dataspace/ecomm/product/upsert, the whole catalogue. Previews unless send: true',
+        order: 'POST /dataspace/ecomm/orders_detail/upsert, one order, stored here first. preview: true computes and writes nothing',
       },
       products_in_catalogue: products ?? 0,
       orders_stored: orders ?? 0,
@@ -236,6 +236,10 @@ Deno.serve(async (req) => {
       why_both_order_routes: 'ec:order from the browser writes order_events and ' +
         'order_events_detail, the behavioural family. This writes orders and orders_detail, the ' +
         'record family. A closed tab loses the first and not the second.',
+      why_preview_is_the_default: 'a body that wrote into the account whenever an API user ' +
+        'happened to be configured elsewhere was indistinguishable from one that did not. The ' +
+        'write is asked for by name now, so a check, a runbook or a mistyped body cannot reach ' +
+        'the account by accident.',
       dengage_configured: !!(USERKEY && PASSWORD),
       note: 'the CSV feed still serves the site and the Android app. It is no longer how the ' +
             'catalogue reaches Dengage.',
@@ -275,7 +279,19 @@ Deno.serve(async (req) => {
     }
     const built = list.map((p) => productRow(p, byProduct.get(String(p.product_id)) ?? []));
 
-    const bearer = await login();
+    /* Preview unless somebody asked to send, and not the other way round.
+     *
+     * This used to send whenever an API user happened to be configured, and the difference between
+     * the two behaviours was invisible from the call: the same body, the same op, and whether 245
+     * products landed in the account's catalogue depended on an environment variable somewhere
+     * else. The repository's own check suite called this to assert the shape of the payload and,
+     * the day credentials arrived, started upserting the whole catalogue on every run. A test that
+     * writes into a shared account is a test nobody can run twice.
+     *
+     * So the safe answer is the default and the write has to be asked for by name. A curl in a
+     * runbook, a check, or a mistyped body can no longer reach the account. */
+    const send = body.send === true;
+    const bearer = send ? await login() : null;
     if (!bearer) {
       /* The shape it would send, so a person can see the required fields are there before an
          account exists to refuse them. link and image_link being absent here is what caught the
@@ -283,11 +299,14 @@ Deno.serve(async (req) => {
       const missing = built.filter((b) => !b.link || !b.image_link || !b.title || !b.category_path
         || b.price === undefined || b.discounted_price === undefined);
       return new Response(JSON.stringify({
-        ok: false, op, products: built.length,
+        ok: false, op, sent: false, products: built.length,
         variants: (vrows ?? []).length,
         missing_required: missing.length,
         missing_examples: missing.slice(0, 3).map((m) => m.product_id),
-        why: 'no Dengage API user is configured, so nothing was sent',
+        why: send
+          ? 'send was asked for and no Dengage API user is configured, so nothing was sent'
+          : 'this is a preview and nothing was sent. POST send: true to upsert the catalogue.',
+        configured: !!(USERKEY && PASSWORD),
         sample: built[0] ?? null,
       }, null, 1), { headers });
     }
@@ -308,7 +327,8 @@ Deno.serve(async (req) => {
     }
     const failed = results.filter((x) => x.code !== 0);
     return new Response(JSON.stringify({
-      ok: failed.length === 0, op, products: built.length, batches: results.length, results,
+      ok: failed.length === 0, op, sent: true, products: built.length,
+      batches: results.length, results,
       note: 'accepted is not stored. Storage lags about two minutes; dtelco-dengage-tables counts ' +
             'the product table and a count is the only proof.',
     }, null, 1), { headers });
@@ -382,6 +402,19 @@ Deno.serve(async (req) => {
      with its own lines is the most common way a batch is refused. */
   const itemCount = items.reduce((t, i) => t + i.quantity, 0);
   const totalAmount = Number(items.reduce((t, i) => t + i.discounted_price * i.quantity, 0).toFixed(2));
+
+  /* The same rule as the catalogue above, for the same reason. A preview computes and validates
+     everything and writes nothing, anywhere: not the order row, not the lines, not Dengage. It is
+     what the check suite and the verification console ask for, because what they assert is that
+     the totals are computed here rather than accepted from a caller, and that assertion needs no
+     row to survive it. */
+  if (body.preview === true) {
+    return new Response(JSON.stringify({
+      ok: true, op, order_id: orderId, preview: true, would_store: true, sent: false,
+      items: items.length, item_count: itemCount, total_amount: totalAmount, notes,
+      why: 'a preview. Nothing was written here and nothing was sent to Dengage.',
+    }, null, 1), { headers });
+  }
 
   const orderDate = new Date().toISOString();
   const { error: storeError } = await db.from('dtelco_order').upsert({
