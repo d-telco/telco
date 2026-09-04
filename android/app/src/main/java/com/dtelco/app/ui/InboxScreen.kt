@@ -34,13 +34,17 @@ fun InboxScreen(activity: Activity, contactKey: String?) {
   var dengageProblem by remember { mutableStateOf<String?>(null) }
   var ours by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
   var loaded by remember { mutableStateOf(false) }
+  /* Bumped by the bulk controls so the list is read again from Dengage rather than from what this
+     screen assumed happened. A mailbox this app emptied and a mailbox Dengage emptied are the same
+     mailbox, and only one of them is worth trusting. */
+  var reload by remember { mutableStateOf(0) }
 
   LaunchedEffect(Unit) {
     DengageBridge.pageView("inbox")
     DengageBridge.screen(activity, "inbox")
   }
 
-  LaunchedEffect(contactKey) {
+  LaunchedEffect(contactKey, reload) {
     DengageBridge.inbox { messages, error ->
       dengageMessages = messages
       dengageProblem = error
@@ -66,7 +70,27 @@ fun InboxScreen(activity: Activity, contactKey: String?) {
           "both are set in the panel: the account is enabled for App Inbox, and the push content " +
           "has Save To Inbox switched on with an expiry date."
       )
-      else -> for (m in dengageMessages) DengageMessageCard(m)
+      else -> {
+        for (m in dengageMessages) DengageMessageCard(m)
+        /* The two controls a real mailbox has and a demonstration usually leaves out. They are
+           still a hand pressing a button, so the standing rule holds: nothing is marked read that
+           nobody chose to mark read, and nothing is reported for a message Dengage did not
+           issue. */
+        Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+          OutlinedButton(onClick = {
+            DengageBridge.inboxAllRead()
+            dengageMessages = emptyList()
+            loaded = false
+            reload++
+          }) { Text("Mark all read") }
+          OutlinedButton(onClick = {
+            DengageBridge.inboxEmptied()
+            dengageMessages = emptyList()
+            loaded = false
+            reload++
+          }) { Text("Empty the mailbox") }
+        }
+      }
     }
 
     HorizontalDivider(Modifier.padding(16.dp))

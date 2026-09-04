@@ -44,6 +44,13 @@ object Cart {
   }
 
   /* What a real time in-app rule compares against. Set every time the cart moves, because a rule
-     about a cart over a threshold is only true at the moment it is read. */
-  private fun facts() = DengageBridge.cartFacts(count, total)
+     about a cart over a threshold is only true at the moment it is read.
+     Two shapes, because the SDK takes two and a rule can be written against either. The count and
+     the amount answer "is this cart worth interrupting". The structured cart answers "what is in
+     it", which is what a rule about a handset with no case in the basket needs and what a count
+     can never say. */
+  private fun facts() {
+    DengageBridge.cartFacts(count, total)
+    DengageBridge.structuredCart(lines.toList())
+  }
 }

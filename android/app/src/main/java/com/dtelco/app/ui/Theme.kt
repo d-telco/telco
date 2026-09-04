@@ -76,6 +76,17 @@ fun DemoNotice() = Text(
   modifier = Modifier.padding(16.dp),
 )
 
+/* A labelled value, used on every screen that reads something back. Unknown values are omitted by
+   the caller rather than printed as zero, which is the standing rule everywhere in this build: a
+   zero is a measurement and a missing value is not. */
+@Composable
+fun Fact(label: String, value: String) {
+  Row(Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
+    Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
+    Text(value, style = MaterialTheme.typography.bodyMedium)
+  }
+}
+
 @Composable
 fun Why(text: String) = Text(
   text,

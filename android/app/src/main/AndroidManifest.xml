@@ -6,6 +6,35 @@
        DengageBridge.askForNotifications calls the SDK's own request, which is the documented way. -->
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+  <!-- Location, for the geofence module. Written out here as well as in the module's own manifest,
+       because a permission a reviewer cannot see in the app's own manifest is a permission nobody
+       reviewed.
+
+       FINE and COARSE are the ordinary pair. BACKGROUND is what makes a region matter: without it
+       a person only enters a store's circle while the app is open, which is the one moment they
+       did not need telling about the store. Android 10 and above will not grant it in the same
+       dialog as the other two, so DengageGeofence.requestLocationPermissions asks in the order the
+       platform requires and the Nearby screen says what was granted rather than assuming. -->
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+  <!-- Which apps this one may ask the operating system about, for Dengage app presence.
+
+       Android 11 hid the installed app list. An app now sees only the packages it declares here,
+       and QUERY_ALL_PACKAGES needs a Play declaration and a reason Google accepts. So the honest
+       answer on a modern handset is the intersection of the list the account asks for and the list
+       below, and the device screen shows both rather than reporting an empty answer as an absence.
+
+       These are the D·TELCO family, which is invented like the rest of this demonstration. A real
+       operator lists the partner packages it has a business reason to detect, and no more: this is
+       the mechanism, shown without naming anybody's product. -->
+  <queries>
+    <package android:name="com.dtelco.tv" />
+    <package android:name="com.dtelco.wallet" />
+    <package android:name="com.dtelco.selfcare" />
+  </queries>
+
   <application
       android:name=".DtelcoApp"
       android:allowBackup="false"

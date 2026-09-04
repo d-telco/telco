@@ -38,7 +38,7 @@ docs/customization-in-transactional-messages    docs/dynamic-content-customizati
 docs/remote-segment-columns-customization       docs/recommendation-rules
 ```
 
-**Beyond the supplied set.** Twenty pages, each read because a question could not be answered
+**Beyond the supplied set.** Twenty one pages, each read because a question could not be answered
 without it, and each named here so a reader knows exactly how far this document reaches past what
 was handed over. `tools/check-coverage.mjs` counts the rows below and fails if this sentence
 disagrees with them, because it said five while listing nineteen for long enough to be quoted.
@@ -67,6 +67,7 @@ Every one of them was read, and every one answers with HTTP 200 on 4 September 2
 | `docs/ab-split` | Two variants of one creative |
 | `docs/smart-search-onsite` | The faceted catalogue search the site stands in for |
 | `docs/applications` | `reference/inbox-rest-api` says a Custom Inbox application must exist and links here. It is why `dtelco-inbox` takes its own guid and refuses to fall back to the push one |
+| `reference/new-android-sdk-` | The Android SDK. Nothing in the supplied set is about a handset, and the app is half this demonstration |
 
 That list is longer than it looks like it should be, and the reason is worth stating: a claim that
 Dengage draws a popup is not proved by a page about popups in general. Each template is its own
@@ -260,9 +261,47 @@ said out loud, and shown as a canvas if the check fails.
 | 8 | The guid of the **Custom Inbox** application, which is a different application type from web push. `docs/applications` creates it separately | Whether the counter panel reads a mailbox or reports a misconfiguration. `dtelco-inbox` refuses to substitute the push guid, so a wrong value shows as a refusal rather than as an empty inbox |
 | 9 | Whether the account has `inbox_enabled` switched on. "On a disabled account every request is rejected with `400`" | The same panel. A 400 cannot tell a disabled account apart from a wrong account id, and the function says so rather than guessing |
 | 10 | Whether the API user has the push permission `sendInstant` needs. An API user without a permission answers 403 with an empty body | Whether the outage broadcast sends or reports a refusal. The function names the 403 as a missing permission rather than as a failure |
+| 11 | Whether App Stories is enabled for the **Android** application, and whether a story property can carry the id `dtelco_app_stories` | Whether the Discover tab's rail fills or is shown as a labelled empty slot |
+| 12 | Whether inline in-app properties exist for the Android application under the three ids the app declares: `dtelco_app_home`, `dtelco_app_product`, `dtelco_app_cart` | Whether an in-app message lands in the app's own layout or only over it |
+| 13 | Whether the account has geofence switched on, and whether the seven regions in ACCOUNT-SETUP.md are created. The device screen reads the switch back from the account, so this is answerable on the handset | Whether the Near you screen demonstrates a region or explains an empty one |
+| 14 | Whether live update is enabled on the account, and the field names its push carries in the content state. The app reads `title`, `step`, `detail` and `percent` | Whether the order progress notification is edited by a push or only drawn locally |
+| 15 | Whether the in-app cart's integer `price` is read as minor units or whole currency units. The app sends minor units, because 216 of 490 catalogue prices have cents and rounding would be a different catalogue | Which scale a panel rule about a line price is written in. One constant flips it |
+| 16 | Whether App Inbox is enabled for the Android application as well as the web one. They are two applications and nothing set up for one reaches the other | Whether the app inbox screen fills or reports an empty mailbox |
 
 ### Measurements, recorded rather than assumed
 
 | Date | What was measured | Result |
 |---|---|---|
 | 4 September 2026 | The host serving `/api/inbox/getMessages`. `reference/inbox-rest-api` gives every path relative and names no host | `tr-push.dengage.com` and `tr-event.dengage.com` answer the documented `400 {"message":"Invalid Account"}`; `tr-api.dengage.com` answers 404 html; `tr-inapp.lib.dengage.com` answers a missing bucket key. The push host is the one, and it was already in `js/config.js` under `datacenters.tr.push`. Probed with no account data and nothing written |
+
+---
+
+## 8. The app, and what it renders locally
+
+The same question as section 1, asked of the handset. For each thing the app draws itself, the
+mechanism that would draw it instead, and how it was confirmed.
+
+Two of these are not documentation citations, and that is deliberate. The Android SDK's published
+surface was read with `javap` against the shipped 6.0.99 artifact on 4 September 2026, because
+three signatures in the guide do not compile against it and one documented call is not in it at
+all. A signature copied from a code sample is a signature nobody has compiled. Where the artifact
+and the guide disagree, the artifact wins and `DengageBridge.kt` records which.
+
+| What the app draws | Kind | The Dengage mechanism | Source | Confirmed |
+|---|---|---|---|---|
+| `picked_for_you` | app | The recommendation rail, the same three ids the website's rail shows, both asked of one backend rather than each running its own rules | reference/recommendation-web-sdk | yes |
+| `rfm_order` | app | `saveRFMScores` and `sortRFMItems`, on the handset, no network call. The list is chosen elsewhere; this only orders it | AAR 6.0.99 | yes |
+| `geofence_card` | app | `DengageGeofence` raises the signal and the panel holds the regions. The card is the local half, beside whatever Dengage sent | AAR 6.0.99, sdk-geofence | yes |
+| `live_update_preview` | app | `LiveUpdateHandler.buildNotification`, the same handler a live update push calls. The preview posts it without a push and says so on its face | AAR 6.0.99 | yes |
+| `cart_confirmation` | app | Non negotiable 2: a confirmation is drawn locally on every surface, and Dengage carries the profile, the events and the channels | reference/ecommerce-events | yes |
+| `empty_slot_outline` | app | Nothing. An inline property with no content served into it draws a labelled outline rather than a blank gap, so a slot waiting for content does not read as a fault | reference/new-android-sdk- | yes |
+
+Everything else the app shows is Dengage's own view, drawn by the SDK and reported by the SDK, with
+nothing local about it: the App Stories rail, the inline in-app element, the modal in-app message,
+the App Inbox list, and the push notification itself.
+
+**One documented call is not in the shipped artifact.** `getRecommendation` and `RecommendationView`
+appear in the mobile documentation and are absent from 6.0.99, which is the latest published
+version. The app therefore does not call them, and the rail asks the shared backend for the same
+three ids the website's rail shows. That keeps the two surfaces identical by construction rather
+than by two engines agreeing, which is the stronger property anyway.

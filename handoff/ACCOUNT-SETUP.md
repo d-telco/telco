@@ -108,6 +108,90 @@ Each line is what the documentation requires.
    does not name every one of them, so a new field cannot be added to a payload without being
    added here first.
 
+## Panel setup the Android app needs
+
+The web application and the Android application are two applications in the panel. Nothing set up
+for one reaches the other, which is the single most common reason a first mobile integration
+appears to do nothing at all.
+
+1. **Settings > Applications > New > Android.** It issues the **Firebase integration key**, which
+   is the only value `Dengage.init` needs and the only reason the app runs in dry mode without it.
+   Put it in `Config.FIREBASE_INTEGRATION_KEY`.
+2. **`google-services.json` from the Firebase project**, in `android/app/`. The build fails
+   without it, and the server key on the Firebase project has to be the one the panel holds or the
+   push is accepted by Dengage and refused by Firebase.
+3. **The screen names the panel targets on.** The app calls `setNavigation` on every screen change
+   and passes the same name to every inline and story property: `home`, `shop`, `cart`, `product`,
+   `discover`, `inbox`, `account`, `nearby`, `device`. A campaign aimed at a name outside that list
+   never appears and reports nothing.
+4. **Four in-app properties**, whose ids the app declares and the panel has to match, exactly as
+   the website's `dn_inline_target_` ids work:
+
+   | Property | Where it draws | Kind |
+   |---|---|---|
+   | `dtelco_app_home` | Home, and again on Discover | Inline in-app |
+   | `dtelco_app_product` | Product detail, under the buy row | Inline in-app |
+   | `dtelco_app_cart` | Above the cart summary | Inline in-app |
+   | `dtelco_app_stories` | The rail at the top of Discover | App Stories |
+
+   An inline property with no content served into it draws a labelled outline rather than a blank
+   gap, so an empty slot in the room reads as a slot rather than as a fault.
+5. **App Inbox on the Android application as well as the web one.** It is enabled per account by
+   writing to tech@dengage.com, and each push content needs **Save To Inbox** switched on with an
+   expiry date. Until both are true the inbox screen is empty, and empty is a real answer rather
+   than a failure.
+6. **Geofence regions**, seven of them, set to the coordinates below. The app creates none of
+   them: it starts the tracker, asks for the permissions the platform requires, and listens. The
+   six shops are 150 m; the airport is 1200 m because arrivals is a building rather than a shop
+   front.
+
+   | Region | City | Latitude | Longitude | Radius |
+   |---|---|---|---|---|
+   | D·TELCO Nizami | Baku | 40.4093 | 49.8671 | 150 m |
+   | D·TELCO Ganja Centre | Ganja | 40.6828 | 46.3606 | 150 m |
+   | D·TELCO Sumqayit | Sumqayit | 40.5855 | 49.6317 | 150 m |
+   | D·TELCO Mingachevir | Mingachevir | 40.7700 | 47.0489 | 150 m |
+   | D·TELCO Lankaran | Lankaran | 38.7529 | 48.8475 | 150 m |
+   | D·TELCO Shirvan | Shirvan | 39.9266 | 48.9206 | 150 m |
+   | Heydar Aliyev International | Baku | 40.4675 | 50.0467 | 1200 m |
+
+   The coordinates are the published city centres. The shops at them are demo data, like every
+   other figure in this build that nobody published, and the app says so on the screen.
+
+   The behaviour to plan a demonstration around: the nearest fifty regions are monitored, the list
+   refreshes about every fifteen minutes, a second signal for the same region inside five minutes
+   is suppressed, and a fix accurate to worse than a kilometre is discarded. Background location is
+   what makes a region worth having, and Android 10 and above will not grant it in the same dialog
+   as the other two.
+
+7. **A live update activity type `dtelco_order`.** One ongoing notification per order, edited in
+   place by a push rather than replaced by a new one at every step. The app registers the handler
+   at start, because a live update can arrive while the app is in the background and a handler
+   registered on a screen would not be there yet. The push carries `step`, `detail`, `percent` and
+   `title` in its content state; anything else is ignored rather than drawn wrongly.
+
+8. **App presence**, if it is wanted. The list of packages lives in the account and the SDK reads
+   it back, so the panel decides what is asked about. Android 11 and above answers only for
+   packages the app's own manifest declares, and this app declares `com.dtelco.tv`,
+   `com.dtelco.wallet` and `com.dtelco.selfcare` and nothing else. The honest answer on a modern
+   handset is always the overlap of the two lists, and the device screen shows both.
+
+9. **The structured cart's prices are integers, and this build sends minor units.** Dengage's
+   in-app cart carries `price` and `discountedPrice` as integers, and 216 of this catalogue's 490
+   prices have a fractional part, so rounding to whole dollars would not be a rounding error, it
+   would be a different catalogue. A price of $2.99 therefore arrives as `299`.
+
+   The consequence, and the reason it is here rather than in a code comment: **a rule about a line
+   price is written in cents, and a rule about `cartAmount` is written in dollars.** `cartAmount`
+   and `cartItemCount` are strings and keep their decimal point. A rule written against the wrong
+   scale never fires and looks exactly like a feature that does not work. One constant in
+   `DengageBridge.kt` holds the scale if the account wants it the other way.
+
+10. **RFM scores are supplied by the app, not fetched.** `saveRFMScores` is what puts a score per
+    category on the device and `sortRFMItems` is what uses them, both on the handset with no
+    network call. This build derives the scores from the categories opened on that handset. An
+    operator that already scores its customers puts its own numbers in and nothing else changes.
+
 ## The custom columns on `master_contact`
 
 Twenty seven, created in the panel before anything writes to them. A column that does not exist is

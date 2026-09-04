@@ -25,7 +25,12 @@ import kotlinx.coroutines.withContext
  * recommendation, because it is not one.
  */
 @Composable
-fun HomeScreen(activity: Activity, contactKey: String?, onOpenProduct: (String) -> Unit) {
+fun HomeScreen(
+  activity: Activity,
+  contactKey: String?,
+  onOpenProduct: (String) -> Unit,
+  onOpenNearby: () -> Unit,
+) {
   var answer by remember { mutableStateOf<ProfileAnswer?>(null) }
 
   LaunchedEffect(Unit) {
@@ -39,7 +44,19 @@ fun HomeScreen(activity: Activity, contactKey: String?, onOpenProduct: (String) 
 
   LaunchedEffect(contactKey) {
     val k = contactKey ?: return@LaunchedEffect
-    answer = withContext(Dispatchers.IO) { Backend.profile(k) }
+    val a = withContext(Dispatchers.IO) { Backend.profile(k) }
+    answer = a
+    /* The values an in-app template prints, taken from the operator's own record rather than from
+       anything this screen made up. A message written once in the panel then says this person's
+       plan name without the panel knowing a single plan name in advance. */
+    a.line?.let { line ->
+      DengageBridge.inAppDeviceInfo(buildMap {
+        line.planName?.let { put("plan_name", it) }
+        line.lifecycle?.let { put("lifecycle", it) }
+        line.dataRatio?.let { put("data_used_percent", (it * 100).toInt().toString()) }
+      })
+      line.city?.let { DengageBridge.city(it) }
+    }
   }
 
   Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
@@ -99,6 +116,28 @@ fun HomeScreen(activity: Activity, contactKey: String?, onOpenProduct: (String) 
         "Sign in on the Account tab and this fills with the same three products the website's " +
           "rail shows for that person, chosen by the same engine rather than by a second one."
       )
+    }
+
+    /* An in-app message placed in the layout rather than over it, on the screen a person opens
+       most. Dengage fills it or leaves it empty; nothing here decides. */
+    Spacer(Modifier.height(8.dp))
+    InlineInAppSlot(activity, Config.INLINE_HOME, "home",
+                    Modifier.padding(horizontal = 16.dp))
+
+    /* The one thing on this app no browser can do, one tap from the home screen because a person
+       walking past a shop is not going to go looking for it in a menu. */
+    Card(
+      Modifier.fillMaxWidth().padding(16.dp).clickable { onOpenNearby() },
+    ) {
+      Column(Modifier.padding(16.dp)) {
+        Text("Near you", style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(4.dp))
+        Text(
+          "Seven regions, six shops and an airport. Dengage holds the circles and decides what " +
+            "somebody entering one gets.",
+          style = MaterialTheme.typography.bodySmall,
+        )
+      }
     }
 
     ScreenTitle("Tariffs")

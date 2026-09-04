@@ -92,6 +92,43 @@ you pay extra for. The same key, set on both surfaces."
 **Prove it.** The token appears on the screen. Say why the order matters: a token binds to the key
 that subscribed, and asking before signing in binds it to nobody.
 
+**Press.** **This device, its token and its consent**, at the bottom of the account screen.
+
+**What happens.** Everything Dengage holds about this handset, read back rather than assumed: the
+contact key, the device id, the token as a fingerprint, and the two consents. Below it, what this
+account has switched on for the Android application, read from Dengage: inbox, in-app, real time
+in-app, geofence, app presence.
+
+**The line to say.** "Every demonstration you have sat through answers the awkward question with a
+shrug. Is this the person or the phone. Is there a token at all. Is the inbox empty or was it never
+switched on. That screen answers all three from the platform, not from the app's opinion."
+
+**Press.** Both consent switches, on and off.
+
+**What happens.** The device record in Dengage changes. Turning notifications off here does not
+revoke the Android permission, and turning it on does not grant one.
+
+**The line to say.** "Two consents, held by two different parties. The operating system holds one
+and Dengage holds the other, and a customer can withdraw the second without touching the first.
+That is what a regulator asks to see."
+
+**Press.** The **Discover** tab.
+
+**What happens.** The story rail draws whatever the panel is serving, above an inline in-app
+message sitting in the layout rather than over it, above an offers rail this handset reordered.
+
+**The line to say.** "Three different things and only one of them is ours. The stories are Dengage,
+end to end: content, order, expiry and reporting. The inline message is Dengage too, placed in our
+layout instead of on top of it, so a merchandising slot does not have to interrupt anybody. The
+ordering is the only local part, and even that is the SDK sorting our list against scores it holds,
+on the device, with no round trip."
+
+**Press.** Open three phones on the Shop tab, then come back to Discover.
+
+**What happens.** The offers rail is in a different order.
+
+**The line to say.** "No network call. That reordered while your finger was still on the glass."
+
 ---
 
 ## Act 3. The moment only a telecom operator has
@@ -122,6 +159,33 @@ not a file somebody uploaded last night."
 
 **What happens.** The usage bar reads the real number, and the on site experience arms from it
 rather than from a presenter setting a switch.
+
+**Press.** On the phone, **Near you**, then **Stand here** on the Nizami store.
+
+**What happens.** The SDK is handed a fix at that shop's coordinates, reported as a mock location
+because that is what it is. If the account has a region there, Dengage raises the signal and sends
+whatever that region is set to send, and the screen draws its own card naming the region, its
+centre and its radius.
+
+**Prove it.** The card and the message, side by side. The card is the app's. The message is
+Dengage's. Nothing on this screen created a region: the panel holds all seven, so an operator adds
+a shop on a Tuesday and every handset picks it up at the next refresh with no app release.
+
+**The line to say.** "This is the moment a browser can never have, and the reason the app exists.
+Everything else on this phone, the website does differently. Nobody walks past your shop with a
+browser tab open."
+
+**Press.** **Check in at this store.**
+
+**What happens.** A row keyed to the person rather than to the handset.
+
+**The line to say.** "Walking past a shop is something the network noticed. Saying I am here is
+something the customer did. Only the second one should start a collect in store journey, and only
+one of them survives the phone being handed to somebody else."
+
+**If you are indoors and want the real thing instead.** Walk to a region, or move the handset with
+the emulator's location control. Everything after the fix takes the same road either way, and the
+button exists because meeting rooms are not next to shops.
 
 ---
 

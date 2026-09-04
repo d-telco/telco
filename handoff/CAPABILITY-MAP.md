@@ -5,7 +5,7 @@ demonstrates a Dengage capability no other page, screen or moment already demons
 Two surfaces showing the same mechanism is a defect, not coverage.
 
 This file is the audit that enforces it. Part 1 is the capability inventory. Part 2 assigns
-every capability to exactly one headline surface. Part 3 is the journey matrix. Part 4 is the
+every capability to a surface, and every headline to exactly one surface. Part 3 is the journey matrix. Part 4 is the
 repetition audit and the gaps.
 
 Sign off on Part 2 before any page is written.
@@ -14,7 +14,7 @@ Sign off on Part 2 before any page is written.
 
 ## Part 1. The Dengage capability inventory for a telco
 
-**71 capabilities.** The census in `tools/audit.mjs` reads that number from this line and counts
+**88 capabilities.** The census in `tools/audit.mjs` reads that number from this line and counts
 the rows below it, so adding a capability without updating the sentence fails the build.
 
 Nothing here is aspirational: each maps to a documented mechanism, or is marked **verify**
@@ -145,13 +145,42 @@ could see it because no check reads prose. `tools/audit.mjs` now refuses a secon
 | J2 | Channel readiness reported per channel before a send is attempted |
 | J3 | Outcome codes read from bodies, so a refusal shows as a refusal |
 
+### L. The mobile app
+
+Everything in this section is something the SDK on the handset does and the SDK in a browser
+cannot. It is the reason the app is not the website in a smaller window, and it is what a telco
+asks about first, because the app is where its customers already are.
+
+| id | Capability |
+|---|---|
+| L1 | An in-app message injected into the app's own layout at a named inline property |
+| L2 | App Stories, served by Dengage and drawn by the SDK's own view |
+| L3 | Values the handset supplies, printed inside an in-app template written once |
+| L4 | Device tags written from app code and read by a segment |
+| L5 | The device subscription record read back: contact key, device id, token, permissions |
+| L6 | The account's own switches read back: inbox, in-app, real time in-app, geofence, presence |
+| L7 | Consent held on the device record: notification and behaviour tracking |
+| L8 | Geofence regions defined in the panel and entered by a handset |
+| L9 | The cart as a structured object, so a rule reads lines rather than a total |
+| L10 | RFM ordering, computed on the handset against a score per category, with no network call |
+| L11 | A live update: one ongoing notification that a push edits in place |
+| L12 | The store review prompt, raised at a moment the operator chose |
+| L13 | App presence, bounded by what the account asks for and what the manifest declares |
+| L14 | Login, logout and register as their own events rather than as page views |
+| L15 | Inbox bulk actions: mark all read, empty the mailbox |
+| L16 | A partner device id, so an attribution platform and Dengage name the same handset |
+| L17 | A custom row keyed to the contact rather than to the handset, from the same app |
+
 ---
 
 ## Part 2. Every surface, and the one capability it exists to prove
 
 **Headline** is the capability the surface exists for. It appears as a headline exactly once in
-this table. **Also carries** are capabilities already headlined elsewhere that this surface
-naturally uses; they are not the reason it exists.
+this table. **Also carries** are capabilities the surface uses without being the reason it exists.
+A capability may appear only in those columns, and that means no single surface exists for it
+alone: it is a mechanism several surfaces reach for rather than a reason any of them was built.
+The rule the census enforces is the one that matters, and it is the first sentence: nothing is
+headlined twice unless Part 4 argues for it in writing.
 
 ### The storefront: 23 pages
 
@@ -213,15 +242,28 @@ into a phone mock with the persona's real values beside the content id and Denga
 for that channel, labelled as composed and not sent. Sends cost money per message; the copy,
 the audience and the trigger cost nothing and are what a prospect actually needs to see.
 
-### The Android app: 5 screens
+### The Android app: 8 screens
 
-| # | Screen | Headline capability | Proved by |
-|---|---|---|---|
-| 26 | App sign in | **A2** the same contact key, so web and app land on one profile | One contact card, two surfaces of history |
-| 27 | App home | **F10** mobile in app message, the app's answer to an on site campaign | The message drawn on a real device |
-| 28 | App product | **F9** app push through Firebase, opening this screen from the notification | A physical phone, a simulator raised push, the right screen |
-| 29 | App inbox | **F11** the inbox rendered natively and reported back | Impression and open recorded for Dengage's messages only |
-| 30 | App shop, catalogue and cart | **C3** app sourced rows landing in the same tables as the web | One count moving from two surfaces |
+Five are tabs, because a customer moves between them. Three are pushed on top, because each is
+somewhere a customer arrives from something rather than somewhere they browse to: a product from a
+notification, the nearby screen from a store card, the device screen from the account.
+
+| # | Screen | Headline capability | Also carries | Proved by |
+|---|---|---|---|---|
+| 26 | App sign in | **A2** the same contact key, so web and app land on one profile | L3, L14 | One contact card, two surfaces of history |
+| 27 | App home | **F10** mobile in app message, the app's answer to an on site campaign | L1, L3 | The message drawn on a real device |
+| 28 | App product | **F9** app push through Firebase, opening this screen from the notification | L1, B8 | A physical phone, a simulator raised push, the right screen |
+| 29 | App inbox | **F11** the inbox rendered natively and reported back | L15 | Impression and open recorded for Dengage's messages only |
+| 30 | App shop, catalogue and cart | **C3** app sourced rows landing in the same tables as the web | L1, L9, B7 | One count moving from two surfaces |
+| 31 | App discover | **L2** App Stories, served and reported by Dengage and drawn by nothing here | L1, L3, L10, L12 | The rail changes in the panel and on the handset, with no release |
+| 32 | App nearby | **L8** a geofence region, defined in the panel and entered by a handset | L7, L17 | A region entered on a walk, and the same region reached indoors with a mock fix |
+| 33 | App device and consent | **L5** the device subscription record, read back rather than assumed | L4, L6, L11, L13, L16 | A token, a contact key and an account switch, read from Dengage |
+
+The app is the only surface with a proof screen of its own. On the web the verification console is
+a separate page nobody in the demonstration visits; on a handset the same questions are asked in
+the room, out loud, while somebody holds the phone. Is this the person or the handset. Is there a
+token. Is the inbox empty or switched off. Screen 33 answers them from Dengage rather than from
+this app's opinion, which is the difference between a demonstration and a claim.
 
 ### Capabilities carried by the demo layer rather than by a page
 
@@ -304,8 +346,8 @@ way an inbox row can exist: no transactional send can write one.
 ## Part 4. Repetition audit
 
 **Every capability appears as a headline exactly once, with two argued exceptions.** A1, A2, A3,
-A4, A6, A8, B2, B3, B5, B7, B8, C1, C2, C3, C4, D3, E1, E6, F8, F9, F10, F11, G5, G8, J1, J2, J3
-are each the sole reason one surface exists.
+A4, A6, A8, B2, B3, B5, B7, B8, C1, C2, C3, C4, D3, E1, E6, F8, F9, F10, F11, G5, G8, J1, J2, J3,
+L2, L5, L8 are each the sole reason one surface exists.
 
 Argued repeats, read by the census from this list, so an unargued repeat fails the build:
 
@@ -329,6 +371,23 @@ Argued repeats, read by the census from this list, so an unargued repeat fails t
 | Separate campaign pages per offer | One offers page with the A/B test proves it once |
 | A tariff archive per family | One archive page proves an inactive product resolving by id |
 | A store locator | Stores are a reference table and can never be a remote source. Store visits reach the profile through the simulator instead |
+
+**Why the app is not the website again**
+
+An app that proved what a browser proves would be a second copy of the demonstration with a worse
+keyboard. Every one of the eight screens is here because of something a browser cannot reach.
+
+| Looks like | Actually |
+|---|---|
+| L1 inline in-app against G3 inline on site | The same idea on two engines that share nothing. G3 injects into a page's DOM at a CSS target the panel's selector tool found. L1 injects into a native layout at a property the app declared, and a native layout has no DOM to search. The panel work is different, the failure modes are different, and an operator with both has to be shown both |
+| L2 App Stories against G1 popup | A popup interrupts. A story waits to be tapped, plays full screen, expires on its own and is a merchandising surface an operator edits between one commute and the next. Nothing on the website behaves like that |
+| L4 device tags against A6 contact tags | A6 is a tag the engine's own question form writes about a person. L4 is a tag app code writes about a handset. Different writer, different subject, and a family sharing a phone is exactly where the difference stops being academic |
+| L7 consent against A5 contact columns | A column is something the operator recorded. A device permission is something the customer granted, held by the platform, withdrawable without a form. A regulator asks for the second |
+| L8 geofence against H4 a date on the event | H4 is a moment the customer told you about in advance. L8 is a moment nobody could have predicted, including the customer. The roaming journeys are the pair that shows it: 13 is timed off a travel date, 14 fires because a handset arrived |
+| L9 the structured cart against B3 cart events | B3 is history, written to a table and read later by a segment. L9 is the cart as it is right now, read on the handset by a rule with no round trip. One answers what happened, the other decides what to do about it in the next second |
+| L10 RFM ordering against I1 the recommendation engine | I1 chooses what to show and names its rule. L10 does not choose anything: it takes a list somebody else chose and orders it against a score per category, on the device, with no network call. An operator that already scores its customers puts its own numbers in |
+| L11 a live update against F9 app push | F9 is a notification. L11 is one notification that keeps being the same notification while the thing it is about moves. Three pushes about one delivery is three interruptions about one delivery |
+| L17 a contact keyed row against C3 a device keyed row | Both land in `dtelco_events` from the same app. One joins to the handset, the other to the person. After a sign out only one of them still means what it said |
 
 **Why the two channels added on 4 September 2026 are not repeats**
 

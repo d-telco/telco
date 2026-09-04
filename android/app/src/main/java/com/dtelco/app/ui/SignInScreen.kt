@@ -21,7 +21,12 @@ import kotlinx.coroutines.withContext
  * building all along.
  */
 @Composable
-fun SignInScreen(activity: Activity, contactKey: String?, onContactKey: (String?) -> Unit) {
+fun SignInScreen(
+  activity: Activity,
+  contactKey: String?,
+  onContactKey: (String?) -> Unit,
+  onOpenDevice: () -> Unit,
+) {
   var typed by remember { mutableStateOf(contactKey ?: Identity.PREFIX) }
   var refused by remember { mutableStateOf<String?>(null) }
   var answer by remember { mutableStateOf<ProfileAnswer?>(null) }
@@ -66,18 +71,29 @@ fun SignInScreen(activity: Activity, contactKey: String?, onContactKey: (String?
             "is refused here rather than creating a contact nobody wanted."
         } else {
           refused = null
+          /* Its own event rather than a page view called login. A welcome journey triggers on
+             this; a page view about a screen is not something to welcome anybody for. */
+          DengageBridge.signedIn()
           onContactKey(ok)
         }
       }) { Text("Sign in") }
 
       OutlinedButton(onClick = {
         Identity.clear(activity)
+        DengageBridge.signedOut()
+        /* The next person holding this phone is not this person, so the values an in-app template
+           would print about the last one are cleared with the key. */
+        DengageBridge.clearInAppDeviceInfo()
         onContactKey(null)
         answer = null
       }) { Text("Sign out") }
 
       OutlinedButton(onClick = {
-        onContactKey(Identity.claim(activity))
+        val minted = Identity.claim(activity)
+        /* A key minted for a handset nobody has named is a registration, and it is a different
+           moment from a sign in: one is somebody arriving, the other is somebody returning. */
+        DengageBridge.registered()
+        onContactKey(minted)
       }) { Text("Use this device") }
     }
 
@@ -126,6 +142,14 @@ fun SignInScreen(activity: Activity, contactKey: String?, onContactKey: (String?
       answer?.why != null -> Why(answer!!.why!!)
     }
 
+    /* The device screen sits behind the account screen because the two answer different
+       questions. This one is about a person and the shape of their key; that one is about a
+       handset, its token and the consent that governs both. */
+    OutlinedButton(
+      modifier = Modifier.padding(16.dp),
+      onClick = onOpenDevice,
+    ) { Text("This device, its token and its consent") }
+
     DemoNotice()
   }
 }
@@ -149,13 +173,5 @@ private fun LineCard(line: Line) {
       line.linesAtAddress?.takeIf { it > 1 }?.let { Fact("Lines at this address", "$it") }
       line.city?.let { Fact("City", it) }
     }
-  }
-}
-
-@Composable
-private fun Fact(label: String, value: String) {
-  Row(Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
-    Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
-    Text(value, style = MaterialTheme.typography.bodyMedium)
   }
 }

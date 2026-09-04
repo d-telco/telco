@@ -93,8 +93,11 @@ ok('and the pages read beyond it are declared with a reason', declared.size > 0,
    that will drift, so it is read from the prose and compared to the list. */
 const WORDS = { Five: 5, Six: 6, Seven: 7, Eight: 8, Nine: 9, Ten: 10, Eleven: 11, Twelve: 12,
                 Thirteen: 13, Fourteen: 14, Fifteen: 15, Sixteen: 16, Seventeen: 17,
-                Eighteen: 18, Nineteen: 19, Twenty: 20 };
-const claimedBeyond = audit.match(/\*\*Beyond the supplied set\.\*\*\s+(\w+)\s+pages/)?.[1];
+                Eighteen: 18, Nineteen: 19, Twenty: 20, 'Twenty one': 21, 'Twenty two': 22,
+                'Twenty three': 23, 'Twenty four': 24, 'Twenty five': 25 };
+/* Two words, because the list passed twenty. A single word class read "Twenty one" as twenty and
+   the sentence would have gone on agreeing with itself while the table grew. */
+const claimedBeyond = audit.match(/\*\*Beyond the supplied set\.\*\*\s+([A-Za-z]+(?: [a-z]+)?|\d+)\s+pages/)?.[1];
 const claimedN = WORDS[claimedBeyond] ?? Number(claimedBeyond);
 ok('and says how many of them there are, correctly', claimedN === declared.size,
    claimedN === declared.size

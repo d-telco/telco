@@ -22,6 +22,10 @@ object Config {
   const val EVENT_TABLE = "dtelco_events"
 
   const val COUNTRY = "AZ"
+  /* Passed to the SDK so a recommendation and an in-app message come back in the right language.
+     The same value js/config.js carries in locale.language, because a person who reads the site in
+     one language and the app in another is one contact getting two experiences. */
+  const val LANGUAGE = "en"
   const val CURRENCY = "USD"
   const val CURRENCY_SYMBOL = "$"
 
@@ -32,6 +36,25 @@ object Config {
   const val PROFILE = FUNCTIONS + "dtelco-profile"
   const val MESSAGE = FUNCTIONS + "dtelco-message"
   const val RELAY = FUNCTIONS + "dtelco-lead-relay"
+
+
+  /* The scheme the manifest answers, the catalogue's android_deep_link carries and an in-app
+     message's button opens. One value, so a push, an in-app button and a story all land on the
+     same screen rather than three near misses. */
+  const val DEEP_LINK_SCHEME = "dtelco"
+
+  /* The named places a Dengage in-app message can be injected into this app's own layout, and the
+     rail App Stories are drawn into. The app declares the names and the panel matches them, which
+     is the same contract the website's dn_inline_target_ ids carry. ACCOUNT-SETUP.md lists them
+     for whoever creates the content. */
+  const val INLINE_HOME = "dtelco_app_home"
+  const val INLINE_PRODUCT = "dtelco_app_product"
+  const val INLINE_CART = "dtelco_app_cart"
+  const val STORY_RAIL = "dtelco_app_stories"
+
+  /* The live update this app registers a handler for. One ongoing notification per order, edited
+     in place by a push rather than replaced by a new one at every step. */
+  const val LIVE_UPDATE_ACTIVITY_TYPE = "dtelco_order"
 
   /* The notification channel the SDK would otherwise call "General". A person who long presses a
      notification sees this name, so it is the brand rather than a default. */

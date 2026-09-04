@@ -32,6 +32,11 @@ fun ProductScreen(activity: Activity, productId: String, onBack: () -> Unit) {
     DengageBridge.screen(activity, "product")
     product?.let {
       DengageBridge.categoryPath(it.categoryPath)
+      /* The category counted on this handset, which is what the Discover tab's ordering runs on.
+         Counted here rather than on the listing screen because opening a product is an interest
+         and scrolling past one is not. */
+      Affinity.seen(activity, it.categoryPath)
+      DengageBridge.categoryView(it.categoryPath)
       /* The custom row the website writes for the same moment, so a segment about people who
          looked at a handset fills from both surfaces rather than only from the browser. */
       DengageBridge.custom("product_view", mapOf(
@@ -89,8 +94,11 @@ fun ProductScreen(activity: Activity, productId: String, onBack: () -> Unit) {
         Button(onClick = { Cart.add(product); added = true }) {
           Text(if (product.isPlan) "Choose this tariff" else "Add to cart")
         }
-        OutlinedButton(onClick = { DengageBridge.addToWishlist(product.id) }) {
+        OutlinedButton(onClick = { DengageBridge.addToWishlist(product.id, "wishlist") }) {
           Text("Save it")
+        }
+        OutlinedButton(onClick = { DengageBridge.addToWishlist(product.id, "price_watch") }) {
+          Text("Watch the price")
         }
       }
       if (added) {
@@ -100,6 +108,10 @@ fun ProductScreen(activity: Activity, productId: String, onBack: () -> Unit) {
         Text("${product.title} is in your cart.", style = MaterialTheme.typography.bodySmall)
       }
     }
+
+    /* The same inline property the home screen carries, on the screen where a cross sell belongs.
+       One in-app message, two placements, and neither of them interrupts anybody. */
+    InlineInAppSlot(activity, Config.INLINE_PRODUCT, "product", Modifier.padding(16.dp))
 
     DemoNotice()
   }

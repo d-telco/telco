@@ -30,8 +30,12 @@ const contents = JSON.parse(await read('panel/contents.json'));
 /* Part 1 lists every capability as a table row starting with its id. Part 2 marks the one surface
    that exists for it in bold. Part 4 claims each appears as a headline exactly once, and this is
    the assertion that makes that claim checkable rather than a sentence somebody has to believe. */
+/* A-L rather than A-J since the mobile section arrived. K is deliberately inside the range and
+   deliberately absent from Part 1: K1 and K2 live in Part 5, which describes the recognition
+   thread rather than the inventory, and a range that skipped K would be a range somebody widens
+   wrongly the next time a section is added. */
 const part1 = map.slice(map.indexOf('## Part 1'), map.indexOf('## Part 2'));
-const inventory = [...part1.matchAll(/^\|\s*([A-J]\d+)\s*\|/gm)].map(m => m[1]);
+const inventory = [...part1.matchAll(/^\|\s*([A-L]\d+)\s*\|/gm)].map(m => m[1]);
 /* The number is read from the document's own sentence rather than written here, so the two cannot
    disagree quietly. A census that carries its own copy of a figure is a second place for it to be
    wrong. */
@@ -56,14 +60,14 @@ ok('and states that count once, not again in words', otherCounts.length === 0,
 
 const part2 = map.slice(map.indexOf('## Part 2'), map.indexOf('## Part 3'));
 const part3Raw = map.slice(map.indexOf('## Part 3'), map.indexOf('## Part 4'));
-const headlines = [...part2.matchAll(/\*\*([A-J]\d+)\*\*/g)].map(m => m[1]);
+const headlines = [...part2.matchAll(/\*\*([A-L]\d+)\*\*/g)].map(m => m[1]);
 const headlineCount = headlines.reduce((a, id) => (a[id] = (a[id] ?? 0) + 1, a), {});
 
 /* A capability may be headlined twice only where Part 4 argues for it in writing. The allowance is
    read from that argument, so adding a repeat means writing down why, which is the point. */
 const part4 = map.slice(map.indexOf('## Part 4'));
 const DELIBERATE_REPEATS = Object.fromEntries(
-  [...part4.matchAll(/^- \*\*([A-J]\d+) x(\d+)\.\*\*/gm)].map(m => [m[1], Number(m[2])]));
+  [...part4.matchAll(/^- \*\*([A-L]\d+) x(\d+)\.\*\*/gm)].map(m => [m[1], Number(m[2])]));
 ok('every argued repeat names its capability and its count',
    Object.keys(DELIBERATE_REPEATS).length > 0,
    Object.entries(DELIBERATE_REPEATS).map(([id, n]) => `${id} x${n}`).join(', ') ||
@@ -77,9 +81,9 @@ ok('no capability is headlined by more than one surface, except the one the map 
    never shows. */
 const demoLayer = new Set(
   [...map.slice(map.indexOf('### Capabilities carried by the demo layer'), map.indexOf('## Part 3'))
-    .matchAll(/^\|\s*([A-J]\d+(?:,\s*[A-J]\d+)*)\s*\|/gm)]
+    .matchAll(/^\|\s*([A-L]\d+(?:,\s*[A-L]\d+)*)\s*\|/gm)]
     .flatMap(m => m[1].split(',').map(s => s.trim())));
-const alsoCarries = new Set([...part2.matchAll(/\|\s*((?:[A-J]\d+,?\s*)+)\|\s*[^|]*\|\s*$/gm)]
+const alsoCarries = new Set([...part2.matchAll(/\|\s*((?:[A-L]\d+,?\s*)+)\|\s*[^|]*\|\s*$/gm)]
   .flatMap(m => m[1].split(',').map(s => s.trim())));
 /* Part 3 proves the orchestration capabilities: a journey's trigger kind is the capability it
    demonstrates, so the matrix counts as coverage exactly as Part 2 does. */

@@ -67,10 +67,8 @@ alike from the panel and only the policy tells them apart.
 | Signing in on both surfaces | One contact card holding the web history and the app history | The panel. Not two contacts |
 | Any lead form | The relay stores the row first, then upserts the contact | The row's `dengage_status` reads `contact inserted` or `contact updated`, never `pending` |
 
-**The app half.** `node tools/check-android.mjs` asserts every screen fires its page view and calls
-`setNavigation`, that only the bridge imports the SDK, and that the contact key shape and the event
-table are the same on both surfaces. It reads source rather than running the app, so it catches the
-silent failures a compiler does not.
+**The app half.** Layer 4b walks the handset. The source rules `node tools/check-android.mjs`
+enforces are listed there.
 
 ---
 
@@ -106,6 +104,38 @@ and is the only one that reads the contact, which is why it is never sent transa
 | Product, cart, account and app home | The recommendation with its rule named | Four surfaces, three products, one rule |
 | The contact's `reco_*` columns | Updated within a minute of the rail drawing | The panel |
 | An email and a push for the same contact | The same three products the site showed | The rendered body |
+
+---
+
+## Layer 4b. The app on a handset
+
+Nine of these need a real phone. Nothing below can be proved on a desk, which is why they are their
+own layer rather than a footnote to the one above.
+
+| Press | Should happen | Proved by |
+|---|---|---|
+| Account tab, sign in with the key the browser is using | The line the browser has been building appears | One contact card, two surfaces. Not two contacts |
+| Account tab, allow notifications, then This device | A token, and a contact key beside it on the same record | The device screen. A token binds to the key that subscribed, so signing in first and asking second is the order that makes a push reach a person rather than a handset |
+| This device, with the account switches read back | The account's own answers for inbox, in-app, real time in-app, geofence and app presence | Read from Dengage. An inbox that is off explains an empty inbox screen, and no amount of sending will change it |
+| Discover tab | The story rail draws, or the slot says which property it is waiting for | Either is a real answer. A labelled empty slot is not a fault |
+| Discover, Home, Product and Cart | An inline in-app message inside the layout rather than over it | Four properties, one engine, and it scrolls with the screen |
+| Discover, set the template values, then trigger an in-app message | The message prints this handset's plan name from a template that names no plan | One template, every plan |
+| Open a few categories, then Discover | The offers rail reorders | On the handset, with no network call. The scores are this device's; the sorting is the SDK's |
+| Near you, ask, start tracking, then Stand here | Whatever the account sends for that region, and the local card naming the region | Both. The message is Dengage's, the card is the app's, and the fix is reported as a mock rather than dressed up as a real one |
+| Near you, check in at a store | A row keyed to the contact rather than to the handset | Walking past a shop and saying "I am here" are two different moments, and only the second should start a collect in store journey |
+| This device, tag the network rating | A tag a segment can read, written from app code | The panel's tag list. The website writes contact tags through the engine's own form; this is the other writer |
+| This device, both consent switches | The device record changes in Dengage | Turning notifications off here does not revoke the Android permission and turning it on does not grant one. Two consents, two holders |
+| This device, draw the live update, twice with a different step | One notification that changes, not two notifications | The lock screen |
+| Inbox tab, mark all read and empty the mailbox | The list is read again from Dengage rather than from what the screen assumed | A mailbox the app emptied and a mailbox Dengage emptied are the same mailbox, and only one of them is worth trusting |
+| A push carrying `dtelco://product/<id>` | The product screen, with the product on it | The deep link, the manifest filter and the catalogue's own `android_deep_link`, all agreeing |
+
+**The source rules.** `node tools/check-android.mjs` asserts every screen fires its page view and
+calls `setNavigation`, that only the bridge names the SDK anywhere, that the contact key shape and
+the event table match the web, that the app replaces no device id and creates no geofence region,
+that a fix it hands over is labelled a mock, that every in-app property a screen fills is written
+down for whoever creates the content, and that the manifest asks the operating system about no
+package outside this demonstration. It reads source rather than running the app, so it catches the
+silent failures a compiler does not.
 
 ---
 

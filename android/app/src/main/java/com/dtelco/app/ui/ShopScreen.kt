@@ -42,6 +42,9 @@ fun ShopScreen(activity: Activity, onOpenProduct: (String) -> Unit) {
       Spacer(Modifier.width(8.dp))
       Button(onClick = {
         results = Catalogue.search(query)
+        /* The category the results sit in, counted on this handset so the Discover tab's ordering
+           learns from a search as well as from a tap. */
+        results.firstOrNull()?.let { Affinity.seen(activity, it.categoryPath) }
         /* search_events, with the result count as it actually was. A search reported with a count
            nobody counted is a row that lies quietly. */
         if (query.isNotBlank()) DengageBridge.search(query, results.size)
@@ -62,9 +65,22 @@ fun ShopScreen(activity: Activity, onOpenProduct: (String) -> Unit) {
     }
 
     if (showCart) {
+      /* The third inline placement, where a cart recovery message belongs. Same engine as the
+         message that covers the screen, in the layout instead of over it. */
+      InlineInAppSlot(activity, Config.INLINE_CART, "cart",
+                      Modifier.padding(horizontal = 16.dp))
       CartPanel(onPlaced = { placed = it })
-      placed?.let { Why("Order $it is placed. The confirmation card is drawn by this app; the " +
-        "order row and the journey that follows it are Dengage's.") }
+      placed?.let { id ->
+        Why("Order $id is placed. The confirmation card is drawn by this app; the order row and " +
+          "the journey that follows it are Dengage's.")
+        /* The reversal, naming the order it reverses. The order API's status vocabulary is closed
+           at success and refund, so this is how an order stops counting, and it is the same event
+           the website's orders page fires rather than a second spelling of it. */
+        OutlinedButton(
+          modifier = Modifier.padding(horizontal = 16.dp),
+          onClick = { DengageBridge.cancelOrder(id); placed = null },
+        ) { Text("Cancel order $id") }
+      }
       return@Column
     }
 

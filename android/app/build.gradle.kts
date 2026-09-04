@@ -30,7 +30,10 @@ android {
     targetCompatibility = JavaVersion.VERSION_17
   }
   kotlinOptions { jvmTarget = "17" }
-  buildFeatures { compose = true }
+  /* buildConfig, because DtelcoApp reads BuildConfig.DEBUG to decide the push route. AGP 8 turns
+     it off unless it is asked for, and the failure is a compile error rather than a wrong route,
+     which is the right way round. */
+  buildFeatures { compose = true; buildConfig = true }
   packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
 }
 
@@ -48,6 +51,15 @@ dependencies {
   /* The Dengage Android SDK, from JitPack, at the version reference/new-android-sdk- names as
      latest. Only one file in this app imports it: com.dtelco.app.DengageBridge. */
   implementation("com.github.dengage-tech.dengage-android-sdk:sdk:6.0.99")
+
+  /* The geofence module, published separately at the same version. It is a separate artifact
+     because it drags in location permissions and a boot receiver, and an app with no location
+     story should not carry them. This app has one, so it does.
+     Its own manifest declares ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION,
+     ACCESS_BACKGROUND_LOCATION, RECEIVE_BOOT_COMPLETED and its receivers, and the manifest merger
+     brings them in. They are written out in this app's manifest as well, because a permission a
+     reader cannot see in the app's own manifest is a permission nobody reviewed. */
+  implementation("com.github.dengage-tech.dengage-android-sdk:sdk-geofence:6.0.99")
 
   /* Firebase Cloud Messaging carries app push. The SDK's FcmMessagingService is declared in the
      manifest and does the work; this is the transport it needs. */
