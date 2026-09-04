@@ -127,7 +127,7 @@
           esc(p.image_slug) + '-400.jpg">' +
         '<div class="recog-copy">' +
           '<span class="why"><span class="rule">focus_hero</span> you looked at this ' +
-            focus.n + ' times</span>' +
+            focus.views + ' times</span>' +
           '<h2>Still thinking about the ' + esc(p.title) + '?</h2>' +
           '<p class="lede">' + esc(p.description) + '</p>' +
           '<div class="recog-actions">' +

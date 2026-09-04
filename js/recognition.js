@@ -72,7 +72,13 @@
         if (row.n < THRESHOLD) { return; }
         if (!best || row.last > views[best].last) { best = id; }
       });
-      return best ? Object.assign({ product_id: best }, views[best]) : null;
+      /* `views` rather than `n`. The stored row counts in `n`, and every published spelling of
+         this number is `views`: the custom event, the relay payload and the focus CustomEvent all
+         say views. The popup asked the focus record for `f.views`, got undefined, and printed
+         "You have looked at this one undefined times" on a phone in front of somebody. One name
+         on the way out, and the row keeps its own on the way in. */
+      return best ? Object.assign({}, views[best], { product_id: best, views: views[best].n })
+                  : null;
     },
 
     views: function () { return fresh(load()); },

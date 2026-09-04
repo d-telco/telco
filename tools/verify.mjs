@@ -330,6 +330,7 @@ const SCRIPTS = (await Promise.all(
 
 {
   const dirty = [], wrongType = [], sideways = [], deadControls = [], missingSlots = [];
+  const printedHoles = [];
   const slotCounts = [];
   for (const [path, type] of PAGES) {
     const { page, errors, events } = await open(path);
@@ -339,6 +340,23 @@ const SCRIPTS = (await Promise.all(
       wrongType.push(`${path}: ${events[0]?.payload?.page_type} not ${type}`);
     if (await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1))
       sideways.push(path);
+    /* A value that did not arrive prints as the word undefined, and it prints in the customer's
+       copy rather than in a console nobody has open. The recognition popup told a visitor "you
+       have looked at this one undefined times" on a phone, in a meeting, because the focus record
+       counts in `n` and the popup asked it for `views`. Nothing rendered may carry the tell.
+       The presenter panels are excluded: they report raw state, and an honest undefined beside a
+       label is what they are for. */
+    const hole = await page.evaluate(() => {
+      const body = document.body.cloneNode(true);
+      body.querySelectorAll('#dps-debug, #dps-launcher, #dps-drawer, script, style')
+        .forEach((el) => el.remove());
+      const text = body.innerText || '';
+      const m = text.match(/\bundefined\b|\bNaN\b|\[object Object\]/);
+      if (!m) return null;
+      const at = text.indexOf(m[0]);
+      return text.slice(Math.max(0, at - 45), at + 45).replace(/\s+/g, ' ').trim();
+    });
+    if (hole) printedHoles.push(`${path}: ...${hole}...`);
     /* The slot map decides which slots this page owes, not a list retyped here. js/slots.js
        declares them with the page they belong to and the moment they exist for, and a runbook is
        generated from the same shape, so a slot promised to a marketer and missing from a page
@@ -379,6 +397,8 @@ const SCRIPTS = (await Promise.all(
   ok(`all ${PAGES.length} pages boot with no page error`, dirty.length === 0, dirty[0] || '');
   ok('every page fires pageView first, with its declared type', wrongType.length === 0, wrongType[0] || '');
   ok('no page scrolls sideways at 1280', sideways.length === 0, sideways.join(', '));
+  ok('no page prints undefined, NaN or [object Object] in its copy',
+     printedHoles.length === 0, printedHoles.slice(0, 3).join('  //  '));
   ok('every page carries the inline slots the map declares for it', missingSlots.length === 0,
      missingSlots[0] || `${slotCounts.reduce((t, [, n]) => t + n, 0)} slots across ${PAGES.length} pages`);
 
@@ -838,6 +858,25 @@ const SCRIPTS = (await Promise.all(
      await home.page.locator('#dps-creative-focus_popup').count() === 1);
   ok('and the popup names it',
      /iPhone 16/.test(await home.page.locator('#dps-creative-focus_popup h3').innerText()));
+  /* And says how many times, with a number. This is the one creative whose copy prints a value
+     the visitor produced, so it is the one that can print a hole, and it did: the focus record
+     counts in `n` and the popup asked it for `views`, so a phone showed "you have looked at this
+     one undefined times". The page sweep cannot see this popup because it needs two views of one
+     product first, which is why the assertion is here as well. */
+  {
+    const copy = await home.page.locator('#dps-creative-focus_popup .dps-creative-copy').innerText();
+    ok('and says how many times, with a number rather than a hole',
+       /looked at this one 2 times/.test(copy) && !/\bundefined\b|\bNaN\b/.test(copy),
+       copy.replace(/\s+/g, ' ').slice(0, 80));
+  }
+  /* The band above it prints the same number from the same record, so it takes the same test. */
+  {
+    const band = await home.page.locator('#recognition').count()
+      ? await home.page.locator('#recognition').innerText() : '';
+    ok('and the recognition band prints it too',
+       band === '' || (/you looked at this 2 times/.test(band) && !/\bundefined\b/.test(band)),
+       band.replace(/\s+/g, ' ').slice(0, 80));
+  }
   ok('and the impression row carries the product it was about',
      home.events.some(e => e.payload?.event_type === 'creative_shown' &&
                            e.payload.rule === 'focus_popup' &&
