@@ -1,0 +1,11 @@
+{
+ "moment": "postpaid_billing",
+ "journey": 12,
+ "title": "Bill overdue",
+ "message": "{%= $Current.amount %} is past due.",
+ "target_url": "{%= $Current.link || 'https://d-telco.github.io/telco/' %}",
+ "media": "https://d-telco.github.io/telco/assets/push/low-balance.jpg",
+ "title_length": 12,
+ "message_length": 21,
+ "note": "Title under 50 characters and message under 120, or a phone truncates it. Target URL is a tag rather than an address: a shared content with an address in it sends one brand's visitor to another brand's storefront."
+}

@@ -1,0 +1,31 @@
+{
+ "moment": "device_upgrade",
+ "journey": 15,
+ "trigger": "v_dtelco_upgrade_eligible",
+ "always": [
+  "days",
+  "hero_image",
+  "link",
+  "price",
+  "product"
+ ],
+ "optional": [
+  "due_date"
+ ],
+ "rows": [
+  [
+   "Suggested",
+   "product"
+  ],
+  [
+   "From",
+   "price"
+  ],
+  [
+   "Contract ends",
+   "due_date"
+  ]
+ ],
+ "hero_image": "the product's own image URL, so one content serves the whole catalogue",
+ "note": "A transactional send sees only these values. $Contact tags stay empty, so nothing the email prints comes from the contact record."
+}

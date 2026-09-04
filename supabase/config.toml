@@ -1,0 +1,64 @@
+# Supabase project configuration.
+#
+# The one setting here that matters, and the reason this file exists at all.
+#
+# Every function in this build is called straight from the browser or from a terminal, with no
+# Supabase JWT: the storefront reads the product feed and the profile, the operator console fires
+# signals, and the verification console reads them all in front of a room. So every one is
+# deployed with JWT verification OFF, and each function does its own defending instead: an origin
+# allowlist, a rate cap, and a contact key shape check at the door.
+#
+# The CLI defaults verify_jwt to TRUE. Without this file, one `supabase functions deploy` would
+# turn every endpoint into a 401 for the site that calls it, and the storefront would go quiet
+# with nothing in the browser console to explain why. Pinning it here makes a deploy from any
+# machine reproduce what is already running.
+#
+# tools/check-functions.mjs fails the build when a function exists with no entry here, so a new
+# endpoint cannot be added without a decision being taken about this.
+
+project_id = "raextqlludkagdntyzwn"
+
+[functions.dtelco-broadcast]
+verify_jwt = false
+
+[functions.dtelco-coupons]
+verify_jwt = false
+
+[functions.dtelco-dataspace]
+verify_jwt = false
+
+[functions.dtelco-dengage-tables]
+verify_jwt = false
+
+[functions.dtelco-ecomm]
+verify_jwt = false
+
+[functions.dtelco-inbox]
+verify_jwt = false
+
+[functions.dtelco-lead-relay]
+verify_jwt = false
+
+[functions.dtelco-message]
+verify_jwt = false
+
+[functions.dtelco-operator]
+verify_jwt = false
+
+[functions.dtelco-persona-seed]
+verify_jwt = false
+
+[functions.dtelco-preflight]
+verify_jwt = false
+
+[functions.dtelco-product-feed]
+verify_jwt = false
+
+[functions.dtelco-profile]
+verify_jwt = false
+
+[functions.dtelco-remote]
+verify_jwt = false
+
+[functions.dtelco-reset]
+verify_jwt = false

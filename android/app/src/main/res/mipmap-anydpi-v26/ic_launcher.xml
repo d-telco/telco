@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- The foreground is inset to the adaptive icon safe zone by tools, so a launcher that crops
+       to a circle does not clip the mark. -->
+  <background android:drawable="@color/brand_blue" />
+  <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+</adaptive-icon>

@@ -1,0 +1,1 @@
+D-TELCO: free AI is now on every GO plan. {%= $Current.link || 'https://d-telco.github.io/telco/' %} STOP to opt out.

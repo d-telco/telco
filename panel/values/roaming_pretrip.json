@@ -1,0 +1,35 @@
+{
+ "moment": "roaming_pretrip",
+ "journey": 13,
+ "trigger": "roaming_pack with a future date",
+ "always": [
+  "destination",
+  "hero_image",
+  "link"
+ ],
+ "optional": [
+  "days",
+  "pack",
+  "price"
+ ],
+ "rows": [
+  [
+   "Destination",
+   "destination"
+  ],
+  [
+   "Pack",
+   "pack"
+  ],
+  [
+   "Price",
+   "price"
+  ],
+  [
+   "Covers",
+   "days"
+  ]
+ ],
+ "hero_image": "https://d-telco.github.io/telco/assets/editorial/hero-roaming-1200.jpg",
+ "note": "A transactional send sees only these values. $Contact tags stay empty, so nothing the email prints comes from the contact record."
+}

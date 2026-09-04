@@ -1,0 +1,16 @@
+{
+  "id": "/telco/",
+  "name": "D·TELCO",
+  "short_name": "D·TELCO",
+  "description": "A demonstration of Dengage for telecom.",
+  "start_url": "/telco/index.html",
+  "scope": "/telco/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#E4002B",
+  "icons": [
+    { "src": "assets/brand/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/brand/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/brand/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

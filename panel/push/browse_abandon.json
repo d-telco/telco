@@ -1,0 +1,11 @@
+{
+ "moment": "browse_abandon",
+ "journey": 4,
+ "title": "Still deciding?",
+ "message": "The two tariffs you looked at, side by side.",
+ "target_url": "{%= $Current.link || 'https://d-telco.github.io/telco/' %}",
+ "media": "https://d-telco.github.io/telco/assets/push/usage-80.jpg",
+ "title_length": 15,
+ "message_length": 44,
+ "note": "Title under 50 characters and message under 120, or a phone truncates it. Target URL is a tag rather than an address: a shared content with an address in it sends one brand's visitor to another brand's storefront."
+}

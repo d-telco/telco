@@ -1,0 +1,416 @@
+{
+  "_note": "Every message this demonstration can send, one entry per moment. This is the source for the paste-ready panel content pack, for the SMS and WhatsApp preview surface in the verification console, and for the email renderer. Copy is written once here so a moment cannot say one thing in an email and another in a push.",
+  "_channels": [
+    "email",
+    "push",
+    "sms",
+    "whatsapp",
+    "inbox",
+    "onsite"
+  ],
+  "_suppressed": [
+    "sms",
+    "whatsapp"
+  ],
+  "_suppressed_why": "Composed, rendered and shown, never sent. Each send costs money per message, and the content, the audience and the trigger are what a prospect needs to see.",
+  "moments": [
+    {
+      "id": "welcome_onboarding",
+      "journey": 1,
+      "trigger": "number_activated",
+      "title": "Welcome to D·TELCO",
+      "push": {
+        "title": "Welcome to D·TELCO",
+        "body": "Your line is live. Set up your eSIM in two taps.",
+        "media": "welcome"
+      },
+      "sms": "D-TELCO: your line is live. Set up your eSIM here: {link} Reply STOP to opt out.",
+      "whatsapp": "Welcome to D·TELCO. Your number is active. Shall I walk you through the eSIM setup?",
+      "email": {
+        "subject": "Your D·TELCO line is live",
+        "preheader": "Two taps to finish setup"
+      },
+      "inbox": {
+        "title": "Welcome to D·TELCO",
+        "body": "Everything you need to finish setting up your line."
+      }
+    },
+    {
+      "id": "abandoned_cart",
+      "journey": 2,
+      "trigger": "addToCart without order in 2 hours",
+      "title": "Still in your basket",
+      "push": {
+        "title": "Still in your basket",
+        "body": "{product} is waiting. Finish in 30 seconds.",
+        "media": "cart"
+      },
+      "sms": "D-TELCO: {product} is still in your basket. {link} Reply STOP to opt out.",
+      "whatsapp": "You left {product} in your basket. Want me to hold it?",
+      "email": {
+        "subject": "You left something behind",
+        "preheader": "{product} is still in your basket"
+      },
+      "inbox": {
+        "title": "Still in your basket",
+        "body": "{product} is waiting for you."
+      }
+    },
+    {
+      "id": "abandoned_checkout",
+      "journey": 3,
+      "trigger": "beginCheckout without order in 30 minutes",
+      "title": "Nearly there",
+      "push": {
+        "title": "Nearly there",
+        "body": "Your order is one tap from done.",
+        "media": "cart"
+      },
+      "sms": "D-TELCO: finish your order with code {code} for 10 percent off. {link} STOP to opt out.",
+      "whatsapp": "You were one step from finishing. Anything I can help with?",
+      "email": {
+        "subject": "One step left",
+        "preheader": "Your order is waiting"
+      }
+    },
+    {
+      "id": "browse_abandon",
+      "journey": 4,
+      "trigger": "two plan views, no cart, 24 hours",
+      "title": "The two tariffs you compared",
+      "email": {
+        "subject": "GO 11.99 or GO 29.99?",
+        "preheader": "Here they are side by side"
+      },
+      "push": {
+        "title": "Still deciding?",
+        "body": "The two tariffs you looked at, side by side.",
+        "media": "usage-80"
+      }
+    },
+    {
+      "id": "price_drop",
+      "journey": 5,
+      "trigger": "price_dropped for a watched product",
+      "title": "The price dropped",
+      "push": {
+        "title": "The price just dropped",
+        "body": "{product} is now {price}.",
+        "media": "price-drop"
+      },
+      "email": {
+        "subject": "{product} just got cheaper",
+        "preheader": "Now {price}"
+      },
+      "sms": "D-TELCO: {product} is now {price}. {link} STOP to opt out."
+    },
+    {
+      "id": "back_in_stock",
+      "journey": 6,
+      "trigger": "back_in_stock for a watched product",
+      "title": "It is back",
+      "push": {
+        "title": "It is back in stock",
+        "body": "{product} is available again.",
+        "media": "back-in-stock"
+      },
+      "sms": "D-TELCO: {product} is back in stock. {link} STOP to opt out.",
+      "email": {
+        "subject": "{product} is back",
+        "preheader": "The one you asked us to watch"
+      }
+    },
+    {
+      "id": "order_confirmation",
+      "journey": 7,
+      "trigger": "order for a device",
+      "title": "Order confirmed",
+      "email": {
+        "subject": "Order {order_id} confirmed",
+        "preheader": "Here is your receipt"
+      },
+      "push": {
+        "title": "Order confirmed",
+        "body": "{product} is on its way.",
+        "media": "welcome"
+      },
+      "inbox": {
+        "title": "Order {order_id}",
+        "body": "Confirmed. We will tell you when it ships."
+      }
+    },
+    {
+      "id": "esim_help",
+      "journey": 8,
+      "trigger": "esim_selected without esim_installed in 24 hours",
+      "title": "eSIM not installed yet",
+      "whatsapp": "Your eSIM is ready but not installed yet. Shall I send the QR code again?",
+      "sms": "D-TELCO: your eSIM is waiting. Install it here: {link} STOP to opt out."
+    },
+    {
+      "id": "usage_upsell",
+      "journey": 9,
+      "trigger": "usage_80",
+      "title": "You are at 80 percent",
+      "push": {
+        "title": "You are at 80 percent",
+        "body": "{next_plan} has {next_data} for {next_price}.",
+        "media": "usage-80"
+      },
+      "sms": "D-TELCO: you have used 80 percent of your data. {next_plan} has more: {link} STOP to opt out.",
+      "onsite": {
+        "title": "Running low on data",
+        "body": "{next_plan} gives you {next_data}."
+      }
+    },
+    {
+      "id": "low_balance",
+      "journey": 10,
+      "trigger": "balance_low or plan_expiring",
+      "title": "Balance running low",
+      "sms": "D-TELCO: your balance is {balance}. Top up here: {link} STOP to opt out.",
+      "push": {
+        "title": "Balance running low",
+        "body": "Top up in one tap.",
+        "media": "low-balance"
+      },
+      "whatsapp": "Your balance is {balance} and your plan renews soon. Top up now?"
+    },
+    {
+      "id": "renewal_recovery",
+      "journey": 11,
+      "trigger": "renewal_failed",
+      "title": "Renewal did not go through",
+      "sms": "D-TELCO: your renewal payment did not go through. Fix it here: {link} STOP to opt out.",
+      "push": {
+        "title": "Renewal did not go through",
+        "body": "Your line stays on for 48 hours.",
+        "media": "low-balance"
+      },
+      "email": {
+        "subject": "Your renewal needs attention",
+        "preheader": "Two minutes to fix"
+      },
+      "whatsapp": "Your renewal did not go through. Shall I send you a payment link?"
+    },
+    {
+      "id": "postpaid_billing",
+      "journey": 12,
+      "trigger": "bill_issued",
+      "title": "Your bill is ready",
+      "email": {
+        "subject": "Your D·TELCO bill: {amount}",
+        "preheader": "Due {due_date}"
+      },
+      "sms": "D-TELCO: your bill of {amount} is due {due_date}. {link} STOP to opt out.",
+      "push": {
+        "title": "Bill overdue",
+        "body": "{amount} is past due.",
+        "media": "low-balance"
+      }
+    },
+    {
+      "id": "roaming_pretrip",
+      "journey": 13,
+      "trigger": "roaming_pack with a future date",
+      "title": "Before you fly",
+      "email": {
+        "subject": "Before you fly to {destination}",
+        "preheader": "Your checklist"
+      },
+      "push": {
+        "title": "Travelling today",
+        "body": "Your {destination} pack is active.",
+        "media": "roaming"
+      }
+    },
+    {
+      "id": "roaming_arrival",
+      "journey": 14,
+      "trigger": "roaming_detected without a pack",
+      "title": "Welcome to {destination}",
+      "push": {
+        "title": "Welcome to {destination}",
+        "body": "{pack} covers you for {days} days.",
+        "media": "roaming"
+      },
+      "sms": "D-TELCO: welcome to {destination}. {pack} for {price}: {link} STOP to opt out.",
+      "whatsapp": "You are roaming in {destination} without a pack. {pack} is {price}. Add it?"
+    },
+    {
+      "id": "device_upgrade",
+      "journey": 15,
+      "trigger": "v_dtelco_upgrade_eligible",
+      "title": "Time for a new handset",
+      "email": {
+        "subject": "Your contract ends in {days} days",
+        "preheader": "{product} from {price} a month"
+      },
+      "push": {
+        "title": "Upgrade time",
+        "body": "{product} from {price} a month.",
+        "media": "upgrade"
+      },
+      "onsite": {
+        "title": "Your contract ends soon",
+        "body": "Trade up and keep your number."
+      }
+    },
+    {
+      "id": "accessory_cross_sell",
+      "journey": 16,
+      "trigger": "order for a phone, 3 days later",
+      "title": "Goes with your new phone",
+      "email": {
+        "subject": "Made for your {product}",
+        "preheader": "Case, charger, audio"
+      },
+      "push": {
+        "title": "Made for your {product}",
+        "body": "The case and the earbuds that fit.",
+        "media": "cart"
+      }
+    },
+    {
+      "id": "family_bundle",
+      "journey": 17,
+      "trigger": "v_dtelco_family_candidates",
+      "title": "One bill, every line",
+      "email": {
+        "subject": "You are paying for {lines} lines separately",
+        "preheader": "One bill saves {saving}"
+      },
+      "whatsapp": "There are {lines} D·TELCO lines at your address. One bill would save {saving} a month."
+    },
+    {
+      "id": "convergence",
+      "journey": 18,
+      "trigger": "fiber_checked without order",
+      "title": "Home and mobile together",
+      "email": {
+        "subject": "Fiber is available at your address",
+        "preheader": "With your mobile, {price}"
+      },
+      "push": {
+        "title": "Fiber at your address",
+        "body": "Bundle it with your mobile for {price}.",
+        "media": "upgrade"
+      }
+    },
+    {
+      "id": "dormant_winback",
+      "journey": 19,
+      "trigger": "v_dtelco_dormant_30d",
+      "title": "We have not seen you",
+      "email": {
+        "subject": "Your D·TELCO line is waiting",
+        "preheader": "Free AI on every GO plan now"
+      },
+      "sms": "D-TELCO: free AI is now on every GO plan. {link} STOP to opt out.",
+      "whatsapp": "It has been a while. Free AI is included on every GO plan now."
+    },
+    {
+      "id": "churn_save",
+      "journey": 20,
+      "trigger": "port_out_requested",
+      "title": "Before you go",
+      "sms": "D-TELCO: before you leave, {downsell} is {price}. {link} STOP to opt out.",
+      "whatsapp": "Sorry to see you go. Would {downsell} at {price} suit you better?",
+      "email": {
+        "subject": "Before you leave D·TELCO",
+        "preheader": "One offer worth a look"
+      },
+      "onsite": {
+        "title": "Before you go",
+        "body": "{downsell} at {price} might suit you better."
+      }
+    },
+    {
+      "id": "care_nps",
+      "journey": 21,
+      "trigger": "complaint_resolved",
+      "title": "How did we do?",
+      "whatsapp": "Your case is closed. How likely are you to recommend D·TELCO, 0 to 10?",
+      "onsite": {
+        "title": "How did we do?",
+        "body": "One question, and it takes a second."
+      }
+    },
+    {
+      "id": "newsletter_welcome",
+      "journey": 22,
+      "trigger": "subscription form",
+      "title": "You are on the list",
+      "email": {
+        "subject": "Welcome to D·TELCO news",
+        "preheader": "Offers first, always"
+      },
+      "push": {
+        "title": "You are on the list",
+        "body": "Offers reach you first from now on.",
+        "media": "welcome"
+      }
+    },
+    {
+      "id": "seasonal",
+      "journey": 23,
+      "trigger": "segment plus date",
+      "title": "Seasonal campaign",
+      "email": {
+        "subject": "{campaign} at D·TELCO",
+        "preheader": "For a few days only"
+      },
+      "push": {
+        "title": "{campaign}",
+        "body": "For a few days only.",
+        "media": "price-drop"
+      },
+      "onsite": {
+        "title": "{campaign}",
+        "body": "For a few days only."
+      }
+    },
+    {
+      "id": "reco_for_you",
+      "journey": 25,
+      "trigger": "reco_product_id_1 is not empty",
+      "title": "Picked for you",
+      "reads": "contact",
+      "reads_why": "The three ids the site's own engine chose, written to the contact by the relay. A message resolves them against the product table with $from, so the email, the on site message and the inbox card print the same three products the rail showed. Marketing channels only: a transactional send cannot read a contact column.",
+      "verify": "The email body is the shape reference/advanced-personalization documents, an HTML table built from a $from query. The same construct in SMS, WhatsApp, on site and inbox content is not documented channel by channel, so each is confirmed in the panel before it is shown. The subject line carries no query on purpose: an unresolved subject is the most visible failure a message has, and this one needs no lookup to read well.",
+      "email": {
+        "subject": "Three picked for you",
+        "preheader": "The same three the shop showed you"
+      },
+      "sms": "D-TELCO: picked for you, {pick_1} at ${pick_1_price}. {link} STOP to opt out.",
+      "whatsapp": "Picked for you from what you have been looking at: {pick_1}, {pick_2} and {pick_3}. Want the details?",
+      "onsite": {
+        "title": "Picked for you",
+        "body": "{pick_1}, {pick_2} and {pick_3}, chosen from what you viewed."
+      },
+      "inbox": {
+        "title": "Picked for you",
+        "body": "{pick_1}, {pick_2} and {pick_3}. The same three the shop showed you."
+      }
+    },
+    {
+      "id": "referral_loyalty",
+      "journey": 24,
+      "trigger": "order count threshold or referral code",
+      "title": "Your code is ready",
+      "email": {
+        "subject": "Your D·TELCO referral code",
+        "preheader": "{code}, worth {reward} to you both"
+      },
+      "push": {
+        "title": "Your referral code",
+        "body": "{code}, worth {reward} to you both.",
+        "media": "welcome"
+      },
+      "inbox": {
+        "title": "Your referral code",
+        "body": "{code}. Worth {reward} to you and to them."
+      }
+    }
+  ]
+}

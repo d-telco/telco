@@ -1,0 +1,1 @@
+D-TELCO: your line is live. Set up your eSIM here: {%= $Current.link || 'https://d-telco.github.io/telco/' %} Reply STOP to opt out.

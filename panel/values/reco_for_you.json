@@ -1,0 +1,25 @@
+{
+ "moment": "reco_for_you",
+ "journey": 25,
+ "trigger": "reco_product_id_1 is not empty",
+ "sends": "marketing",
+ "always": [],
+ "optional": [],
+ "rows": [],
+ "hero_image": "https://d-telco.github.io/telco/assets/editorial/promo-app-1200.jpg",
+ "reads": [
+  "$Contact.reco_product_id_1",
+  "$Contact.reco_product_id_2",
+  "$Contact.reco_product_id_3"
+ ],
+ "resolves_from": "product",
+ "resolves_columns": [
+  "product_id",
+  "title",
+  "discounted_price",
+  "image_link",
+  "link"
+ ],
+ "blocks_when": "no recommendation is stored on this contact",
+ "note": "Marketing channels only. reference/customization-in-transactional-messages: contact columns and device data cannot be used for personalization in a transactional send, so this content id must never be passed to /transactional/*. Push is excluded for a second reason: reference/advanced-personalization says $Contact can be null in Push sends."
+}

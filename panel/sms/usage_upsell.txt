@@ -1,0 +1,1 @@
+D-TELCO: you have used 80 percent of your data. {%= $Current.next_plan %} has more: {%= $Current.link || 'https://d-telco.github.io/telco/' %} STOP to opt out.

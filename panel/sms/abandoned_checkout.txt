@@ -1,0 +1,1 @@
+D-TELCO: finish your order with code {%= $Current.code %} for 10 percent off. {%= $Current.link || 'https://d-telco.github.io/telco/' %} STOP to opt out.

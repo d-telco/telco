@@ -1,0 +1,1 @@
+Your balance is {%= $Current.balance %} and your plan renews soon. Top up now?

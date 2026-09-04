@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <uses-permission android:name="android.permission.INTERNET" />
+  <!-- Android 13 and above will not show a notification without this granted at runtime.
+       DengageBridge.askForNotifications calls the SDK's own request, which is the documented way. -->
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+  <application
+      android:name=".DtelcoApp"
+      android:allowBackup="false"
+      android:icon="@mipmap/ic_launcher"
+      android:label="@string/app_name"
+      android:supportsRtl="true"
+      android:theme="@style/Theme.Dtelco">
+
+    <activity
+        android:name=".MainActivity"
+        android:exported="true"
+        android:launchMode="singleTask"
+        android:theme="@style/Theme.Dtelco">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+
+      <!-- The deep link a push carries. The catalogue names android_deep_link as either the
+           verified https page URL or the scheme below, and the scheme is what is used when App
+           Links verification is not set up. It is not,
+           because verification needs a release signing key, so the scheme is
+           what the catalogue carries and what this filter answers. -->
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="dtelco" />
+      </intent-filter>
+    </activity>
+
+    <!-- reference/new-android-sdk-, Push Notifications, FCM setup step 4. Without this block a
+         push arrives at Firebase and never reaches the SDK, so nothing is drawn and nothing is
+         reported. -->
+    <service
+        android:name="com.dengage.sdk.push.FcmMessagingService"
+        android:exported="false">
+      <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT" />
+      </intent-filter>
+    </service>
+
+    <!-- reference/new-android-sdk-, Endpoint Configuration. The datacenter decides these and
+         getting them wrong means every call is refused before a credential is looked at, which is
+         the same failure the web build guards against in js/config.js.
+
+         This account is in Turkey, Istanbul. These are the Istanbul
+         values and they match datacenter 'tr' in js/config.js, which tools/check-android.mjs
+         asserts so the two cannot drift apart. -->
+    <meta-data android:name="den_event_api_url" android:value="https://tr-event.dengage.com" />
+    <meta-data android:name="den_push_api_url" android:value="https://tr-push.dengage.com" />
+    <meta-data android:name="den_device_id_api_url" android:value="https://tr-push.dengage.com" />
+    <meta-data android:name="den_in_app_api_url" android:value="https://tr-inapp.lib.dengage.com" />
+    <meta-data android:name="fetch_real_time_in_app_api_url" android:value="https://tr-inapp.lib.dengage.com" />
+
+  </application>
+</manifest>

@@ -1,0 +1,11 @@
+{
+ "moment": "low_balance",
+ "journey": 10,
+ "title": "Balance running low",
+ "message": "Top up in one tap.",
+ "target_url": "{%= $Current.link || 'https://d-telco.github.io/telco/' %}",
+ "media": "https://d-telco.github.io/telco/assets/push/low-balance.jpg",
+ "title_length": 19,
+ "message_length": 18,
+ "note": "Title under 50 characters and message under 120, or a phone truncates it. Target URL is a tag rather than an address: a shared content with an address in it sends one brand's visitor to another brand's storefront."
+}

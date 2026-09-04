@@ -1,0 +1,1 @@
+D-TELCO: welcome to {%= $Current.destination %}. {%= $Current.pack %} for {%= $Current.price %}: {%= $Current.link || 'https://d-telco.github.io/telco/' %} STOP to opt out.

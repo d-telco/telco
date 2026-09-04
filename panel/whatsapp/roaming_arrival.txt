@@ -1,0 +1,1 @@
+You are roaming in {%= $Current.destination %} without a pack. {%= $Current.pack %} is {%= $Current.price %}. Add it?

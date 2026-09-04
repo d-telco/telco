@@ -1,0 +1,1 @@
+You left {%= $Current.product || 'your item' %} in your basket. Want me to hold it?

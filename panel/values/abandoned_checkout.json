@@ -1,0 +1,37 @@
+{
+ "moment": "abandoned_checkout",
+ "journey": 3,
+ "trigger": "beginCheckout without order in 30 minutes",
+ "always": [
+  "code",
+  "hero_image",
+  "link"
+ ],
+ "optional": [
+  "amount",
+  "product"
+ ],
+ "rows": [
+  [
+   "Your order",
+   "product"
+  ],
+  [
+   "Total",
+   "amount"
+  ],
+  [
+   "Code",
+   "code"
+  ]
+ ],
+ "hero_image": "https://d-telco.github.io/telco/assets/editorial/cat-phones-1200.jpg",
+ "coupon": {
+  "token": "code",
+  "transactional": "the value travels in the call, so every recipient gets the same code",
+  "journey": "insert a Dengage coupon list through Insert > Customization Tags > Coupons, so every recipient gets a code of their own and the platform marks it taken",
+  "read_the_list": "GET /contents/coupon-list/{listId}, wrapped by dtelco-coupons",
+  "redemption": "Dengage issues the code. It has no validate or redeem endpoint, so applying the discount is the operator's billing system"
+ },
+ "note": "A transactional send sees only these values. $Contact tags stay empty, so nothing the email prints comes from the contact record."
+}

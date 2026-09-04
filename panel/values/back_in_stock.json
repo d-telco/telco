@@ -1,0 +1,25 @@
+{
+ "moment": "back_in_stock",
+ "journey": 6,
+ "trigger": "back_in_stock for a watched product",
+ "always": [
+  "hero_image",
+  "link",
+  "product"
+ ],
+ "optional": [
+  "price"
+ ],
+ "rows": [
+  [
+   "Back in stock",
+   "product"
+  ],
+  [
+   "Price",
+   "price"
+  ]
+ ],
+ "hero_image": "the product's own image URL, so one content serves the whole catalogue",
+ "note": "A transactional send sees only these values. $Contact tags stay empty, so nothing the email prints comes from the contact record."
+}

@@ -1,0 +1,30 @@
+{
+ "moment": "renewal_recovery",
+ "journey": 11,
+ "trigger": "renewal_failed",
+ "always": [
+  "hero_image",
+  "link"
+ ],
+ "optional": [
+  "amount",
+  "due_date",
+  "plan_name"
+ ],
+ "rows": [
+  [
+   "Plan",
+   "plan_name"
+  ],
+  [
+   "Amount",
+   "amount"
+  ],
+  [
+   "Due",
+   "due_date"
+  ]
+ ],
+ "hero_image": "https://d-telco.github.io/telco/assets/editorial/cat-support-1200.jpg",
+ "note": "A transactional send sees only these values. $Contact tags stay empty, so nothing the email prints comes from the contact record."
+}

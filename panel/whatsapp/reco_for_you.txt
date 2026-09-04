@@ -1,0 +1,1 @@
+Picked for you from what you have been looking at: {%= $from("product").where("product_id", "=", $Contact.reco_product_id_1).value("title") %}, {%= $from("product").where("product_id", "=", $Contact.reco_product_id_2).value("title") %} and {%= $from("product").where("product_id", "=", $Contact.reco_product_id_3).value("title") %}. Want the details?

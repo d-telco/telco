@@ -1,0 +1,32 @@
+<!-- DENGAGE SDK START
+     The web application's own loader, built from accountId and appGuid in js/config.js. The URL
+     this produces is byte identical to the snippet the panel prints at
+     Settings > Applications > (application) > Setup Guide, so the two cannot drift: change the
+     ids in one place and every page follows.
+
+     It lives in the shared shell because the snippet has to be in the <head> of every page.
+
+     One deliberate difference from the panel's printed snippet. That snippet ends with
+     dengage('initialize') and no parameters. This one passes the object, because the parameters
+     are what make the first page view land on the right contact rather than on the anonymous
+     device. The SDK prioritises the initialize call carrying more parameters, and the panel's
+     "Trigger Initialize on Install" flag is off for the same reason. -->
+<script>
+  (function (window, document) {
+    window.dengage = window.dengage || function () {
+      (window.dengage.q = window.dengage.q || []).push(arguments);
+    };
+    var cfg = window.DTELCO_CONFIG.dengage;
+    if (!cfg.accountId || !cfg.appGuid) { return; }   // no application yet: the page runs dry
+    var script = document.createElement('script');
+    script.async = true;
+    script.src = cfg.loader(cfg.accountId, cfg.appGuid);
+    document.getElementsByTagName('head')[0].appendChild(script);
+
+    // initialize takes { contactKey } / { deviceId } / both. Passing the key as a bare string is
+    // ignored, and the first pageView then lands on the anonymous device profile with the contact
+    // card left empty.
+    window.__dnInit ? window.dengage('initialize', window.__dnInit) : window.dengage('initialize');
+  })(window, document);
+</script>
+<!-- DENGAGE SDK END -->

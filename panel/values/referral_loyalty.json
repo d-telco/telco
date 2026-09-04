@@ -1,0 +1,28 @@
+{
+ "moment": "referral_loyalty",
+ "journey": 24,
+ "trigger": "order count threshold or referral code",
+ "always": [
+  "code",
+  "hero_image",
+  "link",
+  "reward"
+ ],
+ "optional": [],
+ "rows": [
+  [
+   "Your code",
+   "code"
+  ],
+  [
+   "You get",
+   "reward"
+  ],
+  [
+   "They get",
+   "reward"
+  ]
+ ],
+ "hero_image": "https://d-telco.github.io/telco/assets/editorial/promo-family-1200.jpg",
+ "note": "A transactional send sees only these values. $Contact tags stay empty, so nothing the email prints comes from the contact record."
+}

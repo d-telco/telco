@@ -1,0 +1,30 @@
+{
+ "moment": "seasonal",
+ "journey": 23,
+ "trigger": "segment plus date",
+ "always": [
+  "campaign",
+  "hero_image",
+  "link"
+ ],
+ "optional": [
+  "code",
+  "due_date"
+ ],
+ "rows": [
+  [
+   "Campaign",
+   "campaign"
+  ],
+  [
+   "Ends",
+   "due_date"
+  ],
+  [
+   "Code",
+   "code"
+  ]
+ ],
+ "hero_image": "https://d-telco.github.io/telco/assets/editorial/cat-accessories-1200.jpg",
+ "note": "A transactional send sees only these values. $Contact tags stay empty, so nothing the email prints comes from the contact record."
+}

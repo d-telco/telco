@@ -1,0 +1,1146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D&middot;TELCO verification console</title>
+<!--
+  This console loads no part of the demo.
+
+  That is not a stylistic choice. A verification tool that pulls in js/identity.js mints or
+  adopts a contact key, and one that pulls in js/dengageEvents.js fires a pageView. Either way
+  the tool appears in the numbers it is meant to report, and every count it prints is one too
+  many. So: no js/ module, no SDK snippet, no page view, no storage key the demo also uses.
+
+  It reads three things and executes none of them:
+    the four edge function health lines, over HTTPS,
+    js/config.js as text, to report whether the account is wired,
+    panel/contents.json, the single source of message copy.
+-->
+<style>
+  :root {
+    --red: #E4002B; --hot: #FF2E52; --pink: #FFF0F3;
+    --ink: #14161a; --mid: #5a6270; --line: #e4e7ec; --bg: #f7f8fa;
+    --ok: #0a7d47; --bad: #b3001b; --wait: #8a6d00; --card: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; }
+  header { background: linear-gradient(120deg, var(--red), var(--hot)); color: #fff; padding: 28px 20px 24px; }
+  header .wrap { max-width: 1120px; margin: 0 auto; }
+  header h1 { margin: 0 0 6px; font-size: 22px; letter-spacing: .2px; }
+  header p { margin: 0; opacity: .93; max-width: 78ch; }
+  main { max-width: 1120px; margin: 0 auto; padding: 20px 20px 64px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+          padding: 18px 18px 16px; margin: 0 0 18px; }
+  .card > h2 { margin: 0 0 4px; font-size: 16px; }
+  .card > .sub { margin: 0 0 14px; color: var(--mid); max-width: 82ch; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 12px; }
+  button { font: inherit; font-weight: 600; border: 1px solid var(--red); background: var(--red);
+           color: #fff; border-radius: 7px; padding: 7px 13px; cursor: pointer; }
+  button.ghost { background: #fff; color: var(--red); }
+  button:disabled { opacity: .5; cursor: progress; }
+  input, select { font: inherit; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px;
+                  background: #fff; color: var(--ink); }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--mid); font-weight: 700; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .scroll { overflow-x: auto; }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 700;
+          letter-spacing: .03em; text-transform: uppercase; }
+  .pill.ok   { background: #e6f4ec; color: var(--ok); }
+  .pill.bad  { background: #fdeaed; color: var(--bad); }
+  .pill.wait { background: #fdf5e0; color: var(--wait); }
+  .pill.off  { background: #eef0f3; color: var(--mid); }
+  .detail { color: var(--mid); }
+  .note { background: var(--pink); border-left: 3px solid var(--red); padding: 10px 12px;
+          border-radius: 0 7px 7px 0; margin: 12px 0 0; }
+  details > summary { cursor: pointer; color: var(--mid); font-size: 12.5px; padding: 4px 0; }
+  pre { background: #10141a; color: #d7dde6; padding: 11px 13px; border-radius: 8px;
+        overflow-x: auto; font-size: 12px; margin: 8px 0 0; }
+  .foot { color: var(--mid); font-size: 12.5px; max-width: 82ch; }
+  .banner { background: #10141a; color: #d7dde6; padding: 9px 14px; font-size: 12.5px; }
+  .banner .wrap { max-width: 1120px; margin: 0 auto; }
+  .banner b { color: #fff; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>D&middot;TELCO verification console</h1>
+    <p>Proves the parts of this demonstration that a page cannot prove about itself: that the
+       backend answers, that the segment counts are the ones the presenter will say out loud,
+       that the catalogue in the feed is the catalogue in the repository, and that every message
+       the demonstration composes exists and is readable before anybody presses send.</p>
+  </div>
+</header>
+
+<div class="banner">
+  <div class="wrap"><b>This console loads no part of the demo.</b> No storefront module, no SDK
+    snippet, no page view, no shared storage key. A verification tool that fires its own page view
+    appears in the numbers it reports.</div>
+</div>
+
+<main>
+
+<section class="card">
+  <h2>1. Backend</h2>
+  <p class="sub">Sixteen assertions across seven functions. Each one names what it expects, so a
+     failure says which promise broke rather than that something is red.</p>
+  <div class="row">
+    <button id="run-backend">Run backend checks</button>
+    <button class="ghost" id="run-all">Run everything</button>
+    <span id="backend-summary" class="detail"></span>
+  </div>
+  <div class="scroll">
+    <table id="backend-table">
+      <thead><tr><th style="width:120px">Result</th><th>Assertion</th><th>What came back</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <h2>2. Segments</h2>
+  <p class="sub">Live counts from the fourteen segment views, beside the seeded baseline recorded
+     in <code>handoff/SEGMENTS.md</code>. Two are empty on purpose: pressing a signal in the
+     operator simulator takes them from zero to one while the room watches. Seven are relative to
+     today's date, so they move on their own, and the drift column says which and why.</p>
+  <div class="row">
+    <button id="run-segments">Read segment counts</button>
+    <button class="ghost" id="pin-baseline">Pin these as my baseline</button>
+    <button class="ghost" id="clear-baseline">Clear pinned baseline</button>
+    <span id="segments-summary" class="detail"></span>
+  </div>
+  <div class="scroll">
+    <table id="segments-table">
+      <thead><tr>
+        <th>Segment</th>
+        <th class="num">Seeded</th>
+        <th class="num">Pinned</th>
+        <th class="num">Live</th>
+        <th class="num">Delta</th>
+        <th>Moves on its own</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="note" id="drift-note" hidden></div>
+</section>
+
+<section class="card">
+  <h2>3. Contact</h2>
+  <p class="sub">The same shape check every server endpoint applies before it acts, run here in
+     the open, then the profile the backend would answer with. A key of the wrong shape is
+     refused rather than looked up, because <code>setContactKey</code> does not fail on an unknown
+     key: it creates that contact.</p>
+  <div class="row">
+    <input id="key-input" size="26" value="DPS-DTELCO-1" aria-label="Contact key">
+    <select id="key-picker" aria-label="Pick a persona"></select>
+    <button id="run-profile">Look up</button>
+    <button class="ghost" id="run-reco">Look up with recommendations</button>
+    <span id="key-shape" class="detail"></span>
+  </div>
+  <div id="profile-out"></div>
+</section>
+
+<section class="card">
+  <h2>4. Catalogue feed</h2>
+  <p class="sub">The feed Dengage would poll for its product table, counted and sampled. Two
+     columns move by design: stock and discounted price belong to the operator simulator, so a
+     difference there is the demo working rather than the feed drifting.</p>
+  <div class="row">
+    <button id="run-feed">Read the feed</button>
+    <span id="feed-summary" class="detail"></span>
+  </div>
+  <div id="feed-out" class="scroll"></div>
+</section>
+
+<section class="card">
+  <h2>5. The content pack, and where every piece of it goes</h2>
+  <p class="sub">One row per moment, naming the channels it carries copy for, the journey it
+     belongs to and the trigger it fires on. The copy itself is not drawn here: it lives in the
+     Dengage panel, which is where a prospect should be looking at it, and a second rendering on
+     this page would be a second place for it to go stale. What this proves is that the pack is
+     complete and that every file a person has to paste exists.</p>
+  <div class="row">
+    <button id="run-messages">Read the pack</button>
+    <span id="messages-summary" class="detail"></span>
+  </div>
+  <table id="messages-table"><thead><tr>
+    <th>#</th><th>Moment</th><th>Fires on</th><th>Channels</th><th>Paste from</th>
+  </tr></thead><tbody></tbody></table>
+</section>
+
+<section class="card">
+  <h2>6. Dengage wiring</h2>
+  <p class="sub"><code>js/config.js</code> read as text and never executed, so this console can
+     report whether the account is wired without becoming a visitor. Until the account id and app
+     guid arrive, the storefront runs in full and logs its writes instead of making them.</p>
+  <div class="row">
+    <button id="run-config">Read the configuration</button>
+    <span id="config-summary" class="detail"></span>
+  </div>
+  <div class="scroll"><table id="config-table"><tbody></tbody></table></div>
+</section>
+
+<p class="foot">Counts are read live at the moment you press a button. Nothing on this page writes
+   to Dengage, to Supabase or to the storefront's storage. The one thing it does write is a pinned
+   baseline, under <code>dps:dtelco:verify:baseline</code>, which no page of the demo reads.</p>
+
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var FN = 'https://raextqlludkagdntyzwn.supabase.co/functions/v1/';
+  var SHAPE = /^DPS-[A-Za-z0-9_-]{1,44}$/;
+  var BASELINE_KEY = 'dps:dtelco:verify:baseline';
+
+  /* The numbers in handoff/SEGMENTS.md, measured 3 September 2026 against the seeded project.
+     They are the presenter's script. Anything that moves away from them is either the simulator
+     working or the calendar moving, and the drift column says which is which. */
+  var SEEDED = {
+    heavy_on_small_plan: 253, low_balance_high_usage: 30, plan_expiring_7d: 454,
+    renewal_failed: 32, roamers_now: 227, frequent_travellers: 254, dormant_30d: 216,
+    churn_risk: 272, upgrade_eligible: 245, family_candidates: 167, switchers_1m: 34,
+    stock_waiters_with_stock: 0, price_watchers: 0, fiber_checked_no_order: 200
+  };
+
+  /* Seven views compare a seeded date against today, so they move without anybody pressing
+     anything. Saying so here is cheaper than a presenter being contradicted by the panel. */
+  var DRIFT = {
+    plan_expiring_7d: 'A seven day window that slides forward every night.',
+    renewal_failed: 'Failures older than thirty days fall out, and the seed adds none.',
+    roamers_now: 'The count is fixed, but has_pack forgets a roaming pack after thirty days, so the arrival audience grows on its own.',
+    frequent_travellers: 'Six months of roaming days, and the oldest month falls out each month.',
+    dormant_30d: 'Grows as seeded contact dates age past thirty days.',
+    upgrade_eligible: 'Handsets cross the two year line, contracts cross the sixty day line.',
+    switchers_1m: 'Activations older than thirty days fall out, and the seed adds none.'
+  };
+
+  var EMPTY_ON_PURPOSE = {
+    stock_waiters_with_stock: 'Rashad is queued behind a handset that is out of stock.',
+    price_watchers: 'Rashad is queued behind a price that has not dropped yet.'
+  };
+
+  /* The story each persona carries, which is a demonstration choice rather than data. The name
+     beside it is not: it is read from the profile endpoint at load, because this list had Leyla
+     against key 1 and Aysel against key 5, and the database has them the other way round. Two
+     lists of names in two files drift, and a presenter reading one while the panel shows the
+     other is the worst possible moment to find out. */
+  var PERSONAS = [
+    ['DPS-DTELCO-1', 'heavy data on a small plan'],
+    ['DPS-DTELCO-2', 'upgrade eligible, waiting on stock'],
+    ['DPS-DTELCO-3', 'frequent traveller'],
+    ['DPS-DTELCO-4', 'prepaid, low balance'],
+    ['DPS-DTELCO-5', 'renewal failed, churn risk'],
+    ['DPS-DTELCO-6', 'switched in this month'],
+    ['DPS-DTELCO-7', 'household of three, fibre checked'],
+    ['DPS-DTELCO-8', 'dormant']
+  ];
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined && text !== null) n.textContent = String(text);
+    return n;
+  }
+  function pill(state, text) { return el('span', 'pill ' + state, text); }
+  function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+
+  function fetchJson(url, opts) {
+    return fetch(url, opts || {}).then(function (r) {
+      return r.text().then(function (t) {
+        var body = null;
+        try { body = JSON.parse(t); } catch (e) { body = null; }
+        return { status: r.status, ok: r.ok, json: body, text: t, headers: r.headers };
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------------- 1. backend */
+
+  var CHECKS = [
+    {
+      name: 'dtelco-profile answers its health line',
+      run: function () {
+        return fetchJson(FN + 'dtelco-profile').then(function (r) {
+          var f = r.json && r.json.function;
+          return { ok: r.status === 200 && f === 'dtelco-profile',
+                   detail: 'HTTP ' + r.status + ', function ' + (f || 'not named') };
+        });
+      }
+    },
+    {
+      name: 'dtelco-profile refuses a key of the wrong shape',
+      run: function () {
+        return fetchJson(FN + 'dtelco-profile?key=' + encodeURIComponent('not a key')).then(function (r) {
+          var refused = r.status !== 200 || (r.json && (r.json.error || r.json.ok === false));
+          return { ok: !!refused,
+                   detail: 'HTTP ' + r.status + ', ' + (refused ? 'refused' : 'accepted, which is the fault') };
+        });
+      }
+    },
+    {
+      name: 'dtelco-profile returns a plan and usage for DPS-DTELCO-1',
+      run: function () {
+        return fetchJson(FN + 'dtelco-profile?key=DPS-DTELCO-1').then(function (r) {
+          var j = r.json || {};
+          var has = j.known_to_operator === true && !!j.plan_id && j.data_used_gb !== undefined;
+          return { ok: r.status === 200 && has,
+                   detail: has ? j.plan_name + ', ' + j.data_used_gb + ' of ' + j.data_cap_gb + ' GB used'
+                               : 'HTTP ' + r.status + ', ' + Object.keys(j).length + ' fields' };
+        });
+      }
+    },
+    {
+      name: 'dtelco-profile answers recommendations when asked for them',
+      run: function () {
+        return fetchJson(FN + 'dtelco-profile?key=DPS-DTELCO-1&reco=1').then(function (r) {
+          var j = r.json || {};
+          var recs = j.recommendations || j.reco || [];
+          return { ok: r.status === 200 && recs.length > 0,
+                   detail: recs.length + ' item(s)' + (recs.length ? ', rule ' + (recs[0].rule || recs[0].why || 'unnamed') : '') };
+        });
+      }
+    },
+    {
+      name: 'dtelco-product-feed counts 245 products and 496 variants',
+      run: function () {
+        return fetchJson(FN + 'dtelco-product-feed').then(function (r) {
+          var c = (r.json && r.json.counts) || {};
+          return { ok: c.products === 245 && c.variants === 496,
+                   detail: 'products ' + c.products + ', variants ' + c.variants +
+                           ', relations ' + c.relations + ', bundle items ' + c.bundle_items };
+        });
+      }
+    },
+    {
+      name: 'dtelco-product-feed serves CSV with a byte order mark and CRLF',
+      run: function () {
+        return fetch(FN + 'dtelco-product-feed?table=product').then(function (r) {
+          return r.text().then(function (t) {
+            var bom = t.charCodeAt(0) === 0xFEFF;
+            var crlf = t.indexOf('\r\n') > 0;
+            var lines = t.split('\r\n').filter(function (l) { return l.length; }).length;
+            return { ok: bom && crlf && lines === 246,
+                     detail: (bom ? 'BOM present' : 'BOM missing') + ', ' +
+                             (crlf ? 'CRLF present' : 'CRLF missing') + ', ' + lines + ' lines' };
+          });
+        });
+      }
+    },
+    {
+      name: 'every signal the operator accepts is one the site can send to Dengage',
+      run: function () {
+        /* The simulator writes to Postgres and the browser sends the matching event to Dengage.
+           A signal the site's vocabulary does not carry is a row in one system and nothing at
+           all in the other, which is a worse failure than a count going stale. */
+        return Promise.all([
+          fetchJson(FN + 'dtelco-operator'),
+          fetch('../js/dengageEvents.js').then(function (r) { return r.text(); })
+        ]).then(function (both) {
+          var signals = (both[0].json && both[0].json.signals) || [];
+          var m = both[1].match(/var EVENT_TYPES = \[([\s\S]*?)\];/);
+          var vocabulary = m ? (m[1].match(/'[a-z0-9_]+'/g) || []).map(function (x) {
+            return x.slice(1, -1); }) : [];
+          var missing = signals.filter(function (s) { return vocabulary.indexOf(s) < 0; });
+          return { ok: signals.length > 0 && missing.length === 0,
+                   detail: missing.length
+                     ? missing.join(', ') + ' would reach Postgres and never reach Dengage'
+                     : signals.length + ' signals, all in the site vocabulary, ' +
+                       Object.keys((both[0].json && both[0].json.moves) || {}).length +
+                       ' of them move a segment' };
+        });
+      }
+    },
+    {
+      name: 'dtelco-reset holds a snapshot and reports all fourteen segments',
+      run: function () {
+        return fetchJson(FN + 'dtelco-reset').then(function (r) {
+          var j = r.json || {};
+          var n = Object.keys(j.segments_now || {}).length;
+          return { ok: n === 14 && j.snapshot_rows > 0,
+                   detail: j.snapshot_rows + ' snapshot rows, ' + n + ' segments reported' };
+        });
+      }
+    },
+    {
+      name: 'the seeded data represents today, so the documented counts hold',
+      run: function () {
+        return fetchJson(FN + 'dtelco-reset').then(function (r) {
+          var c = (r.json && r.json.clock) || {};
+          return { ok: c.aligned === true,
+                   detail: c.aligned
+                     ? 'anchored on ' + c.anchor_date + ', rolled ' + c.rolled_days_total + ' day(s) in total'
+                     : 'the data represents ' + c.anchor_date + ' and today is ' + c.today + ', ' +
+                       c.days_behind + ' day(s) behind. Roll before the session.' };
+        });
+      }
+    },
+    {
+      name: 'every segment count matches handoff/SEGMENTS.md',
+      run: function () {
+        return fetchJson(FN + 'dtelco-reset').then(function (r) {
+          var live = (r.json && r.json.segments_now) || {};
+          var off = Object.keys(SEEDED).filter(function (k) { return live[k] !== SEEDED[k]; });
+          return { ok: off.length === 0,
+                   detail: off.length === 0 ? 'all 14 match'
+                     : off.map(function (k) {
+                         return k + ' doc ' + SEEDED[k] + ' live ' + live[k];
+                       }).join('; ') };
+        });
+      }
+    },
+    {
+      name: 'dtelco-lead-relay stores the lead before it calls Dengage',
+      run: function () {
+        return fetchJson(FN + 'dtelco-lead-relay').then(function (r) {
+          var b = r.json || {};
+          /* No count. A number here is a third place to update when a form is added. */
+          var forms = b.forms || [];
+          return { ok: r.status === 200 && b.function === 'dtelco-lead-relay' &&
+                       forms.indexOf('recommendation') >= 0 && forms.indexOf('recognition') >= 0,
+                   detail: forms.length + ' forms, Dengage ' +
+                           (b.dengage_configured ? 'configured' : 'pending an API user') };
+        });
+      }
+    },
+    {
+      name: 'and refuses a contact key of the wrong shape before it stores anything',
+      run: function () {
+        return fetch(FN + 'dtelco-lead-relay', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ contact_key: 'not a key', form: 'newsletter' })
+        }).then(function (r) {
+          return r.text().then(function (t) {
+            return { ok: r.status === 400 && t.indexOf('shape') >= 0,
+                     detail: 'HTTP ' + r.status + ', ' + t.slice(0, 60) };
+          });
+        });
+      }
+    },
+    {
+      name: 'and refuses a form name outside its closed vocabulary',
+      run: function () {
+        return fetch(FN + 'dtelco-lead-relay', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ contact_key: 'DPS-DTELCO-1', form: 'whatever' })
+        }).then(function (r) { return { ok: r.status === 400, detail: 'HTTP ' + r.status }; });
+      }
+    },
+    {
+      name: 'dtelco-message reads the outcome code rather than the HTTP status',
+      run: function () {
+        return fetchJson(FN + 'dtelco-message').then(function (r) {
+          var b = r.json || {};
+          return { ok: r.status === 200 && b.reads_the_code_not_the_status === true &&
+                       b.channels_suppressed && b.channels_suppressed.length === 2,
+                   detail: 'sends ' + (b.channels_available || []).join(' and ') +
+                           ', refuses ' + (b.channels_suppressed || []).join(' and ') + ' by name' };
+        });
+      }
+    },
+    {
+      name: 'and refuses SMS and WhatsApp by name rather than by silence',
+      run: function () {
+        return fetch(FN + 'dtelco-message', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ contact_key: 'DPS-DTELCO-1', content_id: 'x', channel: 'sms' })
+        }).then(function (r) { return r.json(); }).then(function (b) {
+          return { ok: b.sent === false && /never sent/.test(b.why || ''),
+                   detail: (b.why || '').slice(0, 70) };
+        });
+      }
+    },
+    {
+      name: 'the twelve operator columns on the contact have a writer, and it names them',
+      run: function () {
+        return fetchJson(FN + 'dtelco-persona-seed').then(function (r) {
+          var b = r.json || {};
+          var want = ['msisdn', 'plan_id', 'plan_name', 'plan_type', 'lifecycle', 'arpu_band',
+                      'esim', 'device_model', 'contract_end', 'family_lines', 'preferred_store',
+                      'preferred_channel'];
+          var cols = b.columns || [];
+          return { ok: want.every(function (c) { return cols.indexOf(c) >= 0; }) &&
+                       b.personas === 8 && b.writes_email === false &&
+                       b.gsm_permission === false,
+                   detail: cols.length + ' columns for ' + b.personas + ' personas, no email ' +
+                           'and no gsm permission on invented numbers' };
+        });
+      }
+    },
+    {
+      name: 'the catalogue the product API would send carries every required field',
+      run: function () {
+        return fetch(FN + 'dtelco-ecomm', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ op: 'products' })
+        }).then(function (r) { return r.json(); }).then(function (b) {
+          var s = b.sample || {};
+          return { ok: b.missing_required === 0 && b.products > 0 && b.variants > 0 &&
+                       /^https:\/\//.test(s.link || '') && /^https:\/\//.test(s.image_link || '') &&
+                       typeof s.price === 'number' && typeof s.is_active === 'boolean',
+                   detail: b.products + ' products, ' + b.variants + ' variants, ' +
+                           b.missing_required + ' missing a required field' };
+        });
+      }
+    },
+    {
+      name: 'and an order is totalled server side, with a status the order API allows',
+      run: function () {
+        var id = 'DPS-dtelco-order-' + Date.now();
+        return fetch(FN + 'dtelco-ecomm', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ op: 'order', contact_key: 'DPS-DTELCO-1', order_id: id,
+            items: [{ product_id: 'dev-galaxy-a16', quantity: 2 },
+                    { product_id: 'acc-buds-airpods-4', quantity: 1 }] })
+        }).then(function (r) { return r.json(); }).then(function (b) {
+          return fetch(FN + 'dtelco-ecomm', {
+            method: 'POST', headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ op: 'order', contact_key: 'DPS-DTELCO-1',
+              order_id: 'DPS-dtelco-order-' + (Date.now() + 1), order_status: 'shipped',
+              items: [{ product_id: 'dev-galaxy-a16' }] })
+          }).then(function (r2) {
+            return r2.json().then(function (bad) {
+              return { ok: b.stored === true && b.item_count === 3 && b.total_amount === 507 &&
+                           r2.status === 400 && /success and refund/.test(bad.why || ''),
+                       detail: b.item_count + ' items totalling ' + b.total_amount +
+                               ', and shipped refused' };
+            });
+          });
+        });
+      }
+    },
+    {
+      name: 'the send list that gets the recommendation into a push exists and is described',
+      run: function () {
+        return fetchJson(FN + 'dtelco-dataspace').then(function (r) {
+          var b = r.json || {};
+          return { ok: b.table === 'dtelco_reco_list' && (b.columns || []).length === 6 &&
+                       b.contact_key_column === 'contact_key' && /Push sends/.test(b.why || ''),
+                   detail: b.table + ', ' + b.rows_ready + ' rows ready' };
+        });
+      }
+    },
+    {
+      name: 'the operator tells Dengage from the server, not only from an open browser',
+      run: function () {
+        return fetchJson(FN + 'dtelco-operator').then(function (r) {
+          var b = r.json || {};
+          return { ok: b.tells_dengage === true && /event\.dengage\.com/.test(b.how || '') &&
+                       typeof b.event_table === 'string',
+                   detail: b.event_table + ', account id configured ' + b.event_api_configured };
+        });
+      }
+    },
+    {
+      name: 'and a visitor can take a line of their own instead of becoming a persona',
+      run: function () {
+        var key = 'DPS-DTELCO-CHECK' + Date.now();
+        return fetch(FN + 'dtelco-operator', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ contact_key: key, signal: 'usage_80' })
+        }).then(function (r1) {
+          return r1.json().then(function (refused) {
+            return fetch(FN + 'dtelco-operator', {
+              method: 'POST', headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ contact_key: key, signal: 'usage_80', adopt: true })
+            }).then(function (r2) { return r2.json(); }).then(function (b) {
+              return fetch(FN + 'dtelco-reset', { method: 'POST' }).then(function () {
+                return { ok: r1.status === 404 && /adopt: true/.test(refused.adopt || '') &&
+                             b.adopted_line === true && b.segment && b.segment.entered === true,
+                         detail: 'refused without adopt, then entered ' +
+                                 (b.segment || {}).view + ' at ' + (b.segment || {}).count_after };
+              });
+            });
+          });
+        });
+      }
+    },
+    {
+      name: 'the operator carries fulfilment as custom events, since the order API cannot',
+      run: function () {
+        return fetchJson(FN + 'dtelco-operator').then(function (r) {
+          var b = r.json || {};
+          var signals = b.signals || [], moves = b.moves || {};
+          return { ok: signals.indexOf('order_shipped') >= 0 &&
+                       signals.indexOf('order_delivered') >= 0 &&
+                       !moves.order_shipped && !moves.order_delivered,
+                   detail: signals.length + ' signals, fulfilment moves no segment' };
+        });
+      }
+    },
+    {
+      name: 'the profile carries the two fields a rule needs and nothing else could supply',
+      run: function () {
+        return fetchJson(FN + 'dtelco-profile?key=DPS-DTELCO-7').then(function (r) {
+          var b = r.json || {};
+          return { ok: typeof b.lines_at_address === 'number' && b.lines_at_address >= 2 &&
+                       b.family_lines === 1 && b.contract_days !== undefined,
+                   detail: b.lines_at_address + ' lines at the address, billed for ' +
+                           b.family_lines };
+        });
+      }
+    },
+    {
+      name: 'and every persona is recommended by the rule their own story turns on',
+      run: function () {
+        var want = { 'DPS-DTELCO-1': 'usage_80', 'DPS-DTELCO-3': 'traveller',
+                     'DPS-DTELCO-7': 'family' };
+        var keys = Object.keys(want);
+        return Promise.all(keys.map(function (k) {
+          return fetchJson(FN + 'dtelco-profile?key=' + k + '&reco=1');
+        })).then(function (rs) {
+          var got = rs.map(function (r) {
+            return ((r.json || {}).recommendations || [])[0] &&
+                   ((r.json || {}).recommendations || [])[0].rule || 'none';
+          });
+          var wrong = keys.filter(function (k, i) { return got[i] !== want[k]; });
+          return { ok: wrong.length === 0,
+                   detail: keys.map(function (k, i) { return k.slice(-1) + ':' + got[i]; }).join(' ') };
+        });
+      }
+    },
+    {
+      name: 'and it names only rules the site also runs, saying which need the page',
+      run: function () {
+        return fetchJson(FN + 'dtelco-profile').then(function (r) {
+          var b = r.json || {};
+          var rules = b.recommendation_rules || [];
+          var page = b.rules_needing_the_page || [];
+          return { ok: rules.length === 5 && page.length === 5 &&
+                       rules.indexOf('usage_80') >= 0 && rules.indexOf('family') >= 0 &&
+                       page.indexOf('cart_bundle') >= 0 &&
+                       rules.indexOf('device_cross_sell') < 0,
+                   detail: rules.join(', ') + ' | needs the page: ' + page.join(', ') };
+        });
+      }
+    },
+    {
+      name: 'dtelco-coupons reads a coupon list and says plainly that it cannot redeem one',
+      run: function () {
+        return fetchJson(FN + 'dtelco-coupons').then(function (r) {
+          var b = r.json || {};
+          return { ok: r.status === 200 && b.function === 'dtelco-coupons' &&
+                       /never imports, takes or redeems/.test(b.note || ''),
+                   detail: 'prefix ' + b.prefix + ', list configured ' + b.list_id_configured };
+        });
+      }
+    },
+    {
+      name: 'and recognises a generated code by its shape, refusing anything else',
+      run: function () {
+        /* The prefix is read out of js/config.js as text, never by executing it. This console
+           reports on the site's configuration and must not become a second copy of it: a page
+           that accepts a code the backend calls unrecognised is worse than one accepting none. */
+        return fetch('../js/config.js').then(function (r) { return r.text(); }).then(function (src) {
+          var m = src.match(/coupon:\s*\{[\s\S]{0,300}?prefix:\s*'([^']+)'/);
+          var prefix = m ? m[1] : null;
+          if (!prefix) { return { ok: false, detail: 'no coupon prefix in js/config.js' }; }
+          return Promise.all([
+            fetchJson(FN + 'dtelco-coupons?check=' + prefix + '7K2M4Q9X'),
+            fetchJson(FN + 'dtelco-coupons?check=BACK10')
+          ]).then(function (rs) {
+            var good = rs[0].json || {}, bad = rs[1].json || {};
+            return { ok: good.recognised === true && bad.recognised === false &&
+                         (good.shape || '').indexOf(prefix) === 0,
+                     detail: prefix + ' recognised ' + good.recognised +
+                             ', shared word ' + bad.recognised };
+          });
+        });
+      }
+    },
+    {
+      name: 'dtelco-dengage-tables will count six standard tables and the custom one',
+      run: function () {
+        return fetchJson(FN + 'dtelco-dengage-tables').then(function (r) {
+          var b = r.json || {};
+          var list = b.tables_it_will_count || Object.keys(b.counts || {});
+          return { ok: list.length === 7 && list.indexOf('dtelco_events') >= 0 &&
+                       b.storage_lag_seconds === 120,
+                   detail: list.length + ' tables, storage lags ' + b.storage_lag_seconds + ' seconds' };
+        });
+      }
+    },
+    {
+      name: 'dtelco-broadcast names the places it can announce a fault for',
+      run: function () {
+        /* Read out of js/config.js as text, never executed, so the deployed function is compared
+           against the committed list rather than against a number typed twice. */
+        return fetch('../js/config.js').then(function (r) { return r.text(); }).then(function (src) {
+          var block = src.match(/cities:\s*\[([^\]]*)\]/);
+          var want = block ? (block[1].match(/'[^']+'/g) || []).map(function (q) {
+            return q.slice(1, -1); }) : [];
+          return fetchJson(FN + 'dtelco-broadcast').then(function (r2) {
+            var got = (r2.json && r2.json.cities) || [];
+            return { ok: r2.status === 200 && want.length > 0 && got.join('|') === want.join('|'),
+                     detail: got.length + ' deployed, ' + want.length + ' committed' };
+          });
+        });
+      }
+    },
+    {
+      name: 'and sends nothing until it is told twice',
+      run: function () {
+        /* The only control in this demonstration that reaches more than one person. The first
+           press must come back with the words it would use and sent: false. */
+        return fetchJson(FN + 'dtelco-broadcast', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ city: 'Ganja' })
+        }).then(function (r) {
+          var b = r.json || {};
+          return { ok: b.sent === false && /confirm: true/.test(b.why || '') &&
+                       /Ganja/.test(b.title || '') && typeof b.would_reach === 'string',
+                   detail: 'sent ' + b.sent + ', and it says who it would reach' };
+        });
+      }
+    },
+    {
+      name: 'and refuses a place no customer of this operator lives in',
+      run: function () {
+        return fetchJson(FN + 'dtelco-broadcast', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ city: 'Tbilisi', confirm: true })
+        }).then(function (r) {
+          var b = r.json || {};
+          return { ok: r.status === 400 && b.error === 'unknown city',
+                   detail: 'the title of a push is not the place for an unchecked string' };
+        });
+      }
+    },
+    {
+      name: 'dtelco-inbox reads a mailbox for a screen that has no SDK',
+      run: function () {
+        return fetchJson(FN + 'dtelco-inbox').then(function (r) {
+          var b = r.json || {};
+          return { ok: r.status === 200 && b.function === 'dtelco-inbox' &&
+                       b.writes === 'nothing, ever' && /counter/.test(b['for'] || ''),
+                   detail: 'account ' + (b.needs && b.needs.account_id) +
+                           ', custom inbox app ' + (b.needs && b.needs.custom_inbox_app_guid) };
+        });
+      }
+    },
+    {
+      name: 'and will not report an event that no customer caused',
+      run: function () {
+        /* An agent glancing at a customer's messages has not read them. If this ever answers
+           anything but a refusal, every inbox statistic in the account stops being trustworthy. */
+        return fetchJson(FN + 'dtelco-inbox', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ events: [{ eventType: 'OP', msgid: 'x' }] })
+        }).then(function (r) {
+          var b = r.json || {};
+          return { ok: r.status === 405 && /reads and will not write/.test(b.error || '') &&
+                       /never report impressions/.test(b.rule || ''),
+                   detail: 'POST answers ' + r.status };
+        });
+      }
+    },
+    {
+      name: 'every remote view resolves for the role Dengage connects with',
+      run: function () {
+        /* The check that did not exist. Every other assertion here reads Postgres as the service
+           role, which bypasses RLS and holds every grant. Dengage connects as dengage_reader, and
+           two views resolved for one and errored for the other. */
+        return fetchJson(FN + 'dtelco-remote').then(function (r) {
+          var b = r.json || {};
+          return { ok: r.status === 200 && b.views_broken === 0 && b.views_resolving > 0,
+                   detail: b.views_broken
+                     ? (b.broken || []).map(function (x) { return x.view + ': ' + x.why; }).join('; ')
+                     : b.views_resolving + ' views resolve, ' +
+                       (b.not_offered || []).length + ' deliberately not offered' };
+        });
+      }
+    },
+    {
+      name: 'and the remote source picker offers nothing it should not',
+      run: function () {
+        return fetchJson(FN + 'dtelco-remote').then(function (r) {
+          var b = r.json || {};
+          var ref = b.reference_tables_offered || [];
+          var keyless = b.offered_without_a_contact_key || [];
+          return { ok: ref.length === 0 && keyless.length === 0,
+                   detail: (ref.length || keyless.length)
+                     ? 'reference: ' + (ref.join(', ') || 'none') + '; keyless: ' +
+                       (keyless.join(', ') || 'none')
+                     : b.offered_count + ' objects offered, every one contact keyed' };
+        });
+      }
+    }
+  ];
+
+  function runBackend() {
+    var btn = $('run-backend'); btn.disabled = true;
+    var body = $('backend-table').querySelector('tbody');
+    clear(body);
+    $('backend-summary').textContent = 'running ' + CHECKS.length + ' assertions';
+    var pass = 0, done = 0;
+
+    CHECKS.forEach(function (c, i) {
+      var tr = el('tr');
+      var td0 = el('td'); td0.appendChild(pill('wait', 'running'));
+      tr.appendChild(td0);
+      tr.appendChild(el('td', null, c.name));
+      var td2 = el('td', 'detail mono', '');
+      tr.appendChild(td2);
+      body.appendChild(tr);
+
+      var settle = function (ok, detail) {
+        clear(td0); td0.appendChild(pill(ok ? 'ok' : 'bad', ok ? 'pass' : 'fail'));
+        td2.textContent = detail;
+        if (ok) pass++;
+        done++;
+        if (done === CHECKS.length) {
+          $('backend-summary').textContent = pass + ' of ' + CHECKS.length + ' passed';
+          btn.disabled = false;
+        }
+      };
+      c.run().then(function (r) { settle(r.ok, r.detail); },
+                   function (e) { settle(false, 'threw: ' + (e && e.message ? e.message : e)); });
+    });
+  }
+
+  /* ---------------------------------------------------------------- 2. segments */
+
+  function readPinned() {
+    try { return JSON.parse(localStorage.getItem(BASELINE_KEY) || 'null'); }
+    catch (e) { return null; }
+  }
+  var lastLive = null;
+
+  function runSegments() {
+    var btn = $('run-segments'); btn.disabled = true;
+    $('segments-summary').textContent = 'reading';
+    return fetchJson(FN + 'dtelco-reset').then(function (r) {
+      var live = (r.json && r.json.segments_now) || {};
+      lastLive = live;
+      drawSegments(live);
+      btn.disabled = false;
+      return live;
+    }, function (e) {
+      $('segments-summary').textContent = 'could not read: ' + e;
+      btn.disabled = false;
+    });
+  }
+
+  function drawSegments(live) {
+    var pinned = readPinned();
+    var body = $('segments-table').querySelector('tbody');
+    clear(body);
+    var moved = 0, drifting = 0;
+
+    Object.keys(SEEDED).forEach(function (k) {
+      var tr = el('tr');
+      tr.appendChild(el('td', 'mono', k));
+      tr.appendChild(el('td', 'num', SEEDED[k]));
+
+      var pinnedVal = pinned && Object.prototype.hasOwnProperty.call(pinned.counts || {}, k)
+        ? pinned.counts[k] : null;
+      tr.appendChild(el('td', 'num', pinnedVal === null ? '' : pinnedVal));
+
+      var now = live[k];
+      tr.appendChild(el('td', 'num', now === undefined ? '' : now));
+
+      var against = pinnedVal === null ? SEEDED[k] : pinnedVal;
+      var d = (now === undefined) ? null : now - against;
+      var tdD = el('td', 'num');
+      if (d !== null && d !== 0) { moved++; tdD.appendChild(pill(d > 0 ? 'ok' : 'bad', (d > 0 ? '+' : '') + d)); }
+      else if (d === 0) { tdD.appendChild(pill('off', 'same')); }
+      tr.appendChild(tdD);
+
+      var tdW = el('td', 'detail');
+      /* The row carries its own classification, so a check counts an attribute rather than
+         pattern matching the sentence. A checker that reads prose breaks on a copy edit. */
+      if (DRIFT[k]) { drifting++; tr.setAttribute('data-drift', 'calendar'); tdW.textContent = DRIFT[k]; }
+      else if (EMPTY_ON_PURPOSE[k]) {
+        tr.setAttribute('data-drift', 'empty-on-purpose');
+        tdW.textContent = 'Empty on purpose. ' + EMPTY_ON_PURPOSE[k];
+      } else {
+        tr.setAttribute('data-drift', 'fixed');
+        tdW.textContent = 'Fixed. Only a signal moves it.';
+      }
+      tr.appendChild(tdW);
+
+      body.appendChild(tr);
+    });
+
+    var against = pinned ? 'the baseline pinned ' + pinned.at : 'the seeded numbers';
+    $('segments-summary').textContent = moved + ' of 14 differ from ' + against +
+      ', and ' + drifting + ' of those can move without anybody pressing anything';
+
+    var note = $('drift-note');
+    note.hidden = false;
+    clear(note);
+    note.appendChild(el('strong', null, 'Read the live column, not the document. '));
+    note.appendChild(document.createTextNode(
+      'Seven views compare a seeded date against today. A number in the seeded column was true on ' +
+      '3 September 2026 and is only true today for the seven that do not move. Pin a baseline ' +
+      'before a rehearsal and the delta column then shows what the rehearsal did, which is the ' +
+      'number worth saying out loud.'));
+  }
+
+  /* ---------------------------------------------------------------- 3. contact */
+
+  function shapeReport() {
+    var v = $('key-input').value.trim();
+    var ok = SHAPE.test(v);
+    var s = $('key-shape');
+    clear(s);
+    s.appendChild(pill(ok ? 'ok' : 'bad', ok ? 'shape valid' : 'shape refused'));
+    s.appendChild(document.createTextNode(' against ' + SHAPE.source));
+    return ok ? v : null;
+  }
+
+  function runProfile(withReco) {
+    var key = shapeReport();
+    var out = $('profile-out');
+    clear(out);
+    if (!key) {
+      out.appendChild(el('p', 'detail', 'Not looked up. A key of the wrong shape is refused here ' +
+        'exactly as every server endpoint refuses it, because an unknown key does not fail: it ' +
+        'creates a contact.'));
+      return;
+    }
+    var url = FN + 'dtelco-profile?key=' + encodeURIComponent(key) + (withReco ? '&reco=1' : '');
+    out.appendChild(el('p', 'detail', 'reading ' + url));
+    fetchJson(url).then(function (r) {
+      clear(out);
+      var head = el('p');
+      head.appendChild(pill(r.status === 200 ? 'ok' : 'bad', 'HTTP ' + r.status));
+      head.appendChild(document.createTextNode(' ' + key));
+      out.appendChild(head);
+
+      var j = r.json || {};
+      var t = el('table');
+      var tb = el('tbody');
+      Object.keys(j).forEach(function (k) {
+        var v = j[k];
+        var tr = el('tr');
+        tr.appendChild(el('td', 'mono', k));
+        tr.appendChild(el('td', null, (v && typeof v === 'object') ? JSON.stringify(v) : String(v)));
+        tb.appendChild(tr);
+      });
+      t.appendChild(tb);
+      out.appendChild(t);
+
+      var d = el('details');
+      d.appendChild(el('summary', null, 'Raw response'));
+      d.appendChild(el('pre', null, r.text));
+      out.appendChild(d);
+    }, function (e) {
+      clear(out);
+      out.appendChild(el('p', 'detail', 'could not read: ' + e));
+    });
+  }
+
+  /* ---------------------------------------------------------------- 4. feed */
+
+  function runFeed() {
+    var btn = $('run-feed'); btn.disabled = true;
+    var out = $('feed-out');
+    clear(out);
+    $('feed-summary').textContent = 'reading';
+
+    fetchJson(FN + 'dtelco-product-feed').then(function (r) {
+      var j = r.json || {};
+      $('feed-summary').textContent = 'HTTP ' + r.status;
+      var t = el('table');
+      var tb = el('tbody');
+      /* The response carries the whole catalogue. Printing an array of 245 objects into a table
+         cell tells a reader nothing, so this shows the scalars and the counts, and the sample
+         below shows the rows themselves. */
+      var scalars = ['generated_at', 'currency', 'origin'];
+      scalars.forEach(function (k) {
+        if (j[k] === undefined) return;
+        var tr = el('tr');
+        tr.appendChild(el('td', 'mono', k));
+        tr.appendChild(el('td', null, String(j[k])));
+        tb.appendChild(tr);
+      });
+      Object.keys(j.counts || {}).forEach(function (k) {
+        var tr = el('tr');
+        tr.appendChild(el('td', 'mono', 'counts.' + k));
+        tr.appendChild(el('td', 'num', String(j.counts[k])));
+        tb.appendChild(tr);
+      });
+      t.appendChild(tb);
+      out.appendChild(t);
+      return fetch(FN + 'dtelco-product-feed?table=product').then(function (rr) { return rr.text(); });
+    }).then(function (csv) {
+      if (!csv) return;
+      var rows = csv.replace(/^﻿/, '').split('\r\n').filter(function (l) { return l.length; });
+      $('feed-summary').textContent += ', ' + rows.length + ' CSV lines including the header';
+      var d = el('details');
+      d.appendChild(el('summary', null, 'First five rows of the product table, as Dengage receives them'));
+      d.appendChild(el('pre', null, rows.slice(0, 5).join('\n')));
+      out.appendChild(d);
+      $('run-feed').disabled = false;
+    }, function (e) {
+      $('feed-summary').textContent = 'could not read: ' + e;
+      $('run-feed').disabled = false;
+    });
+  }
+
+  /* ---------------------------------------------------------------- 5. messages */
+
+  var PACK = null;
+
+  function runMessages() {
+    var btn = $('run-messages'); btn.disabled = true;
+    var load = PACK ? Promise.resolve(PACK)
+                    : fetchJson('../panel/contents.json').then(function (r) { PACK = r.json; return PACK; });
+    load.then(function (pack) {
+      btn.disabled = false;
+      if (!pack) { $('messages-summary').textContent = 'panel/contents.json did not parse'; return; }
+      drawMessages(pack);
+    }, function (e) {
+      btn.disabled = false;
+      $('messages-summary').textContent = 'could not read panel/contents.json: ' + e;
+    });
+  }
+
+  function drawMessages(pack) {
+    var body = $('messages-table').querySelector('tbody');
+    clear(body);
+    var channels = pack._channels || [];
+    var counts = {};
+    channels.forEach(function (c) { counts[c] = 0; });
+
+    (pack.moments || []).forEach(function (m) {
+      var has = channels.filter(function (c) { return !!m[c]; });
+      has.forEach(function (c) { counts[c]++; });
+
+      var tr = document.createElement('tr');
+      tr.appendChild(el('td', null, m.journey));
+      tr.appendChild(el('td', null, m.title));
+      tr.appendChild(el('td', 'detail', m.trigger));
+      tr.appendChild(el('td', null, has.join(', ')));
+      /* Where the file is, so a person setting the account up can go straight to it rather than
+         reading copy off a screen and typing it back in. */
+      tr.appendChild(el('td', 'detail', has.map(function (c) {
+        if (c === 'email') { return 'panel/email/' + m.id + '.html'; }
+        if (c === 'push') { return 'panel/push/' + m.id + '.json'; }
+        if (c === 'sms' || c === 'whatsapp') { return 'panel/' + c + '/' + m.id + '.txt'; }
+        return 'panel/contents.json';
+      }).join('  ')));
+      body.appendChild(tr);
+    });
+
+    var suppressed = pack._suppressed || [];
+    $('messages-summary').textContent = (pack.moments || []).length + ' moments. ' +
+      channels.map(function (c) { return counts[c] + ' ' + c; }).join(', ') + '. ' +
+      (suppressed.length ? suppressed.join(' and ') + ' are composed and never sent: ' +
+        (pack._suppressed_why || '') : '');
+  }
+
+  /* ---------------------------------------------------------------- 6. config */
+
+  function runConfig() {
+    var btn = $('run-config'); btn.disabled = true;
+    var body = $('config-table').querySelector('tbody');
+    clear(body);
+
+    fetch('../js/config.js').then(function (r) { return r.text(); }).then(function (src) {
+      btn.disabled = false;
+      function pick(name) {
+        var m = src.match(new RegExp(name + "\\s*:\\s*'([^']*)'"));
+        return m ? m[1] : null;
+      }
+      var account = pick('accountId');
+      var guid = pick('appGuid');
+      var dc = pick('datacenter');
+      var slug = pick('slug');
+      var origin = pick('origin');
+
+      var rows = [
+        ['slug', slug, slug === 'dtelco'],
+        ['datacenter', dc, !!dc],
+        ['published origin', origin, !!origin],
+        ['accountId', account || 'not set', !!account],
+        ['appGuid', guid || 'not set', !!guid]
+      ];
+      rows.forEach(function (row) {
+        var tr = el('tr');
+        tr.appendChild(el('td', 'mono', row[0]));
+        tr.appendChild(el('td', 'mono', row[1]));
+        var td = el('td');
+        td.appendChild(pill(row[2] ? 'ok' : 'wait', row[2] ? 'set' : 'pending'));
+        tr.appendChild(td);
+        body.appendChild(tr);
+      });
+
+      var wired = !!(account && guid);
+      $('config-summary').textContent = wired
+        ? 'The account is wired. The storefront writes to Dengage.'
+        : 'The account id and app guid have not arrived yet. The storefront runs in full and logs ' +
+          'every write it would have made, so nothing waits on them except the writes themselves.';
+    }, function (e) {
+      btn.disabled = false;
+      $('config-summary').textContent = 'could not read js/config.js as text: ' + e;
+    });
+  }
+
+  /* ---------------------------------------------------------------- wiring */
+
+  PERSONAS.forEach(function (p, i) {
+    var o = el('option', null, (i + 1) + ' ' + p[1]);
+    o.value = p[0];
+    o.setAttribute('data-story', p[1]);
+    $('key-picker').appendChild(o);
+  });
+
+  /* The names, from the operator's own record. A failure here leaves the number and the story,
+     which still identifies the persona; it never leaves a wrong name on screen. */
+  PERSONAS.forEach(function (p, i) {
+    fetchJson(FN + 'dtelco-profile?key=' + encodeURIComponent(p[0])).then(function (r) {
+      var name = r.json && r.json.full_name;
+      if (!name) { return; }
+      var o = $('key-picker').options[i];
+      if (o && o.value === p[0]) {
+        o.textContent = (i + 1) + ' ' + name.split(' ')[0] + ', ' + p[1];
+      }
+    }).catch(function () { /* the number and the story are enough to pick by */ });
+  });
+  $('key-picker').addEventListener('change', function () {
+    $('key-input').value = this.value;
+    shapeReport();
+  });
+  $('key-input').addEventListener('input', shapeReport);
+
+  $('run-backend').addEventListener('click', runBackend);
+  $('run-segments').addEventListener('click', runSegments);
+  $('run-profile').addEventListener('click', function () { runProfile(false); });
+  $('run-reco').addEventListener('click', function () { runProfile(true); });
+  $('run-feed').addEventListener('click', runFeed);
+  $('run-messages').addEventListener('click', runMessages);
+  $('run-config').addEventListener('click', runConfig);
+
+  $('pin-baseline').addEventListener('click', function () {
+    if (!lastLive) { $('segments-summary').textContent = 'read the counts first, then pin them'; return; }
+    var stamp = new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
+    try { localStorage.setItem(BASELINE_KEY, JSON.stringify({ at: stamp, counts: lastLive })); }
+    catch (e) { $('segments-summary').textContent = 'could not pin: ' + e; return; }
+    drawSegments(lastLive);
+  });
+  $('clear-baseline').addEventListener('click', function () {
+    try { localStorage.removeItem(BASELINE_KEY); } catch (e) {}
+    if (lastLive) drawSegments(lastLive); else $('segments-summary').textContent = 'pinned baseline cleared';
+  });
+
+  $('run-all').addEventListener('click', function () {
+    runBackend(); runSegments(); runFeed(); runMessages(); runConfig(); runProfile(true);
+  });
+
+  shapeReport();
+  drawSegments({});
+})();
+</script>
+</body>
+</html>

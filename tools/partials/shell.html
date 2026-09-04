@@ -1,0 +1,57 @@
+<!doctype html>
+<!-- data-page-type is on <html> as well as on <body>. js/identity.js needs it to build the
+     page view it hands to initialize, and it runs in the head, where <body> does not yet
+     exist. tools/build-pages.py writes the same string to both. -->
+<html lang="en" dir="ltr" data-demo-slug="dtelco" data-rel-root="{{REL}}"
+      data-site-path="{{PATH}}" data-page-type="{{PAGE_TYPE}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{TITLE}}</title>
+<meta name="description" content="{{DESCRIPTION}}">
+
+<!-- Web push on an iPhone needs the site added to the Home Screen, and Safari only offers that
+     when the page declares a manifest with display standalone. Without these five lines the
+     permission call does nothing at all, silently. -->
+<link rel="manifest" href="{{REL}}manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="D·TELCO">
+<link rel="apple-touch-icon" href="{{REL}}assets/brand/icon-180.png">
+<link rel="icon" href="{{REL}}assets/brand/favicon.png">
+
+<!-- Order below is load bearing. Identity resolves synchronously and initialize is called with
+     the contact key already known, because a build that initialised anonymously and named the
+     contact five seconds later put its first pageView on the anonymous device profile. Both run
+     before any stylesheet, because a pending stylesheet blocks every later script and a slow
+     corporate network must not stop the SDK from starting. -->
+<script src="{{REL}}js/config.js{{STAMP}}"></script>
+<script src="{{REL}}js/catalog-index.js{{STAMP}}"></script>
+<script src="{{REL}}js/identity.js{{STAMP}}"></script>
+{{DENGAGE_SNIPPET}}
+<!-- stylesheets only after this point -->
+<link rel="stylesheet" href="{{REL}}assets/css/site.css{{STAMP}}">
+<link rel="stylesheet" href="{{REL}}assets/css/demo-controls.css{{STAMP}}">
+{{HEAD_EXTRA}}
+</head>
+<body data-page-type="{{PAGE_TYPE}}"{{BODY_ATTRS}}>
+{{HEADER}}
+<main id="main">
+<div class="dn-inline-target" id="dn_inline_target_below_header"></div>
+{{BODY}}
+<div class="dn-inline-target" id="dn_inline_target_above_footer"></div>
+</main>
+{{FOOTER}}
+<script src="{{REL}}js/dengageEvents.js{{STAMP}}"></script>
+<script src="{{REL}}js/catalog.js{{STAMP}}"></script>
+<script src="{{REL}}js/recognition.js{{STAMP}}"></script>
+<script src="{{REL}}js/reco.js{{STAMP}}"></script>
+<script src="{{REL}}js/slots.js{{STAMP}}"></script>
+<script src="{{REL}}js/creatives.js{{STAMP}}"></script>
+<script src="{{REL}}js/inbox.js{{STAMP}}"></script>
+<script src="{{REL}}js/debug.js{{STAMP}}"></script>
+<script src="{{REL}}js/panels.js{{STAMP}}"></script>
+<script src="{{REL}}js/site.js{{STAMP}}"></script>
+<script src="{{REL}}js/pages.js{{STAMP}}"></script>
+</body>
+</html>

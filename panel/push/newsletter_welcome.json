@@ -1,0 +1,11 @@
+{
+ "moment": "newsletter_welcome",
+ "journey": 22,
+ "title": "You are on the list",
+ "message": "Offers reach you first from now on.",
+ "target_url": "{%= $Current.link || 'https://d-telco.github.io/telco/' %}",
+ "media": "https://d-telco.github.io/telco/assets/push/welcome.jpg",
+ "title_length": 19,
+ "message_length": 35,
+ "note": "Title under 50 characters and message under 120, or a phone truncates it. Target URL is a tag rather than an address: a shared content with an address in it sends one brand's visitor to another brand's storefront."
+}

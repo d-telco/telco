@@ -1,0 +1,35 @@
+{
+ "moment": "postpaid_billing",
+ "journey": 12,
+ "trigger": "bill_issued",
+ "always": [
+  "amount",
+  "due_date",
+  "hero_image",
+  "link"
+ ],
+ "optional": [
+  "balance",
+  "plan_name"
+ ],
+ "rows": [
+  [
+   "Amount",
+   "amount"
+  ],
+  [
+   "Due",
+   "due_date"
+  ],
+  [
+   "Plan",
+   "plan_name"
+  ],
+  [
+   "Balance carried",
+   "balance"
+  ]
+ ],
+ "hero_image": "https://d-telco.github.io/telco/assets/editorial/cat-support-1200.jpg",
+ "note": "A transactional send sees only these values. $Contact tags stay empty, so nothing the email prints comes from the contact record."
+}

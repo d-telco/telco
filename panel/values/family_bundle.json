@@ -1,0 +1,35 @@
+{
+ "moment": "family_bundle",
+ "journey": 17,
+ "trigger": "v_dtelco_family_candidates",
+ "always": [
+  "hero_image",
+  "lines",
+  "link",
+  "saving"
+ ],
+ "optional": [
+  "amount",
+  "price"
+ ],
+ "rows": [
+  [
+   "Lines at your address",
+   "lines"
+  ],
+  [
+   "You pay now",
+   "amount"
+  ],
+  [
+   "Family plan",
+   "price"
+  ],
+  [
+   "You save",
+   "saving"
+  ]
+ ],
+ "hero_image": "https://d-telco.github.io/telco/assets/editorial/promo-family-1200.jpg",
+ "note": "A transactional send sees only these values. $Contact tags stay empty, so nothing the email prints comes from the contact record."
+}

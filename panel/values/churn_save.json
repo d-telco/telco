@@ -1,0 +1,30 @@
+{
+ "moment": "churn_save",
+ "journey": 20,
+ "trigger": "port_out_requested",
+ "always": [
+  "hero_image",
+  "link"
+ ],
+ "optional": [
+  "downsell",
+  "plan_name",
+  "saving"
+ ],
+ "rows": [
+  [
+   "Your plan",
+   "plan_name"
+  ],
+  [
+   "What we can do",
+   "downsell"
+  ],
+  [
+   "You save",
+   "saving"
+  ]
+ ],
+ "hero_image": "https://d-telco.github.io/telco/assets/editorial/cat-services-1200.jpg",
+ "note": "A transactional send sees only these values. $Contact tags stay empty, so nothing the email prints comes from the contact record."
+}

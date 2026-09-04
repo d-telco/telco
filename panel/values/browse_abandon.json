@@ -1,0 +1,30 @@
+{
+ "moment": "browse_abandon",
+ "journey": 4,
+ "trigger": "two plan views, no cart, 24 hours",
+ "always": [
+  "hero_image",
+  "link"
+ ],
+ "optional": [
+  "next_data",
+  "price",
+  "product"
+ ],
+ "rows": [
+  [
+   "The one you viewed",
+   "product"
+  ],
+  [
+   "Data",
+   "next_data"
+  ],
+  [
+   "Price",
+   "price"
+  ]
+ ],
+ "hero_image": "https://d-telco.github.io/telco/assets/editorial/cat-plans-1200.jpg",
+ "note": "A transactional send sees only these values. $Contact tags stay empty, so nothing the email prints comes from the contact record."
+}

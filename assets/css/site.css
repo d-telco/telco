@@ -1,0 +1,488 @@
+/* D-TELCO storefront. The operator's own shape, redrawn: black utility bar, white nav, brand
+ * red on the logo and the Shop button, tariff cards with a red gradient header and a black
+ * price pill, rounded corners near 12px, and the light and dark toggle their site carries.
+ *
+ * Tokens first so the dark theme is a token swap and never a second stylesheet.
+ */
+:root {
+  --red: #E4002B;
+  --red-hot: #FF2E52;
+  --red-deep: #96001E;
+  --pink: #FFF0F3;
+  --pink-deep: #FFE2E8;
+  --ink: #14161A;
+  --muted: #6B7280;
+  --line: #ECECEF;
+  --page: #FFFFFF;
+  --surface: #FFFFFF;
+  --surface-2: #FAFAFB;
+  --bar: #0B0C0E;
+  --bar-ink: #E7E7EA;
+  --radius: 12px;
+  --radius-lg: 18px;
+  --shadow: 0 2px 6px rgba(20,22,26,.06), 0 12px 28px rgba(20,22,26,.07);
+  --shadow-lift: 0 4px 10px rgba(20,22,26,.08), 0 20px 44px rgba(20,22,26,.12);
+  --max: 1240px;
+  --font: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --dn-banner-height: 0px;
+  --dn-header-clearance: 108px;
+}
+[data-theme="dark"] {
+  --pink: #26181C; --pink-deep: #321D23; --ink: #F3F4F6; --muted: #9BA1AC;
+  --line: #2A2D33; --page: #0E1013; --surface: #16191E; --surface-2: #1B1F25;
+  --bar: #000000; --bar-ink: #D8D9DD;
+  --shadow: 0 2px 6px rgba(0,0,0,.5), 0 12px 28px rgba(0,0,0,.45);
+  --shadow-lift: 0 4px 10px rgba(0,0,0,.55), 0 20px 44px rgba(0,0,0,.5);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--page); color: var(--ink);
+  font: 400 16px/1.55 var(--font);
+  padding-top: calc(var(--dn-banner-height) + 0px);
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+button, input, select, textarea { font: inherit; color: inherit; }
+/* A bare select is 23 pixels tall in Chromium and unusable with a thumb. Every control gets a
+   height a person can hit, on a phone and on a desktop alike, rather than one class at a time. */
+select, input[type="text"], input[type="search"], input[type="email"], input[type="tel"],
+input[type="number"], input[type="password"], input[type="date"] { min-height: 40px; }
+.wrap { max-width: var(--max); margin: 0 auto; padding: 0 20px; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ---------- header ---------- */
+.utility { background: var(--bar); color: var(--bar-ink); font-size: 13.5px; }
+.utility .wrap { display: flex; align-items: center; gap: 26px; height: 44px; }
+/* The bar is already 44 tall; the links inside it were 21, so a thumb had a third of the target
+   the design was offering. Filling the height costs no layout and the phone check now holds it. */
+.utility a, .utility .theme-toggle button {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 44px;
+}
+.utility .theme-toggle button { min-width: 40px; }
+.utility a { text-decoration: none; opacity: .82; }
+.utility a:hover, .utility a[aria-current="page"] { opacity: 1; }
+.utility a[aria-current="page"] { box-shadow: inset 0 -2px 0 var(--red); }
+.utility .spacer { margin-left: auto; }
+.utility .util-group { display: flex; align-items: center; gap: 18px; }
+.theme-toggle {
+  display: inline-flex; border: 1px solid #33363C; border-radius: 999px; overflow: hidden;
+  background: #16181C;
+}
+.theme-toggle button {
+  background: none; border: 0; padding: 4px 10px; cursor: pointer; color: var(--bar-ink);
+  line-height: 1;
+}
+.theme-toggle button[aria-pressed="true"] { background: var(--red); color: #fff; }
+
+.mainbar { background: var(--surface); border-bottom: 1px solid var(--line); position: relative; z-index: 40; }
+.mainbar .wrap { display: flex; align-items: center; gap: 8px; height: 64px; }
+.logo { display: inline-flex; align-items: center; gap: 7px; text-decoration: none; font-weight: 800;
+        font-size: 22px; letter-spacing: -.02em; margin-right: 18px; }
+.logo .d { color: var(--red); }
+.logo .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); display: inline-block; }
+.nav { display: flex; align-items: center; gap: 4px; }
+.nav > a, .nav > button {
+  background: none; border: 0; cursor: pointer; text-decoration: none; padding: 9px 12px;
+  border-radius: 9px; font-weight: 600; font-size: 15px; white-space: nowrap;
+}
+.nav > a:hover, .nav > button:hover { background: var(--pink); color: var(--red); }
+.nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: var(--radius); border: 2px solid transparent; padding: 10px 18px;
+  font-weight: 700; font-size: 15px; cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--red); color: #fff; }
+.btn-primary:hover { background: var(--red-hot); }
+.btn-outline { border-color: var(--red); color: var(--red); background: transparent; }
+.btn-outline:hover { background: var(--pink); }
+.btn-ghost { background: var(--surface-2); color: var(--ink); border-color: var(--line); }
+.btn-sm { padding: 7px 13px; font-size: 14px; border-radius: 10px; }
+.icon-btn {
+  width: 40px; height: 40px; border-radius: 10px; border: 0; background: none; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.icon-btn:hover { background: var(--pink); }
+.cart-count[hidden] { display: none; }
+.cart-count {
+  position: absolute; transform: translate(12px, -12px); background: var(--red); color: #fff;
+  border-radius: 999px; font-size: 11px; font-weight: 800; min-width: 18px; height: 18px;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0 5px;
+}
+
+/* ---------- sections ---------- */
+section { padding: 44px 0; }
+section + section { padding-top: 0; }
+.hero-wrap { padding-bottom: 8px; }
+.section-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 22px; }
+h1, h2, h3 { letter-spacing: -.022em; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
+h2 { font-size: clamp(24px, 3vw, 34px); font-weight: 800; }
+h3 { font-size: 19px; font-weight: 700; }
+.section-head .more { margin-left: auto; color: var(--red); font-weight: 700; text-decoration: none; }
+.lede { color: var(--muted); max-width: 62ch; margin: 10px 0 0; }
+
+/* ---------- hero ---------- */
+.hero { position: relative; border-radius: var(--radius-lg); overflow: hidden; background: var(--pink); }
+.hero img { width: 100%; height: auto; aspect-ratio: 12 / 5; object-fit: cover; }
+.hero-dots { display: flex; gap: 2px; justify-content: center; align-items: center; margin-top: 10px; }
+/* The dot a thumb hits and the dot an eye sees are two different sizes. The button is 44 square
+   and transparent, the dot is drawn inside it, so the control looks the same and can actually be
+   pressed. It was 10 pixels tall, which is a target no phone user reliably hits. */
+.hero-dots button {
+  width: 44px; height: 44px; padding: 0; border: 0; cursor: pointer; background: none;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.hero-dots button::before {
+  content: ""; display: block; width: 10px; height: 10px; border-radius: 999px;
+  background: var(--pink-deep); transition: width .18s ease, background .18s ease;
+}
+.hero-dots button[aria-current="true"]::before { width: 34px; background: var(--red); }
+.hero-nav { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+
+/* ---------- cards ---------- */
+.grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); }
+.grid-3 { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg);
+  overflow: hidden; display: flex; flex-direction: column; text-decoration: none;
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); }
+.card .thumb { background: var(--pink); aspect-ratio: 1; }
+.card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.card .brand { font-size: 12.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.card .name { font-weight: 700; font-size: 15.5px; }
+.card .price { font-weight: 800; font-size: 18px; margin-top: auto; padding-top: 8px; }
+.card .price small { font-weight: 600; color: var(--muted); font-size: 12.5px; }
+.badge {
+  display: inline-block; font-size: 11.5px; font-weight: 800; letter-spacing: .04em;
+  text-transform: uppercase; padding: 3px 8px; border-radius: 999px;
+}
+.badge-out { background: var(--pink-deep); color: var(--red-deep); }
+.badge-demo { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+/* The demo data mark on a price is a sentence, not a label, and it was inheriting badge sizing at
+   11.5px. A mark nobody can read on a phone is not a mark, and rule 7 turns on this line being
+   read. Its own class, at a size copy is allowed to be. */
+.note-demo {
+  display: block; margin: 6px 0 0; font-size: 12.5px; line-height: 1.45; font-weight: 600;
+  color: var(--muted); background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 10px;
+}
+
+/* ---------- tariff card, the operator's own shape ---------- */
+.tariff {
+  border-radius: var(--radius-lg); overflow: hidden; background: var(--pink);
+  border: 1px solid var(--line); display: flex; flex-direction: column;
+}
+.tariff .head { background: linear-gradient(118deg, var(--red-hot), var(--red)); color: #fff; padding: 18px 20px 20px; }
+.tariff .kicker { font-size: 13px; opacity: .82; }
+.tariff .pill {
+  display: inline-block; background: #101014; color: #fff; font-weight: 800; font-size: 22px;
+  padding: 6px 16px 6px 12px; margin: 6px 0 10px;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+}
+.tariff .cost { font-size: 30px; font-weight: 800; }
+.tariff .cost small { font-size: 14px; font-weight: 600; opacity: .85; }
+.tariff .ussd { display: flex; gap: 5px; margin-top: 12px; }
+.tariff .ussd span {
+  width: 24px; height: 28px; border: 1.5px solid rgba(255,255,255,.65); border-radius: 5px;
+  display: grid; place-items: center; font-size: 13px; font-weight: 700;
+}
+.tariff .lines { list-style: none; margin: 0; padding: 18px 20px; display: grid; gap: 12px; flex: 1; }
+.tariff .lines li { display: flex; gap: 10px; align-items: flex-start; font-size: 14.5px; }
+.tariff .lines li::before {
+  content: ""; width: 16px; height: 16px; border-radius: 50%; border: 2.5px solid var(--red);
+  flex: none; margin-top: 2px;
+}
+.tariff .actions { display: flex; gap: 10px; padding: 0 20px 20px; }
+.tariff .actions .btn { flex: 1; }
+
+/* ---------- rails ---------- */
+.rail { display: flex; gap: 16px; overflow-x: auto; padding: 4px 4px 14px; scroll-snap-type: x mandatory; }
+.rail > * { flex: 0 0 300px; scroll-snap-align: start; }
+.rail::-webkit-scrollbar { height: 8px; }
+.rail::-webkit-scrollbar-thumb { background: var(--pink-deep); border-radius: 999px; }
+
+/* ---------- reco rail, which always says which rule drew it ---------- */
+.reco { background: var(--surface-2); border-radius: var(--radius-lg); padding: 22px; border: 1px solid var(--line); }
+.reco .why {
+  font-size: 12.5px; color: var(--muted); display: inline-flex; gap: 6px; align-items: center;
+}
+.reco .rule {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px;
+  background: var(--pink); color: var(--red-deep); padding: 2px 7px; border-radius: 6px;
+}
+
+/* ---------- footer ---------- */
+footer { background: var(--surface-2); border-top: 1px solid var(--line); padding: 46px 0 30px; margin-top: 30px; }
+.foot-cols { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.foot-cols h4 { margin: 0 0 12px; font-size: 14px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+.foot-cols ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.foot-cols a { text-decoration: none; font-size: 14.5px; }
+.foot-cols a:hover { color: var(--red); }
+.demo-notice {
+  margin-top: 30px; padding: 14px 16px; border: 1px dashed var(--line); border-radius: var(--radius);
+  color: var(--muted); font-size: 13px; background: var(--surface);
+}
+
+/* ---------- inline slots. They must exist even when empty, or an inline campaign has
+     nowhere to inject and fails with no error. ---------- */
+[id^="dn_inline_target_"]:empty { display: block; height: 0; }
+
+@media (max-width: 900px) {
+  .nav, .utility .util-group.desk { display: none; }
+  .mainbar .wrap { height: 58px; }
+  .rail > * { flex-basis: 260px; }
+  /* A thumb is not a mouse pointer. Everything that can be pressed reaches 44 at phone widths,
+     which is Apple's own floor and the size the phone check holds every control to. */
+  .btn-sm, .chip, .logo, .icon-btn, .nav-right a, .nav-right button, .more {
+    min-height: 44px; display: inline-flex; align-items: center;
+  }
+  .chip { justify-content: center; min-width: 44px; }
+  /* A checkbox is 13 pixels wide whatever the stylesheet says, so the label carries the target.
+     Tapping a label toggles the box it names, which is what a person does anyway. Every label
+     holding a box, not only the ones in the filter bar: a consent line is the one control on the
+     page that has to be easy to tick, and it was 22 pixels tall. */
+  label:has(input[type="checkbox"]), label:has(input[type="radio"]) {
+    min-height: 44px; display: flex; align-items: center; gap: 8px;
+  }
+}
+
+/* ---------- page components ---------- */
+.narrow { max-width: 620px; }
+.empty { text-align: center; padding: 56px 20px; display: grid; gap: 14px; justify-items: center; }
+
+.filters { display: grid; gap: 14px; margin-bottom: 18px; }
+.search input {
+  width: 100%; max-width: 460px; padding: 11px 14px; border-radius: var(--radius);
+  border: 1px solid var(--line); background: var(--surface);
+}
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 999px;
+  padding: 7px 14px; cursor: pointer; font-size: 14px; font-weight: 600;
+}
+.chip em { font-style: normal; color: var(--muted); font-weight: 500; }
+.chip:hover { border-color: var(--red); color: var(--red); }
+.chip.on { background: var(--red); color: #fff; border-color: var(--red); }
+.chip.on em { color: rgba(255,255,255,.8); }
+.stock-only { display: inline-flex; gap: 8px; align-items: center; font-size: 14.5px; color: var(--muted); }
+
+.pdp { display: grid; gap: 34px; grid-template-columns: minmax(280px, 480px) 1fr; align-items: start; }
+.pdp-media { background: var(--pink); border-radius: var(--radius-lg); overflow: hidden; }
+.pdp-info { display: grid; gap: 12px; }
+.pdp-info .brand { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.pdp-price { font-size: 34px; font-weight: 800; }
+.pdp-price small { font-size: 15px; font-weight: 600; color: var(--muted); }
+.pdp-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.variants { display: flex; flex-wrap: wrap; gap: 8px; }
+.variants .on { border-color: var(--red); color: var(--red); background: var(--pink); }
+.lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.lines li { display: flex; gap: 10px; align-items: flex-start; }
+.lines li::before {
+  content: ""; width: 15px; height: 15px; border-radius: 50%; border: 2.5px solid var(--red);
+  flex: none; margin-top: 4px;
+}
+
+.cart-line {
+  display: grid; grid-template-columns: 90px 1fr auto auto auto; gap: 16px; align-items: center;
+  padding: 14px 0; border-bottom: 1px solid var(--line);
+}
+.cart-line img { border-radius: var(--radius); background: var(--pink); }
+.cart-foot { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding-top: 18px; }
+.cart-foot .total { margin-right: auto; font-size: 18px; }
+.cart-foot .total strong { font-size: 24px; }
+
+.form { display: grid; gap: 14px; max-width: 620px; }
+.form label { display: grid; gap: 6px; font-weight: 600; font-size: 14.5px; }
+.form input, .form select {
+  padding: 11px 13px; border-radius: var(--radius); border: 1px solid var(--line);
+  background: var(--surface); font-weight: 400;
+}
+.form input:focus, .form select:focus { outline: 2px solid var(--red); outline-offset: 1px; }
+.form .consent, .radios label { display: flex; gap: 9px; align-items: center; font-weight: 500; }
+.radios { display: grid; gap: 9px; }
+.radios.consents { grid-auto-flow: column; grid-auto-columns: max-content; gap: 18px; }
+.summary { padding: 13px 15px; background: var(--pink); border-radius: var(--radius); font-size: 15px; }
+
+.account-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 22px; }
+.panel.wide { grid-column: 1 / -1; }
+.panel dl { display: grid; grid-template-columns: max-content 1fr; gap: 8px 18px; margin: 12px 0 0; }
+.panel dt { color: var(--muted); font-size: 14px; }
+.panel dd { margin: 0; font-weight: 600; font-size: 14.5px; }
+
+.signin-grid { display: grid; gap: 34px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.persona-list { display: grid; gap: 10px; }
+.persona {
+  display: grid; gap: 3px; text-align: left; padding: 13px 15px; cursor: pointer;
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+}
+.persona:hover { border-color: var(--red); background: var(--pink); }
+.persona span:last-child { font-size: 13.5px; color: var(--muted); }
+
+.table-scroll { overflow-x: auto; }
+table.compare { border-collapse: collapse; width: 100%; min-width: 520px; margin-top: 18px; }
+table.compare th, table.compare td {
+  border-bottom: 1px solid var(--line); padding: 11px 14px; text-align: left; font-size: 14.5px;
+}
+table.compare thead th { font-size: 16px; }
+table.compare tbody th { color: var(--muted); font-weight: 600; }
+
+.quiz { display: grid; gap: 14px; max-width: 620px; }
+.quiz .radios { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.nps { display: flex; flex-wrap: wrap; gap: 7px; margin: 12px 0; }
+.svc {
+  display: grid; gap: 7px; padding: 16px; border: 1px solid var(--line);
+  border-radius: var(--radius-lg); background: var(--surface);
+}
+.svc .price { font-weight: 800; }
+.card .thumb.wide { aspect-ratio: 12 / 5; }
+
+@media (max-width: 860px) {
+  .pdp { grid-template-columns: 1fr; }
+  /* Five children will not fit a phone in one row, so the quantity, the price and the remove
+     button wrap under the name. The child selector matters: a bare .cart-line button also
+     matches the two stepper buttons and would pull them out of their own row. */
+  .cart-line { grid-template-columns: 64px 1fr auto; }
+  .cart-line .qty { grid-column: 2; }
+  .cart-line .price { grid-column: 3; }
+  .cart-line > button { grid-column: 2 / -1; justify-self: start; }
+  .radios.consents { grid-auto-flow: row; }
+}
+
+/* ---------- the site's own on site creatives ----------
+   Every selector is namespaced under .dps-creative. The engine's inline creatives are not
+   sandboxed: it puts their style in document.head and clones their HTML into the target, so a
+   bare `.title` rule from any creative restyles the whole storefront. The local ones render
+   rather than by the engine, but the rule is the same one and worth keeping, because these are
+   the creatives a person copies when they build the panel version. */
+.dps-creative { position: relative; z-index: 60; }
+.dps-creative .dps-creative-inner { position: relative; }
+.dps-creative .dps-creative-close {
+  position: absolute; top: 6px; right: 6px; width: 32px; height: 32px; border: 0;
+  background: none; color: var(--muted); font-size: 22px; line-height: 1; cursor: pointer;
+  border-radius: 8px;
+}
+.dps-creative .dps-creative-close:hover { background: var(--surface-2); color: var(--ink); }
+.dps-creative .dps-creative-kicker {
+  margin: 0 0 4px; font-size: 11.5px; font-weight: 800; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--red);
+}
+.dps-creative h3 { margin: 0 0 8px; font-size: 19px; line-height: 1.25; }
+.dps-creative p { margin: 0 0 14px; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
+.dps-creative button[data-creative-action] {
+  border: 0; background: var(--red); color: #fff; font-weight: 700; font-size: 14.5px;
+  padding: 11px 18px; border-radius: var(--radius); cursor: pointer; min-height: 44px;
+}
+
+.dps-creative-popup {
+  position: fixed; inset: 0; display: grid; place-items: center; z-index: 80;
+  background: rgba(12, 14, 18, .48); padding: 20px;
+}
+.dps-creative-popup .dps-creative-inner {
+  display: flex; gap: 18px; align-items: center; background: var(--surface);
+  border-radius: 14px; padding: 22px 24px; max-width: 520px; width: 100%;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, .28);
+}
+.dps-creative-popup .dps-creative-media { flex: 0 0 116px; }
+.dps-creative-popup .dps-creative-media img { width: 116px; height: 116px; border-radius: 10px; }
+
+.dps-creative-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 70;
+  background: linear-gradient(120deg, var(--red), var(--red-hot, #FF2E52)); color: #fff;
+}
+.dps-creative-bar .dps-creative-inner {
+  max-width: 1180px; margin: 0 auto; padding: 12px 52px 12px 20px;
+}
+.dps-creative-bar .dps-creative-copy {
+  display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 14.5px;
+}
+.dps-creative-bar p, .dps-creative-bar span { color: #fff; margin: 0; }
+.dps-creative-bar .dps-creative-close { color: rgba(255, 255, 255, .82); }
+.dps-creative-bar .dps-creative-close:hover { background: rgba(255, 255, 255, .16); color: #fff; }
+.dps-creative-bar button[data-creative-action] {
+  background: #fff; color: var(--red); padding: 8px 14px; min-height: 40px;
+}
+
+.dps-creative-inline .dps-creative-inner {
+  background: var(--pink); border: 1px solid var(--line); border-radius: 12px;
+  padding: 18px 52px 18px 20px; margin: 18px 0;
+}
+
+@media (max-width: 640px) {
+  .dps-creative-popup .dps-creative-inner { flex-direction: column; align-items: flex-start; }
+  .dps-creative-popup .dps-creative-media img { width: 88px; height: 88px; }
+}
+
+/* ---------- the presenter launcher ----------
+   Namespaced under #dps-launcher, like every other panel this demo draws over the storefront. */
+#dps-launcher {
+  position: fixed; top: 12px; right: 12px; width: 330px; max-height: calc(100vh - 24px);
+  display: flex; flex-direction: column; z-index: 90; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 14px 44px rgba(0, 0, 0, .18);
+  font-size: 13px;
+}
+#dps-launcher header {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 10px 12px; border-bottom: 1px solid var(--line); background: var(--surface-2);
+  border-radius: 12px 12px 0 0;
+}
+#dps-launcher header button {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 6px;
+  padding: 3px 9px; font-size: 12px; cursor: pointer;
+}
+#dps-launcher .dps-body { overflow-y: auto; padding: 10px 12px 14px; }
+#dps-launcher.folded .dps-body { display: none; }
+#dps-launcher h4 {
+  margin: 14px 0 7px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--muted);
+}
+#dps-launcher h4:first-child { margin-top: 0; }
+#dps-launcher .dps-qr-row {
+  display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center;
+  padding: 4px 0; border-bottom: 1px solid var(--line);
+}
+#dps-launcher .dps-qr-row code {
+  font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 150px; color: var(--ink);
+}
+#dps-launcher .dps-qr-row button,
+#dps-launcher .dps-card button,
+#dps-launcher .dps-body > button {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 6px;
+  padding: 5px 10px; font-size: 12px; cursor: pointer; font-weight: 600;
+}
+#dps-launcher .dps-body > button { width: 100%; margin-top: 6px; }
+#dps-launcher .dps-primary { background: var(--red); color: #fff; border-color: var(--red); }
+#dps-launcher .dps-card { border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; margin: 0 0 7px; }
+#dps-launcher .dps-card-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+#dps-launcher .dps-card-head em { font-style: normal; font-size: 11px; color: var(--muted); }
+#dps-launcher .dps-card p { margin: 5px 0 7px; color: var(--muted); font-size: 12px; line-height: 1.45; }
+#dps-launcher .dps-note { margin: 6px 0 0; font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+#dps-launcher .dps-switch { display: flex; gap: 6px; margin: 0 0 8px; }
+#dps-launcher .dps-switch button {
+  flex: 1; border: 1px solid var(--line); background: var(--surface); border-radius: 7px;
+  padding: 7px 8px; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+#dps-launcher .dps-switch button[aria-pressed="true"] {
+  background: var(--red); color: #fff; border-color: var(--red);
+}
+@media (max-width: 640px) {
+  #dps-launcher { left: 12px; right: 12px; width: auto; }
+}
+
+/* The basket quantity stepper. Both buttons meet the 40px minimum a thumb needs, which the phone
+   check enforces, and the count between them is wide enough that going from 9 to 10 does not
+   shift the row. */
+.cart-line .qty { display: flex; align-items: center; gap: 6px; }
+.cart-line .qty button { min-width: 40px; min-height: 40px; padding: 0; font-size: 17px; }
+.cart-line .qty span { min-width: 2ch; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }

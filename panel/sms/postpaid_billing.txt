@@ -1,0 +1,1 @@
+D-TELCO: your bill of {%= $Current.amount %} is due {%= $Current.due_date %}. {%= $Current.link || 'https://d-telco.github.io/telco/' %} STOP to opt out.

@@ -1,0 +1,83 @@
+<!-- D·TELCO email: reco_for_you (journey 25)
+     Subject: Three picked for you
+     Trigger: reco_product_id_1 is not empty
+     Paste the whole file. This body takes no values: it reads the contact and resolves
+     each id against the product table, so it runs on marketing sends only and blocks
+     its own send when nothing resolves. -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="background:#f7f8fa;margin:0;padding:24px 0;">
+<tr><td align="center">
+
+<span style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">The same three the shop showed you</span>
+
+<table role="presentation" width="520" cellpadding="0" cellspacing="0" border="0"
+       style="width:520px;max-width:520px;background:#ffffff;border-radius:12px;overflow:hidden;
+              font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+
+  <tr><td style="background:#E4002B;padding:16px 24px;">
+    <img src="https://d-telco.github.io/telco/assets/brand/wordmark.png" width="120" alt="D·TELCO" style="display:block;border:0;height:auto;">
+  </td></tr>
+
+  <tr><td style="padding:0;">
+    <img src="https://d-telco.github.io/telco/assets/editorial/promo-app-1200.jpg" width="520" alt=""
+         style="display:block;border:0;width:100%;height:auto;">
+  </td></tr>
+
+  <tr><td style="padding:24px 24px 0;">
+    <h1 style="margin:0 0 10px;font-size:22px;line-height:1.25;color:#14161a;font-weight:700;">
+      Three picked for you</h1>
+    <p style="margin:0 0 18px;font-size:15px;line-height:1.55;color:#5a6270;">
+      These are the three the shop put in front of you, chosen from what you have been looking at. Same three, same order, wherever you read this.</p>
+  </td></tr>
+
+{%
+  var picks = [];
+  var p1 = $Contact.reco_product_id_1 ? $from("product").where("product_id", "=", $Contact.reco_product_id_1).first() : null;
+  if (p1) { picks.push(p1); }
+  var p2 = $Contact.reco_product_id_2 ? $from("product").where("product_id", "=", $Contact.reco_product_id_2).first() : null;
+  if (p2) { picks.push(p2); }
+  var p3 = $Contact.reco_product_id_3 ? $from("product").where("product_id", "=", $Contact.reco_product_id_3).first() : null;
+  if (p3) { picks.push(p3); }
+  if (picks.length === 0) { $blockSend("no recommendation is stored on this contact"); }
+%}
+
+  <tr><td style="padding:0 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+           style="border-top:1px solid #e4e7ec;border-bottom:1px solid #e4e7ec;">
+      {% for (var i = 0; i < picks.length; i++) { %}
+      <tr>
+        <td width="96" style="padding:12px 0;vertical-align:top;">
+          <a href="{%= picks[i].link %}"><img src="{%= picks[i].image_link %}" width="80"
+             alt="" style="display:block;border:0;width:80px;height:auto;border-radius:8px;"></a>
+        </td>
+        <td style="padding:12px 0;vertical-align:top;">
+          <a href="{%= picks[i].link %}"
+             style="font-size:14px;font-weight:700;color:#14161a;text-decoration:none;">{%= picks[i].title %}</a>
+          <div style="padding-top:4px;font-size:13px;color:#5a6270;">${%= picks[i].discounted_price %}</div>
+        </td>
+      </tr>
+      {% } %}
+    </table>
+  </td></tr>
+
+  <tr><td style="padding:22px 24px 26px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td style="background:#E4002B;border-radius:8px;">
+        <a href="{%= $Current.link || 'https://d-telco.github.io/telco/' %}"
+           style="display:inline-block;padding:12px 22px;font-size:15px;font-weight:700;
+                  color:#ffffff;text-decoration:none;">See all three</a>
+      </td>
+    </tr></table>
+  </td></tr>
+
+  <tr><td style="background:#FFF0F3;padding:16px 24px;">
+    <p style="margin:0 0 6px;font-size:12px;line-height:1.5;color:#5a6270;">
+      Sent by D·TELCO through Dengage. This is a demonstration message: prices and figures are demo
+      data unless they name a published tariff.</p>
+    <p style="margin:0;font-size:12px;line-height:1.5;color:#5a6270;">
+      <a href="{{unsubscribe-link}}" style="color:#E4002B;">Unsubscribe</a></p>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>

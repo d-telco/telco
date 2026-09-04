@@ -1,0 +1,11 @@
+node_modules/
+package-lock.json
+supabase/.temp/
+__pycache__/
+*.pyc
+
+# Gradle's own outputs. The Android source is committed; the build is not.
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties

@@ -1,0 +1,164 @@
+<!doctype html>
+<!-- data-page-type is on <html> as well as on <body>. js/identity.js needs it to build the
+     page view it hands to initialize, and it runs in the head, where <body> does not yet
+     exist. tools/build-pages.py writes the same string to both. -->
+<html lang="en" dir="ltr" data-demo-slug="dtelco" data-rel-root=""
+      data-site-path="support.html" data-page-type="other">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Support | D·TELCO</title>
+<meta name="description" content="Help topics, care and NPS.">
+
+<!-- Web push on an iPhone needs the site added to the Home Screen, and Safari only offers that
+     when the page declares a manifest with display standalone. Without these five lines the
+     permission call does nothing at all, silently. -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="D·TELCO">
+<link rel="apple-touch-icon" href="assets/brand/icon-180.png">
+<link rel="icon" href="assets/brand/favicon.png">
+
+<!-- Order below is load bearing. Identity resolves synchronously and initialize is called with
+     the contact key already known, because a build that initialised anonymously and named the
+     contact five seconds later put its first pageView on the anonymous device profile. Both run
+     before any stylesheet, because a pending stylesheet blocks every later script and a slow
+     corporate network must not stop the SDK from starting. -->
+<script src="js/config.js?v=1788531839"></script>
+<script src="js/catalog-index.js?v=1788531839"></script>
+<script src="js/identity.js?v=1788531839"></script>
+<!-- DENGAGE SDK START
+     The web application's own loader, built from accountId and appGuid in js/config.js. The URL
+     this produces is byte identical to the snippet the panel prints at
+     Settings > Applications > (application) > Setup Guide, so the two cannot drift: change the
+     ids in one place and every page follows.
+
+     It lives in the shared shell because the snippet has to be in the <head> of every page.
+
+     One deliberate difference from the panel's printed snippet. That snippet ends with
+     dengage('initialize') and no parameters. This one passes the object, because the parameters
+     are what make the first page view land on the right contact rather than on the anonymous
+     device. The SDK prioritises the initialize call carrying more parameters, and the panel's
+     "Trigger Initialize on Install" flag is off for the same reason. -->
+<script>
+  (function (window, document) {
+    window.dengage = window.dengage || function () {
+      (window.dengage.q = window.dengage.q || []).push(arguments);
+    };
+    var cfg = window.DTELCO_CONFIG.dengage;
+    if (!cfg.accountId || !cfg.appGuid) { return; }   // no application yet: the page runs dry
+    var script = document.createElement('script');
+    script.async = true;
+    script.src = cfg.loader(cfg.accountId, cfg.appGuid);
+    document.getElementsByTagName('head')[0].appendChild(script);
+
+    // initialize takes { contactKey } / { deviceId } / both. Passing the key as a bare string is
+    // ignored, and the first pageView then lands on the anonymous device profile with the contact
+    // card left empty.
+    window.__dnInit ? window.dengage('initialize', window.__dnInit) : window.dengage('initialize');
+  })(window, document);
+</script>
+<!-- DENGAGE SDK END -->
+
+<!-- stylesheets only after this point -->
+<link rel="stylesheet" href="assets/css/site.css?v=1788531839">
+<link rel="stylesheet" href="assets/css/demo-controls.css?v=1788531839">
+
+</head>
+<body data-page-type="other">
+<div class="utility">
+  <div class="wrap">
+    <a href="index.html" aria-current="page">Personal</a>
+    <a href="business.html">Business</a>
+    <a href="about.html">About us</a>
+    <span class="spacer"></span>
+    <span class="util-group desk">
+      <a href="topup.html">Top-up</a>
+      <a href="support.html">Support</a>
+      <span>EN</span>
+    </span>
+    <span class="theme-toggle" role="group" aria-label="Colour theme">
+      <button type="button" data-theme-set="light" aria-pressed="true" title="Light">&#9788;</button>
+      <button type="button" data-theme-set="dark" aria-pressed="false" title="Dark">&#9789;</button>
+    </span>
+  </div>
+</div>
+<header class="mainbar" id="site-header">
+  <div class="wrap">
+    <a class="logo" href="index.html" aria-label="D-TELCO home">
+      <span class="d">D</span><span class="dot"></span><span>TELCO</span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="plans.html">Tariffs</a>
+      <a href="internet.html">Internet</a>
+      <a href="roaming.html">Roaming</a>
+      <a href="services.html">Services</a>
+      <a class="btn btn-primary btn-sm" href="shop.html">D&#183;TELCO Shop</a>
+    </nav>
+    <div class="nav-right">
+      <button class="icon-btn" type="button" data-open="search" aria-label="Search">&#128269;</button>
+      <button class="icon-btn" type="button" data-open="inbox" aria-label="Messages" id="bell">&#128276;</button>
+      <a class="icon-btn" href="cart.html" aria-label="Basket" id="cart-link">&#128722;<span
+         class="cart-count" id="cart-count" hidden>0</span></a>
+      <a class="btn btn-outline btn-sm" href="register.html">Join D&#183;TELCO</a>
+      <a class="btn btn-ghost btn-sm" href="signin.html" id="signin-link">Sign in</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<div class="dn-inline-target" id="dn_inline_target_below_header"></div>
+<section><div class="wrap"><h1>Support</h1>
+  <p class="lede">Care is not a separate world. A complaint, a call back and a store visit all
+    land on the same profile as everything you did on this site.</p>
+  <div data-render="support"></div></div></section>
+<div class="dn-inline-target" id="dn_inline_target_above_footer"></div>
+</main>
+<div class="dn-inline-target" id="dn_inline_target_reco"></div>
+<footer>
+  <div class="wrap">
+    <div class="foot-cols">
+      <div><h4>About</h4><ul>
+        <li><a href="about.html">About D&#183;TELCO</a></li>
+        <li><a href="offers.html">Campaigns</a></li>
+        <li><a href="archive.html">Tariff archive</a></li>
+      </ul></div>
+      <div><h4>Services</h4><ul>
+        <li><a href="plans.html">Tariffs</a></li>
+        <li><a href="internet.html">Internet packages</a></li>
+        <li><a href="roaming.html">Roaming</a></li>
+        <li><a href="numbers.html">Numbers and eSIM</a></li>
+        <li><a href="athome.html">Fiber at home</a></li>
+      </ul></div>
+      <div><h4>Support</h4><ul>
+        <li><a href="support.html">Help centre</a></li>
+        <li><a href="topup.html">Top-up</a></li>
+        <li><a href="account.html">My account</a></li>
+      </ul></div>
+      <div><h4>Contact</h4><ul>
+        <li><a href="tel:555">555</a></li>
+        <li><a href="tel:+994124988989">+994 12 498 89 89</a></li>
+      </ul></div>
+      <div><h4>Presenter</h4><ul>
+        <li><a href="operator.html">Operator simulator</a></li>
+        <li><a href="verify/index.html">Verification console</a></li>
+      </ul></div>
+    </div>
+    <p class="demo-notice" id="demo-notice"></p>
+  </div>
+</footer>
+
+<script src="js/dengageEvents.js?v=1788531839"></script>
+<script src="js/catalog.js?v=1788531839"></script>
+<script src="js/recognition.js?v=1788531839"></script>
+<script src="js/reco.js?v=1788531839"></script>
+<script src="js/slots.js?v=1788531839"></script>
+<script src="js/creatives.js?v=1788531839"></script>
+<script src="js/inbox.js?v=1788531839"></script>
+<script src="js/debug.js?v=1788531839"></script>
+<script src="js/panels.js?v=1788531839"></script>
+<script src="js/site.js?v=1788531839"></script>
+<script src="js/pages.js?v=1788531839"></script>
+</body>
+</html>

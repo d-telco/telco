@@ -1,0 +1,1 @@
+D-TELCO: {%= $Current.product || 'your item' %} is still in your basket. {%= $Current.link || 'https://d-telco.github.io/telco/' %} Reply STOP to opt out.

@@ -1,0 +1,1 @@
+There are {%= $Current.lines %} D·TELCO lines at your address. One bill would save {%= $Current.saving %} a month.

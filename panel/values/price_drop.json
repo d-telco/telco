@@ -1,0 +1,31 @@
+{
+ "moment": "price_drop",
+ "journey": 5,
+ "trigger": "price_dropped for a watched product",
+ "always": [
+  "hero_image",
+  "link",
+  "price",
+  "product"
+ ],
+ "optional": [
+  "amount",
+  "saving"
+ ],
+ "rows": [
+  [
+   "Was",
+   "amount"
+  ],
+  [
+   "Now",
+   "price"
+  ],
+  [
+   "You save",
+   "saving"
+  ]
+ ],
+ "hero_image": "the product's own image URL, so one content serves the whole catalogue",
+ "note": "A transactional send sees only these values. $Contact tags stay empty, so nothing the email prints comes from the contact record."
+}
