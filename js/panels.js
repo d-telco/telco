@@ -32,6 +32,7 @@
   var EV = window.DengageEvents;
   var ID = window.DTelcoIdentity;
   var CR = window.DTelcoCreatives;
+  var IB = window.DTelcoInbox;
 
   function on() {
     var q = window.location.search;
@@ -82,7 +83,11 @@
       ['Push token', state.token],
       ['Page url to filter on', demoUrl()],
       ['Account id', cfg.dengage.accountId || null],
-      ['App guid', cfg.dengage.appGuid || null]
+      ['App guid', cfg.dengage.appGuid || null],
+      /* The drawer tells a customer it is empty. This is where a presenter finds out whether it
+         is empty because nothing was sent or because the inbox provider has not answered on this
+         page yet, which needs an application on the account and Web SDK 2.4.0 or later. */
+      ['Inbox provider', IB && IB.ready() ? 'answering' : 'not answering on this page']
     ];
     return rows.map(function (r) {
       var value = r[1];

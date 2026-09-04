@@ -76,6 +76,11 @@
   function httpOnly(url) { return /^https?:\/\//i.test(String(url || '')) ? url : null; }
 
   var api = {
+    /* Whether the platform inbox answered on this page. The drawer says the same thing to a
+       customer either way, because which half of the plumbing is configured is not a customer's
+       question; the launcher reads this and tells a presenter. */
+    ready: function () { return !!(state.provider || provider()); },
+
     /* DOC: getMessages(limit) is asynchronous and returns a Promise. It also serves a 30 second
        cache: the first call fetches, and anything within the window is served from the cache. */
     refresh: function () {
@@ -173,11 +178,11 @@
     if (badge) { badge.hidden = !n; badge.textContent = String(n); }
 
     if (!msgs.length) {
-      list.innerHTML = '<li class="empty">' + (state.provider
-        ? 'No messages yet. A campaign or a journey writes into Dengage’s inbox; anything ' +
-          'this site sends you appears here in the same second.'
-        : 'The Dengage inbox needs an application on this page, and Web SDK 2.4.0 or later. ' +
-          'The demo’s own messages still appear here.') + '</li>';
+      /* One line, and the same one either way. A customer opening an empty drawer wants to know
+         it is empty; which half of the plumbing is not configured yet is a presenter's question,
+         and the launcher answers it under Messages. */
+      list.innerHTML = '<li class="empty">No messages yet. Anything we send you turns up here.' +
+        '</li>';
       return;
     }
     // Reserve the media column for the whole list or for none of it, so a list with one image

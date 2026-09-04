@@ -29,7 +29,7 @@ fun ShopScreen(activity: Activity, onOpenProduct: (String) -> Unit) {
   }
 
   Column(Modifier.fillMaxSize()) {
-    ScreenTitle("Shop", "Everything here writes to the same tables the website writes to.")
+    ScreenTitle("Shop", "Search, basket and checkout, the same as on the website.")
 
     Row(Modifier.padding(horizontal = 16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
       OutlinedTextField(
@@ -71,7 +71,7 @@ fun ShopScreen(activity: Activity, onOpenProduct: (String) -> Unit) {
                       Modifier.padding(horizontal = 16.dp))
       CartPanel(onPlaced = { placed = it })
       placed?.let { id ->
-        Why("Order $id is placed. The order row and the journey that follows it are Dengage's.")
+        Why("Order $id is placed. We will keep you posted.")
         /* The reversal, naming the order it reverses. The order API's status vocabulary is closed
            at success and refund, so this is how an order stops counting, and it is the same event
            the website's orders page fires rather than a second spelling of it. */
@@ -132,9 +132,8 @@ private fun CartPanel(onPlaced: (String) -> Unit) {
         onPlaced(id)
       },
     ) { Text("Place the order") }
-    Why(
-      "payment_method is one of the values Dengage's order API accepts. A word outside that list " +
-        "is refused, so the app sends one from the list rather than whatever a screen felt like."
-    )
+    /* The payment method sent here is one of the values the order API accepts, chosen from that
+       list rather than from whatever a screen felt like. That is a note for the next engineer and
+       not a sentence for a customer, so it stays in the source. */
   }
 }

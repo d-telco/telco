@@ -154,8 +154,11 @@
     host.hidden = false;
     host.innerHTML =
       '<div class="section-head"><h2>Recommended for you</h2>' +
-        '<span class="why">the same three ids are written to the contact, so ' +
-        'an email, a WhatsApp or an on site message shows the same three</span>' +
+        /* Customer facing copy, on a page a prospect browses as a customer. What the three
+           products are is worth saying; how they get from here into an email is not, and a
+           storefront that narrated its own plumbing would be the only shop in the world that
+           did. The presenter surfaces carry the mechanism. */
+        '<span class="why">picked for you from what you have been looking at</span>' +
       '</div><div class="grid">' +
       results.map(function (r) {
         return '<div class="reco-item" data-reco="' + esc(r.product.product_id) +

@@ -663,6 +663,11 @@ object DengageBridge {
 
   fun inAppFetched(): Boolean = read { Dengage.isInAppFetched() } ?: false
 
+  /* Whether the account has in-app switched on for this application. The slots draw nothing until
+     it does, because an empty labelled box on a shopping screen is worse than no box: it is the
+     one thing on that screen a customer has no use for. */
+  fun inAppEnabled(): Boolean = accountSwitches()?.inApp == true
+
   private inline fun guard(body: () -> Unit) {
     if (!live) return
     try { body() } catch (t: Throwable) { lastError = t.message ?: t.javaClass.simpleName }

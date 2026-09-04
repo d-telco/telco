@@ -85,6 +85,18 @@ Each line is what the documentation requires.
    `master_device`, created before any page sends to it. Until it exists every row is accepted
    and stored nowhere, with no error.
 
+   **In the panel, not over the API.** Data Space > Tables > + New > **Big Data Table**, then the
+   name, the retention policy, Next, and the columns. `POST /dataspace/tables` creates Regular and
+   Sendable tables only: its request body has a name, columns, an optional `contactKeyColumn` and
+   a folder, and no way to ask for a Big Data table, its retention policy or a relation to
+   `master_device`. `GET /dataspace/tables` does not report a table's type either, so a wrong one
+   could not even be spotted afterwards. Creating this name as a Regular table would take the name
+   and leave every write going nowhere, and nothing in this build drops a table to try again.
+
+   Big Data tables arrive with **`key` and `event_time` already on them** and that structure
+   cannot be altered, so the columns below are the ones to add. The retention policy also cannot
+   be changed after creation, so it is worth a moment's thought at the time.
+
    **Twelve columns, and every one of them is written by the site.** Three are required on every
    `sendDeviceEvent` row and nine are the payload. A column missing here is a value the page
    sends and the table drops, silently, which is the failure mode this table has:
@@ -118,12 +130,18 @@ Each line is what the documentation requires.
    app behaviour belongs to a handset or a browser. A BSS fact belongs to a person and the operator
    has no device id to offer, so it goes to its own table.
 
+   Created the same way, in the panel: Data Space > Tables > + New > **Big Data Table**. `key` and
+   `event_time` arrive with it, so three columns are added:
+
    | Column | Type | What it carries |
    |---|---|---|
    | `event_name` | text | One of the closed signal vocabulary the operator function publishes on its health line |
-   | `event_time` | text | `yyyy-MM-dd HH:mm:ss`, from the API's own DateTime Formats list |
    | `source` | text | bss, care, store, chatbot, whichever system the fact came from |
    | `note` | text | The one free field |
+
+   The function also sends `event_time` in its payload, in `yyyy-MM-dd HH:mm:ss`, which is on the
+   API's own DateTime Formats list. Whether that fills the preconfigured column or is ignored is
+   confirm item 18.
 
    `GET dtelco-dengage-tables` counts it beside the six standard tables and `dtelco_events`, so a
    table that has not been created reads as `not found in Data Space` rather than as a zero.
@@ -303,7 +321,7 @@ as missing.
 
 ## Confirm in the panel before the first demonstration
 
-Seventeen answers the panel holds and no document can. Each is checked in the account before it is
+Eighteen answers the panel holds and no document can. Each is checked in the account before it is
 said out loud, and the surface that depends on it is shown as a canvas if the check does not pass.
 
 `tools/check-coverage.mjs` reads this list: a mechanism annotated **verify** in `js/reco.js` or
@@ -329,6 +347,7 @@ commitment to confirm something specific rather than a word that makes a claim s
 | 15 | Whether the in-app cart's integer `price` is read as minor units or whole currency units. The app sends minor units, because 216 of 490 catalogue prices have cents and rounding would be a different catalogue | Which scale a panel rule about a line price is written in. One constant flips it |
 | 16 | Whether App Inbox is enabled for the Android application as well as the web one. They are two applications and nothing set up for one reaches the other | Whether the app inbox screen fills or reports an empty mailbox |
 | 17 | How the account's own RFM scores reach the handset, so `saveRFMScores` carries the platform's numbers rather than a stand in | Whether the Discover tab orders on a score across the whole contact or only across what this device has seen |
+| 18 | Whether the `event_time` an operator signal carries fills the column a Big Data table arrives with, or is ignored in favour of the platform's own stamp | Whether a journey timed off an operator fact reads the moment the fact happened or the moment it arrived |
 
 ### Measurements, recorded rather than assumed
 

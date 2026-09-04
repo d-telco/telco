@@ -572,7 +572,7 @@
       }).catch(function () {});
       S.confirm('Topped up', money(amount) + ' is on its way to ' + f.msisdn.value.trim() + '.');
       document.getElementById('topup-note').textContent =
-        'Reference ' + id + '. Your balance and your segments both move.';
+        'Reference ' + id + '. Your balance is updated.';
     });
   });
 })(window, document);
@@ -659,8 +659,7 @@
           '<p class="why" id="si-note"></p>' +
         '</form>' +
         '<div><h2>Or browse as a demo persona</h2>' +
-          '<p class="lede">Each one exists in the contact table, in the Postgres dataset and in ' +
-            'the operator simulator, line for line.</p>' +
+          '<p class="lede">Each one is a real line with a history behind it.</p>' +
           '<div class="persona-list">' + PERSONAS.map(function (p) {
             return '<button type="button" class="persona" data-persona="' + p[0] + '">' +
               '<strong>' + esc(p[1]) + '</strong><span class="why">' + esc(p[0]) + '</span>' +
@@ -750,9 +749,8 @@
       '<div class="account-grid">' +
         '<section class="panel"><h2>Your line</h2>' +
           '<dl id="profile-rows"><dt>Contact key</dt><dd>' + esc(key) + '</dd>' +
-          '<dt>Profile</dt><dd id="profile-state">reading from the operator dataset</dd></dl>' +
-          '<p class="why">These fields live on the Dengage contact as custom columns, written ' +
-            'by the backend. This page reads the same values a journey reads.</p>' +
+          '<dt>Profile</dt><dd id="profile-state">reading your line</dd></dl>' +
+          '<p class="why">Your line as the network sees it, kept up to date as things change.</p>' +
           /* Directly under the figures. An upsell is persuasive exactly where the number that
              justifies it is already on the screen, and nowhere else on this page. */
           slot +
@@ -775,10 +773,8 @@
               '<span class="why"><span class="rule">' + esc(r.rule) + '</span> ' +
               esc(r.why || '') + '</span></div>';
           }).join('') + '</div>' +
-          '<p class="why">The same three product ids are written to the contact, so a campaign or ' +
-            'journey message resolves them against the product table and shows exactly this. ' +
-            'A transactional send cannot read a contact column, so recommendations travel by the ' +
-            'marketing channels and never by a one off push.</p>' +
+          '<p class="why">The same three wherever you meet us: here, in your email and in the ' +
+            'app.</p>' +
         '</section>' +
       '</div>';
     RECO.report(recos, 'account');
@@ -901,9 +897,9 @@
         ]);
         host.innerHTML = '<h2>Three that fit what you told us</h2>' +
           '<div class="grid grid-3">' + picks.map(S.tariffCard).join('') + '</div>' +
-          '<p class="why">Your answers are one row in the custom event table, which a segment ' +
-          'reads, and three tags on this device, which a campaign filters on. The travel tag ' +
-          'removes itself after ninety days, because wanting to go somewhere is not permanent.</p>' +
+          '<p class="why">We have kept what you told us, so the next thing we show you fits it. ' +
+          'The travel answer expires after ninety days, because wanting to go somewhere is not ' +
+          'permanent.</p>' +
           '<button class="btn btn-ghost" type="button" id="pf-again">Start again</button>';
         return;
       }
@@ -947,8 +943,7 @@
           '<div class="chips">' + TOPICS.map(function (t) {
             return '<button type="button" class="chip" data-topic="' + esc(t[1]) + '">' +
                    esc(t[0]) + '</button>'; }).join('') + '</div>' +
-          '<p class="why" id="topic-note">Each one opens a real complaint row on your profile, ' +
-            'which is what the care follow-up journey waits for.</p>' +
+          '<p class="why" id="topic-note">We open a case on your account and follow it up.</p>' +
         '</section>' +
         '<section class="panel"><h2>Talk to someone</h2>' +
           '<div class="pdp-actions">' +
@@ -1001,9 +996,7 @@
         Array.prototype.forEach.call(host.querySelectorAll('[data-nps]'), function (b) {
           b.classList.toggle('on', Number(b.getAttribute('data-nps')) === score); });
         document.getElementById('nps-note').textContent =
-          'Thank you. The score is written twice: as a tag on this device, which a campaign can ' +
-          'filter on, and as a column on the contact, which a segment reads. Neither needs a ' +
-          'spreadsheet.';
+          'Thank you. That is on your account now, and the people who can act on it will see it.';
       }
     });
   });

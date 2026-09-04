@@ -55,16 +55,13 @@ fun DiscoverScreen(activity: Activity, contactKey: String?, onOpenProduct: (Stri
   }
 
   Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-    ScreenTitle("Discover", "Content Dengage serves, in this app's own layout.")
+    ScreenTitle("Discover", "Offers, stories and things worth a look.")
 
     /* The rail. Everything about it is Dengage's, which is the point of showing it beside a rail
        that is entirely this app's. */
     StoryRail(activity, Config.STORY_RAIL, "discover",
               Modifier.padding(horizontal = 16.dp))
-    Why(
-      "App Stories. The content, the order, the expiry and the reporting are all Dengage's, so " +
-        "the rail changes in the panel and on the handset without an app release.",
-    )
+    Why("Stories from D\u00b7TELCO. Tap one.")
 
     /* An in-app message injected into the layout rather than drawn over it, which is the app's
        equivalent of the website's inline slots and behaves the same way: it scrolls with the page
@@ -72,16 +69,8 @@ fun DiscoverScreen(activity: Activity, contactKey: String?, onOpenProduct: (Stri
     Spacer(Modifier.height(8.dp))
     InlineInAppSlot(activity, Config.INLINE_HOME, "discover",
                     Modifier.padding(horizontal = 16.dp))
-    Why(
-      "An inline in-app property. Same engine as the message that covers the screen, placed in " +
-        "the layout instead of over it, so a merchandising slot does not have to interrupt " +
-        "anybody to be filled.",
-    )
 
-    ScreenTitle(
-      "Offers, in your order",
-      "Sorted on this handset against your score per category, with no network call.",
-    )
+    ScreenTitle("Offers, in your order")
     if (ordered.isEmpty()) {
       Why("Nothing to sort yet. Open a few categories on the Shop tab and come back.")
     } else {
@@ -91,11 +80,7 @@ fun DiscoverScreen(activity: Activity, contactKey: String?, onOpenProduct: (Stri
       ) {
         items(ordered.size) { i -> ProductCard(ordered[i]) { onOpenProduct(ordered[i].id) } }
       }
-      Why(
-        "A score per category, sorted by the SDK on this handset. Dengage scores a contact across " +
-          "its whole history, which is more than any one device has seen, and the ordering still " +
-          "happens here with no round trip.",
-      )
+      Why("Ordered from what you have been looking at.")
     }
 
     /* The values an in-app template prints. The template is written once in the panel and says the

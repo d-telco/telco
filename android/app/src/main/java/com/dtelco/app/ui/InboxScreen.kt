@@ -57,19 +57,15 @@ fun InboxScreen(activity: Activity, contactKey: String?) {
     ScreenTitle("Messages", "Two lists, kept apart on purpose.")
 
     Text("From Dengage", Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium)
-    Why(
-      "Saved to the inbox by a campaign or a journey. A transactional send never appears here, " +
-        "which is how the channel is designed rather than anything this app decides."
-    )
+    Why("Offers and updates we have sent you.")
 
     when {
       !loaded -> Box(Modifier.padding(16.dp)) { CircularProgressIndicator() }
       dengageProblem != null -> Why("Nothing was read: $dengageProblem")
-      dengageMessages.isEmpty() -> Why(
-        "Empty, and that is a real answer rather than a failure. Two things fill this list and " +
-          "both are set in the panel: the account is enabled for App Inbox, and the push content " +
-          "has Save To Inbox switched on with an expiry date."
-      )
+      /* One line, and the same one whether the mailbox is empty or the account has not switched
+         the channel on yet. Which of the two it is belongs on the device screen, where somebody is
+         asking that question, and not here, where somebody is reading their messages. */
+      dengageMessages.isEmpty() -> Why("Nothing here yet.")
       else -> {
         for (m in dengageMessages) DengageMessageCard(m)
         /* The two controls a real mailbox has and a demonstration usually leaves out. They are
@@ -96,10 +92,7 @@ fun InboxScreen(activity: Activity, contactKey: String?) {
     HorizontalDivider(Modifier.padding(16.dp))
 
     Text("From D·TELCO", Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium)
-    Why(
-      "The same message centre the website's drawer shows, answering in the same second a person " +
-        "acts, which is what a confirmation needs."
-    )
+    Why("Confirmations and receipts, the moment they happen.")
     if (contactKey == null) {
       Why("Sign in on the Account tab to see this person's messages.")
     } else if (ours.isEmpty()) {

@@ -127,13 +127,19 @@ async function open(path, keepContext) {
         .some(a => el.hasAttribute(a)) && !el.closest('#dps-debug');
     }).map(el => el.tagName + ' ' + (el.textContent || '').trim().slice(0, 30)));
   ok('no dead control on the page', dead.length === 0, dead.join(' | '));
-  // The drawer must work with no Dengage application on the page: the demo's own messages still
-  // appear, and it says why the Dengage side is empty rather than looking broken.
+  /* The drawer works with no application on the page: the same second messages still appear. What
+     it must NOT do is explain the plumbing. It used to name the SDK version and what the account
+     was missing, in the drawer a customer opens to read their messages, so a prospect browsing the
+     storefront was shown a setup note. It says the same customer line either way now, and the
+     launcher carries the reason for whoever is asking that question. */
   await page.locator('#bell').click();
   await page.waitForTimeout(200);
   ok('the message drawer opens', await page.locator('#dps-drawer.open').count() === 1);
-  ok('and explains itself when there is no application yet',
-     (await page.locator('#dps-drawer .empty').innerText()).includes('2.4.0'));
+  {
+    const empty = await page.locator('#dps-drawer .empty').innerText();
+    ok('and says it is empty without naming the plumbing',
+       !/SDK|2\.4\.0|application|campaign|journey|provider/i.test(empty), empty.slice(0, 70));
+  }
   ok('nothing is reported to Dengage for messages Dengage did not issue',
      await page.evaluate(() => window.DTelcoInbox.all().every(m => m.source !== 'dengage')));
   await page.locator('#dps-drawer [data-act="close"]').click();
@@ -330,7 +336,14 @@ const SCRIPTS = (await Promise.all(
 
 {
   const dirty = [], wrongType = [], sideways = [], deadControls = [], missingSlots = [];
-  const printedHoles = [];
+  const printedHoles = [], narrated = [];
+  /* The two surfaces that exist to explain the mechanism, and are meant to. */
+  const PRESENTER = new Set(['operator.html']);
+  const PLUMBING = ['custom column', 'contact column', 'written to the contact', 'Data ?Space',
+                    'sendDeviceEvent', 'device event', 'custom event table', 'master_contact',
+                    'Postgres', 'remote segment', 'the relay', 'Event API', '\\bSDK\\b',
+                    '\\bupsert', '\\$Contact', 'a segment reads', 'campaign filters on',
+                    'transactional send', 'journey message', 'journey waits'];
   const slotCounts = [];
   for (const [path, type] of PAGES) {
     const { page, errors, events } = await open(path);
@@ -357,6 +370,29 @@ const SCRIPTS = (await Promise.all(
       return text.slice(Math.max(0, at - 45), at + 45).replace(/\s+/g, ' ').trim();
     });
     if (hole) printedHoles.push(`${path}: ...${hole}...`);
+
+    /* And no page a visitor browses as a customer explains the platform to them.
+     *
+     * The storefront told a shopper "the same three ids are written to the contact, so an email,
+     * a WhatsApp or an on site message shows the same three", and the account page named the
+     * custom columns underneath their own phone number. None of that is a customer's question,
+     * and no shop on earth narrates its own plumbing on the shelf edge.
+     *
+     * The presenter surfaces are exactly where it belongs and are exempt: the operator console
+     * exists to explain what each press did, and the launcher and the readout only appear on a
+     * query parameter. The words below are the ones with no innocent reading on a storefront. */
+    if (!PRESENTER.has(path)) {
+      const jargon = await page.evaluate((words) => {
+        const body = document.body.cloneNode(true);
+        body.querySelectorAll('#dps-debug, #dps-launcher, script, style').forEach((el) => el.remove());
+        const text = body.innerText || '';
+        const hit = words.find((w) => new RegExp(w, 'i').test(text));
+        if (!hit) return null;
+        const at = text.search(new RegExp(hit, 'i'));
+        return text.slice(Math.max(0, at - 40), at + 60).replace(/\s+/g, ' ').trim();
+      }, PLUMBING);
+      if (jargon) narrated.push(`${path}: ...${jargon}...`);
+    }
     /* The slot map decides which slots this page owes, not a list retyped here. js/slots.js
        declares them with the page they belong to and the moment they exist for, and a runbook is
        generated from the same shape, so a slot promised to a marketer and missing from a page
@@ -399,6 +435,8 @@ const SCRIPTS = (await Promise.all(
   ok('no page scrolls sideways at 1280', sideways.length === 0, sideways.join(', '));
   ok('no page prints undefined, NaN or [object Object] in its copy',
      printedHoles.length === 0, printedHoles.slice(0, 3).join('  //  '));
+  ok('and no customer facing page explains the platform to the customer',
+     narrated.length === 0, narrated.slice(0, 3).join('  //  '));
   ok('every page carries the inline slots the map declares for it', missingSlots.length === 0,
      missingSlots[0] || `${slotCounts.reduce((t, [, n]) => t + n, 0)} slots across ${PAGES.length} pages`);
 
@@ -907,6 +945,13 @@ const SCRIPTS = (await Promise.all(
      (await page.locator('#dps-launcher').innerText()).includes('/index.html'));
   ok('and every value it knows carries a copy button',
      await page.locator('#dps-launcher [data-copy]').count() >= 1);
+  /* Because the drawer stopped saying it. A presenter asking why the platform half of the mailbox
+     is empty needs the answer somewhere, and the launcher is where every other value like it
+     lives. */
+  ok('and reports whether the inbox provider answered on this page',
+     /Inbox provider/.test(await page.locator('#dps-launcher').innerText()),
+     (await page.locator('#dps-launcher').innerText()).match(/Inbox provider[\s\S]{0,40}/)?.[0]
+       ?.replace(/\s+/g, ' ') ?? 'absent');
 
   ok('every creative has a card',
      await page.locator('#dps-launcher [data-show]').count() === 5);

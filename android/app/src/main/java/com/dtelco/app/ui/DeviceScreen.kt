@@ -126,6 +126,15 @@ fun DeviceScreen(activity: Activity, contactKey: String?, onBack: () -> Unit) {
           s.inAppMinSecondsBetween?.let { Fact("Minimum gap between messages", "$it seconds") }
           Fact("In-app list fetched", yesNo(DengageBridge.inAppFetched()))
           Spacer(Modifier.height(8.dp))
+          /* The four properties the app declares and the panel has to match. The slots themselves
+             say nothing on a shopping screen, so this is where somebody finds out which ids to
+             create and whether the account has answered yet. */
+          Text("In-app properties this app fills", style = MaterialTheme.typography.bodyMedium)
+          for (id in listOf(Config.INLINE_HOME, Config.INLINE_PRODUCT, Config.INLINE_CART,
+                            Config.STORY_RAIL)) {
+            Text("  $id", style = MaterialTheme.typography.labelSmall)
+          }
+          Spacer(Modifier.height(8.dp))
           Text(
             "These are the account's answers, not this app's. An inbox that is off here explains " +
               "an empty inbox screen, and no amount of sending will change it.",
