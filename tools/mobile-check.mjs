@@ -8,6 +8,21 @@
  *
  * It blocks dengage.com like the suite does, and asserts that it blocked it. A check that can write
  * into a shared account is a check nobody can run twice.
+ *
+ * THE SIDEWAYS TEST MEASURES clientWidth, AND THAT MATTERS
+ *
+ * It used to compare scrollWidth against window.innerWidth, and it passed on twenty six pages that
+ * every one of them scrolled sideways on a 360 wide phone. Under mobile emulation, and on a real
+ * handset, the browser answers an overflowing page by zooming out: the visual viewport widens to
+ * the width of the content, so innerWidth grows to match scrollWidth and the comparison can never
+ * be true. The check was measuring the symptom against itself.
+ *
+ * documentElement.clientWidth is the layout viewport and does not move. It is the number the page
+ * was laid out against, so it is the number an overflow has to be measured against.
+ *
+ * And one width is not enough. Most Android handsets report 360 and the narrow end is 320, so the
+ * full battery runs at 390 and the sideways test runs at 320 and 360 as well, which is where a
+ * grid track minimum or a header row stops fitting.
  */
 import { chromium, devices } from 'playwright';
 import { existsSync } from 'node:fs';
@@ -76,18 +91,31 @@ for (const [path] of PAGES) {
 
   const report = await page.evaluate(({ FLOOR, COMFORTABLE }) => {
     const out = { over: [], small: [], text: [], images: [], snug: [], covered: null };
-    const vw = window.innerWidth;
+    /* The layout viewport, not the visual one. See the note at the head of this file. */
+    const vw = document.documentElement.clientWidth;
 
     if (document.documentElement.scrollWidth > vw + 1) {
       /* Naming the widest element turns "this page scrolls sideways" into a fix. */
       let worst = null, worstRight = vw;
       for (const el of document.querySelectorAll('body *')) {
+        /* Anything inside a box that scrolls itself is meant to be wider than the screen, and a
+           rail full of tariff cards would otherwise be reported as the fault every time. Walk the
+           ancestors rather than testing the element: it is the container that clips, not the card. */
+        let anc = el, skip = false;
+        while (anc && anc !== document.body) {
+          const cs = getComputedStyle(anc);
+          /* A fixed element is positioned against the viewport and never extends the document, so
+             naming one as the cause sends the reader to the wrong file. The drawer parks itself
+             off screen to the right and was named on every page while the header was the fault. */
+          if (cs.position === 'fixed') { skip = true; break; }
+          if (anc !== el && cs.overflowX !== 'visible') { skip = true; break; }
+          anc = anc.parentElement;
+        }
+        if (skip) continue;
         const r = el.getBoundingClientRect();
         if (r.width === 0) continue;
         const right = r.right + window.scrollX;
-        if (right > worstRight + 1 && getComputedStyle(el).overflowX !== 'auto') {
-          worst = el; worstRight = right;
-        }
+        if (right > worstRight + 1) { worst = el; worstRight = right; }
       }
       out.over.push(worst
         ? `${worst.tagName.toLowerCase()}${worst.className ? '.' + String(worst.className).split(' ')[0] : ''} reaches ${Math.round(worstRight)} of ${vw}`
@@ -186,8 +214,36 @@ console.log(snug.length
   await page.waitForTimeout(400);
   ok('the basket lists the line on a phone', (await page.locator('.cart-line').count()) >= 1);
   ok('and the basket does not scroll sideways',
-     await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1));
+     await page.evaluate(() => document.documentElement.scrollWidth <=
+       document.documentElement.clientWidth + 1));
   await page.close();
+}
+
+/* The narrow widths. Only the sideways test, because the tap targets and the copy do not change
+   with the viewport and running the whole battery three times would treble the run for nothing.
+   320 is the narrow end of what ships and 360 is what most Android handsets report, which is the
+   width the header stopped fitting at. */
+for (const width of [320, 360]) {
+  const narrow = await browser.newContext({ viewport: { width, height: 800 },
+                                            deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+  await narrow.route('**/*', route => {
+    if (/dengage\.com|supabase\.co/i.test(route.request().url())) { refused++; return route.abort(); }
+    return route.continue();
+  });
+  const over = [];
+  for (const [path] of PAGES) {
+    const page = await narrow.newPage();
+    await page.goto(`http://localhost:${PORT}/${path}`, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(200);
+    const r = await page.evaluate(() => {
+      const vw = document.documentElement.clientWidth, sw = document.documentElement.scrollWidth;
+      return sw > vw + 1 ? `${sw} of ${vw}` : null;
+    });
+    if (r) over.push(`${path} ${r}`);
+    await page.close();
+  }
+  await narrow.close();
+  ok(`no page scrolls sideways at ${width}`, over.length === 0, over.slice(0, 3).join('  //  '));
 }
 
 ok('every dengage.com and supabase.co request was refused', refused > 0, `${refused} refused`);

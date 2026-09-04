@@ -49,6 +49,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
    height a person can hit, on a phone and on a desktop alike, rather than one class at a time. */
 select, input[type="text"], input[type="search"], input[type="email"], input[type="tel"],
 input[type="number"], input[type="password"], input[type="date"] { min-height: 40px; }
+/* A select is as wide as its widest option whatever its container says, so one long option makes
+   the whole page scroll sideways on a phone. The operator console's persona picker measured 696
+   against a 320 box for exactly that reason. Nothing in a form may be wider than the box it is in. */
+select, input, textarea { max-width: 100%; }
 .wrap { max-width: var(--max); margin: 0 auto; padding: 0 20px; }
 .visually-hidden {
   position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);
@@ -148,8 +152,11 @@ h3 { font-size: 19px; font-weight: 700; }
 .hero-nav { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
 
 /* ---------- cards ---------- */
-.grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); }
-.grid-3 { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+/* Every track minimum is min(Npx, 100%). A bare minmax(320px, 1fr) is wider than its container on
+   a 320 wide phone, so the grid forces 320 into a 280 box and the whole page scrolls sideways.
+   Clamping the minimum to the container is the one line that stops it, on every grid at once. */
+.grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(min(232px, 100%), 1fr)); }
+.grid-3 { grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); }
 .card {
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg);
   overflow: hidden; display: flex; flex-direction: column; text-decoration: none;
@@ -223,7 +230,7 @@ h3 { font-size: 19px; font-weight: 700; }
 
 /* ---------- footer ---------- */
 footer { background: var(--surface-2); border-top: 1px solid var(--line); padding: 46px 0 30px; margin-top: 30px; }
-.foot-cols { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.foot-cols { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)); }
 .foot-cols h4 { margin: 0 0 12px; font-size: 14px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
 .foot-cols ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
 .foot-cols a { text-decoration: none; font-size: 14.5px; }
@@ -276,7 +283,7 @@ footer { background: var(--surface-2); border-top: 1px solid var(--line); paddin
 .chip.on em { color: rgba(255,255,255,.8); }
 .stock-only { display: inline-flex; gap: 8px; align-items: center; font-size: 14.5px; color: var(--muted); }
 
-.pdp { display: grid; gap: 34px; grid-template-columns: minmax(280px, 480px) 1fr; align-items: start; }
+.pdp { display: grid; gap: 34px; grid-template-columns: minmax(min(280px, 100%), 480px) 1fr; align-items: start; }
 .pdp-media { background: var(--pink); border-radius: var(--radius-lg); overflow: hidden; }
 .pdp-info { display: grid; gap: 12px; }
 .pdp-info .brand { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
@@ -313,14 +320,14 @@ footer { background: var(--surface-2); border-top: 1px solid var(--line); paddin
 .radios.consents { grid-auto-flow: column; grid-auto-columns: max-content; gap: 18px; }
 .summary { padding: 13px 15px; background: var(--pink); border-radius: var(--radius); font-size: 15px; }
 
-.account-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.account-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 22px; }
 .panel.wide { grid-column: 1 / -1; }
 .panel dl { display: grid; grid-template-columns: max-content 1fr; gap: 8px 18px; margin: 12px 0 0; }
 .panel dt { color: var(--muted); font-size: 14px; }
 .panel dd { margin: 0; font-weight: 600; font-size: 14.5px; }
 
-.signin-grid { display: grid; gap: 34px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.signin-grid { display: grid; gap: 34px; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); }
 .persona-list { display: grid; gap: 10px; }
 .persona {
   display: grid; gap: 3px; text-align: left; padding: 13px 15px; cursor: pointer;
@@ -338,7 +345,7 @@ table.compare thead th { font-size: 16px; }
 table.compare tbody th { color: var(--muted); font-weight: 600; }
 
 .quiz { display: grid; gap: 14px; max-width: 620px; }
-.quiz .radios { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.quiz .radios { grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); }
 .nps { display: flex; flex-wrap: wrap; gap: 7px; margin: 12px 0; }
 .svc {
   display: grid; gap: 7px; padding: 16px; border: 1px solid var(--line);
@@ -416,6 +423,36 @@ table.compare tbody th { color: var(--muted); font-weight: 600; }
 .dps-creative-inline .dps-creative-inner {
   background: var(--pink); border: 1px solid var(--line); border-radius: 12px;
   padding: 18px 52px 18px 20px; margin: 18px 0;
+}
+
+/* One label, two lengths. "Join D-TELCO" is right on a laptop and is the single widest thing in
+   a phone header, so the same control carries a short word at phone widths. Two spans rather than
+   script, because a header that reflows after the page has painted is a header that jumps. */
+.narrow-only { display: none; }
+
+@media (max-width: 640px) {
+  /* THE HEADER MUST NOT MAKE THE PAGE SCROLL SIDEWAYS.
+   *
+   * At 360, which is what most Android phones report, the wordmark and the six controls in the
+   * bar measure 538 against a 320 wide content box. The page then scrolls sideways, the browser
+   * zooms out to fit, and every tap lands slightly wrong. It was invisible to the phone check
+   * because that check compared against window.innerWidth, and Chromium widens innerWidth to the
+   * overflowing width under mobile emulation, so the number it measured was the symptom.
+   *
+   * Wrapping is the honest fix. Nothing is hidden, no tap target drops below 44, and the bar
+   * grows by one row rather than the document growing by 178 pixels. */
+  .mainbar .wrap {
+    flex-wrap: wrap; height: auto; padding-top: 8px; padding-bottom: 8px; row-gap: 6px;
+  }
+  .logo { font-size: 20px; margin-right: 8px; }
+  .nav-right { gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .btn-sm { padding: 7px 11px; }
+  .wide-only { display: none; }
+  .narrow-only { display: inline; }
+
+  /* The utility bar has the same problem for the same reason and takes the same answer. */
+  .utility .wrap { flex-wrap: wrap; height: auto; gap: 6px 16px; padding-top: 6px; padding-bottom: 6px; }
+  .utility .spacer { margin-left: 0; }
 }
 
 @media (max-width: 640px) {
