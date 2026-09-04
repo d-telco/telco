@@ -108,6 +108,26 @@ Each line is what the documentation requires.
    does not name every one of them, so a new field cannot be added to a payload without being
    added here first.
 
+9. **A second custom table, `dtelco_bss_events`, for the operator's own facts.** The simulator
+   stands in for a BSS, a care desk, a store and a chatbot, and it sends each fact to Dengage
+   through the Event API from the server, with no browser involved. That endpoint writes to a Big
+   Data table and nothing else, so the table has to exist first, and until it does every operator
+   signal is accepted and stored nowhere with no error at either end.
+
+   It is separate from `dtelco_events` on purpose. `dtelco_events` is device keyed, because web and
+   app behaviour belongs to a handset or a browser. A BSS fact belongs to a person and the operator
+   has no device id to offer, so it goes to its own table.
+
+   | Column | Type | What it carries |
+   |---|---|---|
+   | `event_name` | text | One of the closed signal vocabulary the operator function publishes on its health line |
+   | `event_time` | text | `yyyy-MM-dd HH:mm:ss`, from the API's own DateTime Formats list |
+   | `source` | text | bss, care, store, chatbot, whichever system the fact came from |
+   | `note` | text | The one free field |
+
+   `GET dtelco-dengage-tables` counts it beside the six standard tables and `dtelco_events`, so a
+   table that has not been created reads as `not found in Data Space` rather than as a zero.
+
 ## Panel setup the Android app needs
 
 The web application and the Android application are two applications in the panel. Nothing set up

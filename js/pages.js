@@ -402,11 +402,11 @@
       '</form>';
 
     /* The code the abandoned checkout email carried, recognised on the page rather than by a
-       call. Dengage issues a unique code per recipient from a coupon list and marks it taken;
-       it has no endpoint that validates or redeems one, so a page that claimed to check a code
-       against Dengage would be claiming something Dengage does not do. What this can honestly
-       say is whether the code has the shape a generated code takes, and who applies the
-       discount. Both are said on screen. */
+       call, because issuing and redeeming are two different jobs and they sit in two different
+       systems. Dengage issues a unique code per recipient from a coupon list and marks it taken.
+       Applying the discount to a bill is the operator's billing system, which is where every
+       operator already applies one. So what this page says is what it knows: whether the code has
+       the shape a generated code takes, and who applies the discount. Both are on screen. */
     var couponField = document.getElementById('checkout-form').coupon;
     var couponNote = document.getElementById('coupon-note');
     function readCoupon() {

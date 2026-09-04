@@ -404,7 +404,6 @@ keyboard. Every one of the eight screens is here because of something a browser 
 | G6 and G7 dynamic content resolving a product from a contact held id | **verify** in the panel. Fallback columns `reco_title_1` and siblings already in the model, so the message prints from the contact alone |
 | Journeys 5 and 6 narrowing to wishers of one product id | **verify** in the panel. Fallback is a per contact event raised by the simulator |
 | F5 and F6 live sends | Suppressed by decision. Composed, rendered and shown; never claimed as delivered |
-| RCS | Not offered by Dengage. Say so if asked |
 
 ---
 

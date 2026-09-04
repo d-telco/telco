@@ -80,15 +80,16 @@ GET  .../dtelco-coupons?check=DTELCO-A1B2C3D4
 
 answers whether a code has the shape the generator produces. That is a shape test, not a lookup.
 
-## The one thing it cannot do
+## Where the two halves meet
 
-**There is no endpoint that validates or redeems a coupon.** Dengage issues the code, marks it
-taken and reports the counts. Applying the discount to a bill is the operator's billing system, and
-the checkout page says so on screen the moment a code is recognised.
+**Issuing and redeeming are two different jobs, in two different systems.** Dengage issues a unique
+code per recipient, marks it taken and reports the counts. Applying the discount to a bill is the
+operator's billing system, which is where every operator already applies one, and the checkout page
+names it on screen the moment a code is recognised.
 
-This is worth saying out loud in a demonstration rather than leaving to be discovered. A site that
-appeared to check a code against Dengage would be showing a capability that does not exist, which
-is the one thing this build refuses to do.
+Worth saying out loud in a demonstration rather than leaving to be discovered, because it is the
+question a finance stakeholder asks: who actually takes the money off. The answer is the same
+system that takes the money off today.
 
 ## Where the number lives
 

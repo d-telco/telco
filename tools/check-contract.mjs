@@ -18,6 +18,7 @@
  *   8. every custom table column the site writes is one the handoff asks for
  *   9. every custom contact column the backend writes is one the handoff asks for
  *  10. the places the site knows about and the places an outage can be announced for are one list
+ *  11. every custom table any function writes to is one the handoff asks somebody to create
  *
  * It reads files. No browser, no network.
  */
@@ -421,6 +422,30 @@ ok('and the agent mailbox reads without ever reporting an event',
    inboxWrites ? 'it names the events endpoint outside a comment'
      : !inboxRefuses ? 'POST is no longer refused'
      : 'POST answers 405: an agent reading is not the customer reading');
+
+/* ------------------------------------------- 11. every table a function writes has a setup step */
+
+/* A custom Data Space table that does not exist accepts every row and stores none of them, with no
+   error at either end. That is the quietest failure in the whole build, and it is why every table
+   name a function can write to has to appear in the setup checklist somebody works from.
+   dtelco_bss_events was written by the operator for weeks and named in no document, so nobody
+   would have created it and no count would have moved. Read from the function sources rather than
+   from a list here, so a table added tomorrow is held to the same rule. */
+const fnDir = 'supabase/functions';
+const tableNames = new Set();
+for (const name of await readdir(join(ROOT, fnDir))) {
+  let src;
+  try { src = await read(`${fnDir}/${name}/index.ts`); } catch { continue; }
+  for (const m of src.matchAll(/Deno\.env\.get\('DTELCO_\w*EVENT_TABLE'\)\s*\?\?\s*'([\w]+)'/g)) {
+    tableNames.add(m[1]);
+  }
+}
+const setupDoc = await read('handoff/ACCOUNT-SETUP.md');
+const uncreated = [...tableNames].filter((t) => !setupDoc.includes('`' + t + '`'));
+ok('every custom table a function writes to has a setup step',
+   tableNames.size > 0 && uncreated.length === 0,
+   uncreated.length ? `${uncreated.join(', ')} is written and nobody is asked to create it`
+                    : `${[...tableNames].join(', ')}, all in ACCOUNT-SETUP.md`);
 
 /* ---------------------------------------------------------------- report */
 

@@ -232,15 +232,15 @@ inserts it into the content. It works the same way in email, SMS and MMS, mobile
 in-app and on-site. `reference/getcouponlist` reads a list's key, status, expiry and how many codes
 are left, which `dtelco-coupons` wraps so a presenter can prove the list is real and has stock.
 
-**There is no endpoint that validates or redeems a coupon.** Dengage issues the code and marks it
-taken; applying the discount is the operator's billing system. The checkout recognises the shape a
-generated code takes, an optional prefix plus eight random letters and numbers, and says who
-applies the discount. A page that appeared to check a code against Dengage would be showing a
-capability that does not exist.
+**Issuing and redeeming are two different jobs, in two different systems.** Dengage issues a
+unique code per recipient and marks it taken. Applying the discount to a bill is the operator's
+billing system, which is where every operator already applies one. The checkout recognises the
+shape a generated code takes, an optional prefix plus eight random letters and numbers, and names
+who applies the discount, so the division is visible on screen rather than assumed.
 
-The tag the Coupons tab inserts is not printed anywhere in the documentation, only shown in a
-screenshot, which is why `panel/email/abandoned_checkout.html` carries a marked slot naming the
-steps rather than a guessed snippet.
+The tag is inserted by that click rather than typed, so `panel/email/abandoned_checkout.html`
+carries a marked slot naming the steps rather than a guessed snippet: the list is chosen in the
+editor and the platform writes the tag.
 
 ---
 

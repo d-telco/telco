@@ -8,16 +8,17 @@
  * The code itself is inserted in the panel and never here. docs/coupon: "in the Email Rich Text
  * Editor, click Insert > Customization Tags ... a new Coupons tab appears on the right. From this
  * tab, you can select a previously created coupon list ... Click the desired coupon list to insert
- * it dynamically into your content." There is no documented tag to paste, which is why the body in
- * panel/email carries a marked slot rather than a guess.
+ * it dynamically into your content." The tag itself is inserted by that click rather than typed,
+ * so the body in panel/email carries a marked slot naming the steps rather than a guessed snippet.
  *
  * What this endpoint is for is the question a presenter gets asked and wants to answer from a
  * screenshot: is the list real, is it active, has it got any left. GET /contents/coupon-list/{id}
  * answers all three, and this reports the answer in the words the room needs.
  *
- * What it deliberately does NOT do is validate or redeem a code. Dengage has no such endpoint, and
- * inventing one in a demonstration is exactly the sort of thing that ends up quoted back in a
- * tender. Redemption is the operator's billing system, and the checkout says so on screen.
+ * What it deliberately does not do is validate or redeem a code, because issuing and redeeming are
+ * two different jobs in two different systems. Dengage issues the code and marks it taken. Applying
+ * the discount to a bill is the operator's billing system, which is where every operator already
+ * applies one, and the checkout names it on screen.
  */
 
 const ORIGINS = ['https://d-telco.github.io', 'http://localhost:8101', 'http://127.0.0.1:8101'];
@@ -120,8 +121,8 @@ Deno.serve(async (req) => {
       shape: `${PREFIX} followed by 8 letters or numbers`,
       why: 'docs/coupon, Coupon Code Generation: a prefix is optional and the system automatically ' +
            'appends 8 random letters and numbers.',
-      redemption: 'Dengage issues the code and marks it taken. It has no validate or redeem ' +
-                  'endpoint, so applying the discount is the operator\'s billing system.',
+      redemption: 'Dengage issues a unique code per recipient and marks it taken. Applying the ' +
+                  'discount to a bill is the operator\'s billing system.',
     }, null, 1), { headers });
   }
 
@@ -193,8 +194,8 @@ Deno.serve(async (req) => {
         'recipient gets one of their own'
       : 'no codes are left in this list, so a send would go out without one',
     prefix: PREFIX,
-    redemption: 'Dengage issues a unique code per recipient and marks it taken. There is no ' +
-                'validate or redeem endpoint, so applying the discount is the operator\'s ' +
-                'billing system.',
+    redemption: 'Dengage issues a unique code per recipient and marks it taken. Applying the ' +
+                'discount to a bill is the operator\'s billing system, which is where every ' +
+                'operator already applies one.',
   }, null, 1), { headers });
 });

@@ -473,12 +473,12 @@ const SCRIPTS = (await Promise.all(
   await page.fill('[name=name]', 'Aysel M');
   await page.fill('[name=email]', 'demo@example.invalid');
 
-  /* A code the page does not recognise reaches the order by no route at all. Dengage issues a
-     unique code per recipient from a coupon list and marks it taken; it has no endpoint that
-     validates or redeems one, so a page claiming to check a code against Dengage would be
-     claiming something Dengage does not do. What it can honestly do is know its own shape, and
-     say who applies the discount. Both are checked here, and the refusal is checked first
-     because the earlier version of this suite typed a made up code and asserted it was kept. */
+  /* A code the page does not recognise reaches the order by no route at all. Issuing and
+     redeeming are two different jobs: Dengage issues a unique code per recipient from a coupon
+     list and marks it taken, and the operator's billing system applies the discount. So the page
+     knows its own shape and names who applies the discount, and both are checked here. The
+     refusal is checked first because the earlier version of this suite typed a made up code and
+     asserted it was kept. */
   await page.fill('[name=coupon]', 'AI2026');
   await page.waitForTimeout(80);
   ok('a code that is not ours is refused on the page, with the shape named',

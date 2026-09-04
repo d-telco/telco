@@ -2,8 +2,8 @@
  *
  * The verification console can prove a page fired an event. It cannot prove Dengage stored it, and
  * a demonstration that says "sent" is worth nothing next to one that says "stored, and here is the
- * count". This walks the Data Space listing, finds the demo's own custom table, and reports its row
- * count beside the six standard tables.
+ * count". This walks the Data Space listing, finds the demo's own custom tables, and reports their
+ * row counts beside the six standard tables.
  *
  * Three properties of that read shape how it is done here.
  *
@@ -63,6 +63,11 @@ function secret(names: string[]): string {
 const USERKEY = secret(['DENGAGE_USERKEY', 'TELCO_API_USER', 'telco_api_user']);
 const PASSWORD = secret(['DENGAGE_PASSWORD', 'TELCO_API_PASSWORD', 'telco_api_password']);
 const EVENT_TABLE = Deno.env.get('DTELCO_EVENT_TABLE') ?? 'dtelco_events';
+/* The operator's own table, counted beside the rest. It is written by the Event API from the
+   server rather than by an SDK, so nothing in a browser can tell you whether it exists, and a
+   table that does not exist accepts every row and stores none of them. Counting it here is the
+   only place that difference becomes visible. */
+const BSS_TABLE = Deno.env.get('DTELCO_BSS_EVENT_TABLE') ?? 'dtelco_bss_events';
 
 const STANDARD = ['page_view_events', 'shopping_cart_events', 'order_events',
                   'order_events_detail', 'wishlist_events', 'search_events'];
@@ -127,7 +132,7 @@ Deno.serve(async (req) => {
       { status: 429, headers: { ...headers, 'retry-after': '60' } });
   }
 
-  const wanted = [...STANDARD, EVENT_TABLE];
+  const wanted = [...STANDARD, EVENT_TABLE, BSS_TABLE];
   const bearer = await login();
   if (!bearer) {
     return new Response(JSON.stringify({
@@ -135,6 +140,7 @@ Deno.serve(async (req) => {
       dengage_configured: false,
       tables_it_will_count: wanted,
       custom_event_table: EVENT_TABLE,
+      operator_event_table: BSS_TABLE,
       storage_lag_seconds: 120,
       why: 'no API user configured yet, so nothing was read. The tables above are what it will ' +
            'count when there is one.',
@@ -166,6 +172,7 @@ Deno.serve(async (req) => {
     dengage_configured: true,
     datacenter: DC,
     custom_event_table: EVENT_TABLE,
+    operator_event_table: BSS_TABLE,
     counts,
     storage_lag_seconds: 120,
     read_at: new Date().toISOString(),

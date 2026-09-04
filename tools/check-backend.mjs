@@ -400,7 +400,7 @@ export const CHECKS = [
     },
   },
   {
-    name: 'dtelco-coupons reads a coupon list and says plainly that it cannot redeem one',
+    name: 'dtelco-coupons reads a coupon list and names who applies the discount',
     async run() {
       const r = await j('dtelco-coupons');
       const b = r.json ?? {};
@@ -425,13 +425,21 @@ export const CHECKS = [
     },
   },
   {
-    name: 'dtelco-dengage-tables will count six standard tables and the custom one',
+    name: 'dtelco-dengage-tables counts the standard tables and both custom ones',
     async run() {
+      /* Named rather than counted. This asserted a length of seven, and adding the operator's own
+         table broke it for the right reason and the wrong one: a count cannot say which table went
+         missing, and it would have passed just as happily if one had been swapped for another. */
+      const want = ['page_view_events', 'shopping_cart_events', 'order_events',
+                    'order_events_detail', 'wishlist_events', 'search_events',
+                    'dtelco_events', 'dtelco_bss_events'];
       const r = await j('dtelco-dengage-tables');
       const b = r.json ?? {};
       const list = b.tables_it_will_count ?? Object.keys(b.counts ?? {});
-      return { ok: list.length === 7 && list.includes('dtelco_events') && b.storage_lag_seconds === 120,
-               detail: `${list.length} tables, storage lags ${b.storage_lag_seconds} seconds` };
+      const missing = want.filter((t) => !list.includes(t));
+      return { ok: missing.length === 0 && b.storage_lag_seconds === 120,
+               detail: missing.length ? `${missing.join(', ')} is not counted`
+                 : `${list.length} tables, storage lags ${b.storage_lag_seconds} seconds` };
     },
   },
   {

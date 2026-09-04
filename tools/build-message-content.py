@@ -305,8 +305,8 @@ def values_for(moment: dict, spec_: dict) -> dict:
             "journey": "insert a Dengage coupon list through Insert > Customization Tags > Coupons, "
                        "so every recipient gets a code of their own and the platform marks it taken",
             "read_the_list": "GET /contents/coupon-list/{listId}, wrapped by dtelco-coupons",
-            "redemption": "Dengage issues the code. It has no validate or redeem endpoint, so "
-                          "applying the discount is the operator's billing system",
+            "redemption": "Dengage issues a unique code per recipient and marks it taken. "
+                          "Applying the discount is the operator's billing system",
         }} if spec_.get("coupon") else {}),
         "note": "A transactional send sees only these values. $Contact tags stay empty, so nothing "
                 "the email prints comes from the contact record.",
