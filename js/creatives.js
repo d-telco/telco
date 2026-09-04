@@ -37,6 +37,28 @@
  * A dwell rule waits out its own delay from when the rule started, not from page load, or a rule
  * with a six second dwell fires immediately on a page the visitor reached after eight seconds
  * somewhere else.
+ *
+ * THE TEMPLATE BEHIND EACH CREATIVE
+ *
+ * One line per creative: the name it reports, the platform template that produces the same
+ * experience, the documentation page that defines it, and whether the template ships today or
+ * needs confirming in the account. focus_hero is the recognition band and is drawn by js/site.js
+ * rather than by the array below, and it is reported through this engine's own cap, so it is
+ * annotated here with the rest.
+ *
+ * tools/check-coverage.mjs reads these lines. A creative added without one fails the build, and a
+ * line naming a creative the code no longer draws fails the build.
+ *
+ * The four triggers behind them, page view, dwell, scroll depth and exit intent, are the engine's
+ * complete set of trigger records, and ?onsite=panel hands every experience below back to the
+ * engine so the same thing can be watched arriving from the platform.
+ *
+ * @maps focus_hero :: Inline Personalization, an inline element placed in the page with Add Customization on source, text, link and button :: docs/inline-personalization :: yes
+ * @maps focus_popup :: Image Popup or CTA Image Popup, with Advanced Personalization in Onsite :: docs/image-popup :: yes
+ * @maps usage_upsell_bar :: Sticky Bar, or Basic Sticky Bar :: docs/sticky-bar :: yes
+ * @maps upgrade_inline :: Inline Onsite, or Custom Inline :: docs/inline-onsite :: yes
+ * @maps seasonal_inline :: Inline Onsite on a campaign audience :: docs/inline-onsite :: yes
+ * @maps churn_save_popup :: Image Popup on an exit intent trigger :: docs/image-popup :: yes
  */
 (function (window, document) {
   'use strict';

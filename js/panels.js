@@ -153,14 +153,14 @@
     var mode = CR.mode();
     return '<div class="dps-switch">' +
              '<button type="button" data-mode="local"' + (mode === 'local' ? ' aria-pressed="true"' : '') +
-             '>Drawn by the site</button>' +
+             '>In page</button>' +
              '<button type="button" data-mode="panel"' + (mode === 'panel' ? ' aria-pressed="true"' : '') +
-             '>Served by Dengage</button>' +
+             '>Served by the engine</button>' +
            '</div>' +
            '<p class="dps-note">' + (mode === 'panel'
-             ? 'On panel. Pressing a card fires the event Dengage listens on and the page draws ' +
-               'nothing itself, so a popup on screen has one explainable origin.'
-             : 'On local. Every card below renders in the same frame as the press.') +
+             ? 'Serving path. Pressing a card fires the event the engine listens on, so a popup ' +
+               'on screen has one explainable origin.'
+             : 'In page path. Every card below renders in the same frame as the press.') +
            '</p>' +
            CR.list().map(function (c) {
              return '<div class="dps-card">' +

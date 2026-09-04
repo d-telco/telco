@@ -4,10 +4,11 @@ import android.content.Context
 
 /* Category affinity, counted on the handset.
  *
- * The SDK sorts a list by a score per category, and the scores have to come from somewhere:
- * saveRFMScores is what puts them on the device, sortRFMItems is what uses them. This is the
- * somewhere. It counts the categories this person opens, the same way the website counts product
- * views into its focus state, and hands the counts over as scores.
+ * The SDK sorts a list by a score per category. Dengage scores a contact across its whole
+ * history; saveRFMScores is what puts those scores on the device and sortRFMItems is what uses
+ * them. Until the account's own scores are wired through to the handset, this stands them in: it
+ * counts the categories this person opens, the same way the website counts product views into its
+ * focus state, and hands the counts over in the same call. Same shape of value, narrower history.
  *
  * Why it is worth doing on the handset rather than asking a server: the answer arrives while a
  * finger is still on the glass. A rail that reorders after a round trip is a rail that reorders

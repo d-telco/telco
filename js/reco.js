@@ -6,6 +6,37 @@
  *
  * Every rule names itself, so the readout can say why a card appeared. That is the difference
  * between a demo that shows recommendations and a demo that can be interrogated about them.
+ *
+ * THE MECHANISM BEHIND EACH RULE
+ *
+ * One line per rule: the name it reports, the Dengage engine model that produces the same
+ * ordering, the documentation page that defines it, and whether it is a model the engine ships
+ * today, a model whose Context Source has to be confirmed in the account, or a rule Dengage
+ * builds for an operator.
+ *
+ * tools/check-coverage.mjs reads these lines. A rule added to the code without one fails the
+ * build, a line naming a rule the code no longer runs fails the build, and a line marked verify
+ * that nobody put on the panel confirm list in handoff/ACCOUNT-SETUP.md fails the build. The
+ * annotation sits here rather than in a document because a document drifts and a neighbour does
+ * not.
+ *
+ * The engine has eleven models. Rule based: Top Sellers, Category Best Sellers, New Arrivals,
+ * Category New Arrivals, Discounted Products, Category Discounted Products, Trending Products.
+ * Predictive: Similar Items, Frequently Bought Together, Frequently Viewed Together, Recommended
+ * Items (User-Based). A Context Source drives a context driven model: Static, User Attribute, or
+ * Event Attribute such as Current Product. Only in stock and Exclude items in cart are filters
+ * the engine ships, and this file applies both.
+ *
+ * @maps popular :: Top Sellers, the documented global context free fallback :: docs/recommendation-rules :: yes
+ * @maps alternative :: Similar Items, Context Source Event Attribute, Current Product :: docs/recommendation-rules :: yes
+ * @maps cross_sell :: Frequently Bought Together, Context Source Event Attribute, Current Product :: docs/recommendation-rules :: yes
+ * @maps cart_bundle :: Frequently Bought Together with Exclude items in cart :: docs/recommendation-rules :: yes
+ * @maps focus_cross_sell :: Frequently Viewed Together, or Recommended Items (User-Based). The twice viewed product reaches the model as an event attribute :: docs/recommendation-rules :: verify
+ * @maps traveller :: Category Best Sellers, Context Source User Attribute, driven by roaming days :: docs/recommendation-rules :: verify
+ * @maps family :: Category Best Sellers, Context Source User Attribute, driven by lines at the address :: docs/recommendation-rules :: verify
+ * @maps requires :: An authored relation rather than a statistical one, so Dengage builds it for an operator as a custom rule :: docs/recommendation-rules :: telco
+ * @maps upsell :: An ordering of a curated ladder, so Dengage builds it for an operator as a custom rule :: docs/recommendation-rules :: telco
+ * @maps usage_80 :: Consumption against an allowance, the signal only an operator has, so Dengage builds it for an operator as a custom rule :: docs/recommendation-rules :: telco
  */
 (function (window) {
   'use strict';

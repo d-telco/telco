@@ -71,8 +71,7 @@ fun ShopScreen(activity: Activity, onOpenProduct: (String) -> Unit) {
                       Modifier.padding(horizontal = 16.dp))
       CartPanel(onPlaced = { placed = it })
       placed?.let { id ->
-        Why("Order $id is placed. The confirmation card is drawn by this app; the order row and " +
-          "the journey that follows it are Dengage's.")
+        Why("Order $id is placed. The order row and the journey that follows it are Dengage's.")
         /* The reversal, naming the order it reverses. The order API's status vocabulary is closed
            at success and refund, so this is how an order stops counting, and it is the same event
            the website's orders page fires rather than a second spelling of it. */

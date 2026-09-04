@@ -23,10 +23,14 @@ import com.dtelco.app.*
  * Underneath it, the same screen carries the other two things Dengage can put inside an app's own
  * layout rather than over it: an inline in-app property, and the values a template prints.
  *
- * The offers rail is ordered on the handset. Dengage's SDK sorts a list against a score per
- * category, this app supplies the scores from what has been opened, and the answer arrives with no
- * network call at all. It is the one piece of personalization in this build that is faster than a
- * round trip because it never makes one.
+ * The offers rail is ordered on the handset. Dengage scores a contact per category and the SDK
+ * sorts a list against those scores on the device, so the answer arrives with no network call at
+ * all. It is the one piece of personalization in this build that is faster than a round trip
+ * because it never makes one.
+ *
+ * Until the account's own scores are wired through to the handset, this build stands them in from
+ * the categories opened on the device, which is the same shape of value in the same call. The
+ * route the account's scores take to the device is on the panel verify list.
  */
 @Composable
 fun DiscoverScreen(activity: Activity, contactKey: String?, onOpenProduct: (String) -> Unit) {
@@ -58,8 +62,8 @@ fun DiscoverScreen(activity: Activity, contactKey: String?, onOpenProduct: (Stri
     StoryRail(activity, Config.STORY_RAIL, "discover",
               Modifier.padding(horizontal = 16.dp))
     Why(
-      "App Stories. The content, the order, the expiry and the reporting are all Dengage's. " +
-        "Nothing on this rail is drawn by the app, and nothing about it needs a release.",
+      "App Stories. The content, the order, the expiry and the reporting are all Dengage's, so " +
+        "the rail changes in the panel and on the handset without an app release.",
     )
 
     /* An in-app message injected into the layout rather than drawn over it, which is the app's
@@ -76,7 +80,7 @@ fun DiscoverScreen(activity: Activity, contactKey: String?, onOpenProduct: (Stri
 
     ScreenTitle(
       "Offers, in your order",
-      "Sorted on this handset against a score per category, with no network call.",
+      "Sorted on this handset against your score per category, with no network call.",
     )
     if (ordered.isEmpty()) {
       Why("Nothing to sort yet. Open a few categories on the Shop tab and come back.")
@@ -88,9 +92,9 @@ fun DiscoverScreen(activity: Activity, contactKey: String?, onOpenProduct: (Stri
         items(ordered.size) { i -> ProductCard(ordered[i]) { onOpenProduct(ordered[i].id) } }
       }
       Why(
-        "The scores are this handset's count of the categories opened on it. The sorting is the " +
-          "SDK's. An operator that already scores its customers puts its own numbers in and " +
-          "nothing else changes.",
+        "A score per category, sorted by the SDK on this handset. Dengage scores a contact across " +
+          "its whole history, which is more than any one device has seen, and the ordering still " +
+          "happens here with no round trip.",
       )
     }
 

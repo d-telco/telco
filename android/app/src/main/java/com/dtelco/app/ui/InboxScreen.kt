@@ -97,8 +97,8 @@ fun InboxScreen(activity: Activity, contactKey: String?) {
 
     Text("From D·TELCO", Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium)
     Why(
-      "This app's own message centre, the same one the website's drawer shows. It answers in the " +
-        "same second, which is what a confirmation needs and what a campaign inbox is not for."
+      "The same message centre the website's drawer shows, answering in the same second a person " +
+        "acts, which is what a confirmation needs."
     )
     if (contactKey == null) {
       Why("Sign in on the Account tab to see this person's messages.")

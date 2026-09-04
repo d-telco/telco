@@ -59,7 +59,7 @@ could see it because no check reads prose. `tools/audit.mjs` now refuses a secon
 | C2 | Custom rows sourced from the web |
 | C3 | Custom rows sourced from the Android app, into the same table |
 | C4 | Custom rows sourced from BSS, care, store and chatbot, on the same profile |
-| C5 | Impression and action rows for the demo's own on site experiences |
+| C5 | Impression and action rows for every on site experience, so a self drawn one reports what an engine served one reports |
 
 ### D. Catalogue
 
@@ -92,7 +92,7 @@ could see it because no check reads prose. `tools/audit.mjs` now refuses a secon
 | F5 | SMS content, composed and rendered, send suppressed by decision |
 | F6 | WhatsApp content, composed and rendered, send suppressed by decision |
 | F7 | The Dengage App Inbox, filled by a campaign or a journey |
-| F8 | The demo's own message centre, merged into one list beside Dengage's |
+| F8 | A same second message centre, merged into one list beside the platform inbox |
 | F9 | Android app push through Firebase Cloud Messaging |
 | F10 | Mobile in app message |
 | F11 | Mobile app inbox, rendered natively and reported back |
@@ -114,7 +114,7 @@ could see it because no check reads prose. `tools/audit.mjs` now refuses a secon
 | G9 | Gamification: spin to win, scratch card, countdown **verify** |
 | G10 | The native exit intent trigger |
 | G11 | The native scroll depth trigger |
-| G12 | The site's own creatives, with their own rules, guards and reporting |
+| G12 | The full creative set rendered in page, with the same rules, guards and reporting an engine served campaign has |
 
 ### H. Orchestration
 
@@ -255,7 +255,7 @@ notification, the nearby screen from a store card, the device screen from the ac
 | 28 | App product | **F9** app push through Firebase, opening this screen from the notification | L1, B8 | A physical phone, a simulator raised push, the right screen |
 | 29 | App inbox | **F11** the inbox rendered natively and reported back | L15 | Impression and open recorded for Dengage's messages only |
 | 30 | App shop, catalogue and cart | **C3** app sourced rows landing in the same tables as the web | L1, L9, B7 | One count moving from two surfaces |
-| 31 | App discover | **L2** App Stories, served and reported by Dengage and drawn by nothing here | L1, L3, L10, L12 | The rail changes in the panel and on the handset, with no release |
+| 31 | App discover | **L2** App Stories, served, drawn and reported by Dengage end to end | L1, L3, L10, L12 | The rail changes in the panel and on the handset, with no release |
 | 32 | App nearby | **L8** a geofence region, defined in the panel and entered by a handset | L7, L17 | A region entered on a walk, and the same region reached indoors with a mock fix |
 | 33 | App device and consent | **L5** the device subscription record, read back rather than assumed | L4, L6, L11, L13, L16 | A token, a contact key and an account switch, read from Dengage |
 
@@ -273,7 +273,7 @@ this app's opinion, which is the difference between a demonstration and a claim.
 | F1 | The launcher's push prompt card, from a real user gesture |
 | F3 | The message function's fallback when a contact has no bound device |
 | G10, G11 | Native triggers, shown from the launcher as gestures rather than fired |
-| G12 | The site's own creative engine, switchable with `?onsite=local` and `?onsite=panel` |
+| G12 | The creative engine, switchable between the two render paths with `?onsite=local` and `?onsite=panel` |
 | C5 | Every self drawn appearance and action, written as a reporting row |
 | I1, I2, I4, I5 | The engine, present on pages 3, 10, 11, 19 and app screens 27 and 30 |
 | B9 | The operator simulator's fulfilment group, which journey 7 waits on |
@@ -334,7 +334,7 @@ the original twenty four are untouched.
 
 Journey 25 is the one whose proof is not a send. Its email body is rendered against the committed
 product feed by `tools/preview-emails.mjs`, which runs the `$from` query the body carries and
-checks that the three products the message prints are the three the site's own engine chose, with
+checks that the three products the message prints are the three the engine chose, with
 the same titles, the same prices and the same links. It carries no push step: a push cannot read
 the contact, so the same three ids reach a push only through a send list or a remote segment.
 
@@ -423,16 +423,16 @@ different phone sees theirs instead. Same page, same code, two visitors, two exp
 
 It is built **two ways at once**, because the pair is the point.
 
-| | Drawn by the site | Served by Dengage |
+| | Rendered in page | Served by the engine |
 |---|---|---|
 | When it reacts | Instantly, on the next page load | On the next visit, once the contact is written |
 | Who it works for | Anyone, including a visitor with no identity | A contact with the columns written |
-| What it proves | Rule 10: realtime belongs to the site | The platform does this natively, not just this demo |
+| What it proves | The moment lands in the same frame as the gesture | The same experience, targeted and reported by the engine |
 | Mechanism | `focus` state in namespaced storage, read on render | Dynamic content creative resolving `$Contact.focus_product_id` against the `product` table |
 | Switched by | `?onsite=local` | `?onsite=panel` |
 
-Flipping the switch mid call and seeing the same experience arrive from Dengage instead of from
-the page is the moment that lands, and it costs one query parameter.
+Flipping the switch mid call and watching the same experience arrive down the other path is the
+moment that lands, and it costs one query parameter.
 
 ### The mechanics
 

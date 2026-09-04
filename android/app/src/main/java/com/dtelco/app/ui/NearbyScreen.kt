@@ -127,8 +127,8 @@ fun NearbyScreen(activity: Activity, contactKey: String?, onBack: () -> Unit) {
           Fact("Region id", "${e.geofenceItemId}")
           Spacer(Modifier.height(8.dp))
           Text(
-            "Dengage raised this and decides what to send for it. The card is drawn here so the " +
-              "room can see the region as well as the message.",
+            "Dengage raised this and decides what to send for it. The detail is repeated here so " +
+              "the room can read the region as well as the message.",
             style = MaterialTheme.typography.bodySmall,
           )
         }

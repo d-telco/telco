@@ -207,10 +207,15 @@ appears to do nothing at all.
    scale never fires and looks exactly like a feature that does not work. One constant in
    `DengageBridge.kt` holds the scale if the account wants it the other way.
 
-10. **RFM scores are supplied by the app, not fetched.** `saveRFMScores` is what puts a score per
-    category on the device and `sortRFMItems` is what uses them, both on the handset with no
-    network call. This build derives the scores from the categories opened on that handset. An
-    operator that already scores its customers puts its own numbers in and nothing else changes.
+10. **RFM ordering, and where the scores come from.** Dengage scores a contact per category.
+    `saveRFMScores` puts those scores on the device and `sortRFMItems` orders a list against them,
+    both on the handset with no network call, which is why a rail reorders while a finger is still
+    on the glass.
+
+    Until the account's scores are wired through to the handset, this build stands them in from the
+    categories opened on that device: the same shape of value in the same call, over a narrower
+    history. **The route the account's scores take to the device is a verify item**, number 17 in
+    the mechanism list, and it is answered in the panel before the first demonstration.
 
 ## The custom columns on `master_contact`
 
@@ -293,3 +298,42 @@ as missing.
 | The **Custom Inbox** application guid | Its own application type, created separately from web push. Without it the counter panel reports a misconfiguration rather than reading a mailbox, which is deliberate: `dtelco-inbox` will not substitute the push guid |
 | `inbox_enabled` on the account | "On a disabled account every request is rejected with `400`", and a 400 cannot be told apart from a wrong account id from outside the panel |
 | The push permission on the API user | `sendInstant` answers 403 with an empty body to an API user without it |
+
+---
+
+## Confirm in the panel before the first demonstration
+
+Seventeen answers the panel holds and no document can. Each is checked in the account before it is
+said out loud, and the surface that depends on it is shown as a canvas if the check does not pass.
+
+`tools/check-coverage.mjs` reads this list: a mechanism annotated **verify** in `js/reco.js` or
+`js/creatives.js` and named nowhere below fails the build, so marking something verify is a
+commitment to confirm something specific rather than a word that makes a claim safe to print.
+
+| # | What to check | What it decides |
+|---|---|---|
+| 1 | The case sensitive physical name of the catalogue table for `$from`. `reference/upsertproduct` says the table is `product`; `$from` names are case sensitive and the panel is the only place to confirm the spelling | Whether the recommendation email resolves at all |
+| 2 | Whether `$from` is permitted against ecommerce system tables or only customer created ones | The same, by a different route: if only custom tables are queryable, the catalogue is mirrored into one |
+| 3 | Row limits, timeouts and per send cost of one `$from` per recipient. All undocumented | Whether three queries per message is fine at campaign scale |
+| 4 | Which user attributes the **User Attribute** Context Source exposes | `traveller`, `family` and `focus_cross_sell` in section 1 |
+| 5 | Whether a Big Data table carries twelve custom columns, since `docs/create-a-table` describes the Big Data structure as fixed | Whether `dtelco_events` holds the twelve columns ACCOUNT-SETUP.md lists |
+| 6 | Whether `$from` resolves in SMS, WhatsApp, on-site and inbox content, or only in email. The advanced personalization page is not written channel by channel | Whether the recommendation reaches those four channels as a lookup or only as a send list column |
+| 7 | The tag the Coupons tab inserts, which the documentation shows only as a screenshot | What replaces the marked slot in the abandoned checkout content |
+| 8 | The guid of the **Custom Inbox** application, which is a different application type from web push. `docs/applications` creates it separately | Whether the counter panel reads a mailbox or reports a misconfiguration. `dtelco-inbox` refuses to substitute the push guid, so a wrong value shows as a refusal rather than as an empty inbox |
+| 9 | Whether the account has `inbox_enabled` switched on. "On a disabled account every request is rejected with `400`" | The same panel. A 400 cannot tell a disabled account apart from a wrong account id, and the function says so rather than guessing |
+| 10 | Whether the API user has the push permission `sendInstant` needs. An API user without a permission answers 403 with an empty body | Whether the outage broadcast sends or reports a refusal. The function names the 403 as a missing permission rather than as a failure |
+| 11 | Whether App Stories is enabled for the **Android** application, and whether a story property can carry the id `dtelco_app_stories` | Whether the Discover tab's rail fills or is shown as a labelled empty slot |
+| 12 | Whether inline in-app properties exist for the Android application under the three ids the app declares: `dtelco_app_home`, `dtelco_app_product`, `dtelco_app_cart` | Whether an in-app message lands in the app's own layout or only over it |
+| 13 | Whether the account has geofence switched on, and whether the seven regions in ACCOUNT-SETUP.md are created. The device screen reads the switch back from the account, so this is answerable on the handset | Whether the Near you screen demonstrates a region or explains an empty one |
+| 14 | Whether live update is enabled on the account, and the field names its push carries in the content state. The app reads `title`, `step`, `detail` and `percent` | Whether the order progress notification is edited by a push or only drawn locally |
+| 15 | Whether the in-app cart's integer `price` is read as minor units or whole currency units. The app sends minor units, because 216 of 490 catalogue prices have cents and rounding would be a different catalogue | Which scale a panel rule about a line price is written in. One constant flips it |
+| 16 | Whether App Inbox is enabled for the Android application as well as the web one. They are two applications and nothing set up for one reaches the other | Whether the app inbox screen fills or reports an empty mailbox |
+| 17 | How the account's own RFM scores reach the handset, so `saveRFMScores` carries the platform's numbers rather than a stand in | Whether the Discover tab orders on a score across the whole contact or only across what this device has seen |
+
+### Measurements, recorded rather than assumed
+
+| Date | What was measured | Result |
+|---|---|---|
+| 4 September 2026 | The host serving `/api/inbox/getMessages`. `reference/inbox-rest-api` gives every path relative and names no host | `tr-push.dengage.com` and `tr-event.dengage.com` answer the documented `400 {"message":"Invalid Account"}`; `tr-api.dengage.com` answers 404 html; `tr-inapp.lib.dengage.com` answers a missing bucket key. The push host is the one, and it was already in `js/config.js` under `datacenters.tr.push`. Probed with no account data and nothing written |
+| 4 September 2026 | The Android SDK's published surface, read with `javap` against the shipped 6.0.99 artifact | Three signatures in the guide do not compile against it and `getRecommendation` is not in it at all. `DengageBridge.kt` records each difference beside the call it affects |
+| 4 September 2026 | Supabase Edge Function egress | Five consecutive calls left from five different addresses, so an allowlist needs the proxy described above |

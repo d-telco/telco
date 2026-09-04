@@ -455,13 +455,14 @@ object DengageBridge {
 
   /* ------------------------------------------------------------------ ordering */
 
-  /* RFM ordering, computed on the handset. Dengage holds a score per category for this contact;
-     the app hands the SDK the list it is about to draw and gets it back in the order this person's
-     own scores put it. No network call, so a rail reorders while a finger is still on the glass,
-     and the scores came from the platform rather than from a rule written here.
-     The scores are supplied rather than fetched: saveRFMScores is what puts them on the device,
-     and this build writes them from the operator's own category affinity so the ordering is
-     reproducible in a meeting rather than dependent on a history nobody has yet. */
+  /* RFM ordering, computed on the handset. Dengage scores a contact per category; the app hands
+     the SDK the list it is about to draw and gets it back in the order those scores put it. No
+     network call, so a rail reorders while a finger is still on the glass, and the scores come
+     from the platform's view of the whole contact rather than from a rule written here.
+     saveRFMScores is what puts the scores on the device. Until the account's own scores are wired
+     through, this build stands them in from the categories opened on the handset, which is the
+     same shape of value in the same call and keeps the ordering reproducible in a meeting. The
+     route the account's scores take to the device is on the panel verify list. */
   fun rfmScores(scores: Map<String, Double>) = guard {
     if (scores.isEmpty()) return@guard
     /* A MutableList, which the erased signature reads as List and the compiler does not. The same

@@ -136,7 +136,7 @@ fun DeviceScreen(activity: Activity, contactKey: String?, onBack: () -> Unit) {
     }
 
     /* Consent. Written to the device record rather than to this app's preferences. */
-    ScreenTitle("Consent", "Held by Dengage on this device record, not by this app.")
+    ScreenTitle("Consent", "Held on the device record in Dengage, and read back from it.")
     Card(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
       Column(Modifier.padding(16.dp)) {
         Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
@@ -255,12 +255,12 @@ fun DeviceScreen(activity: Activity, contactKey: String?, onBack: () -> Unit) {
         OutlinedButton(
           enabled = DengageBridge.live,
           onClick = { said = drawLocally(activity) },
-        ) { Text("Draw it locally") }
+        ) { Text("Preview it") }
         Spacer(Modifier.height(4.dp))
         Why(
-          "Drawn by this app from the same handler Dengage calls, so the notification on the lock " +
-            "screen is the real one. It was not delivered by Dengage, and this line is here so " +
-            "nobody in the room thinks it was.",
+          "The preview runs the same handler a live update push calls, so the notification on the " +
+            "lock screen is the one the campaign produces. Press it again with a different step " +
+            "and the same notification changes.",
         )
       }
     }

@@ -117,11 +117,11 @@ That is what a regulator asks to see."
 **What happens.** The story rail draws whatever the panel is serving, above an inline in-app
 message sitting in the layout rather than over it, above an offers rail this handset reordered.
 
-**The line to say.** "Three different things and only one of them is ours. The stories are Dengage,
-end to end: content, order, expiry and reporting. The inline message is Dengage too, placed in our
-layout instead of on top of it, so a merchandising slot does not have to interrupt anybody. The
-ordering is the only local part, and even that is the SDK sorting our list against scores it holds,
-on the device, with no round trip."
+**The line to say.** "Three different things on one screen. The stories are end to end: content,
+order, expiry and reporting. The inline message is the same engine, placed in the layout instead of
+on top of it, so a merchandising slot does not have to interrupt anybody. And the ordering is the
+SDK sorting that list against the scores held for this contact, on the device, with no round
+trip."
 
 **Press.** Open three phones on the Shop tab, then come back to Discover.
 
@@ -167,9 +167,9 @@ because that is what it is. If the account has a region there, Dengage raises th
 whatever that region is set to send, and the screen draws its own card naming the region, its
 centre and its radius.
 
-**Prove it.** The card and the message, side by side. The card is the app's. The message is
-Dengage's. Nothing on this screen created a region: the panel holds all seven, so an operator adds
-a shop on a Tuesday and every handset picks it up at the next refresh with no app release.
+**Prove it.** The message and the region detail, side by side. Nothing on this screen created a
+region: the panel holds all seven, so an operator adds a shop on a Tuesday and every handset picks
+it up at the next refresh with no app release.
 
 **The line to say.** "This is the moment a browser can never have, and the reason the app exists.
 Everything else on this phone, the website does differently. Nobody walks past your shop with a

@@ -81,7 +81,7 @@ enforces are listed there.
 | The own inbox row lands | The site's drawer and the app's second list |
 | A rich push image renders | An Android phone, or Windows Chrome. macOS draws no image and is not a valid test |
 | The Android app receives a push and opens the product screen from it | A physical handset. Not an emulator |
-| The inbox drawer and the app inbox show Dengage's messages and the demo's own, in two labelled lists | Both surfaces. Only Dengage's are reported back |
+| The inbox drawer and the app inbox show campaign messages and same second messages, in two labelled lists | Both surfaces. Only Dengage's are reported back |
 | Every email body renders with all values and with only the always sent values | `node tools/preview-emails.mjs`, which writes two renderings per body into `panel/preview` |
 | No unresolved tag in either rendering | The same check |
 
@@ -121,7 +121,7 @@ own layer rather than a footnote to the one above.
 | Discover, Home, Product and Cart | An inline in-app message inside the layout rather than over it | Four properties, one engine, and it scrolls with the screen |
 | Discover, set the template values, then trigger an in-app message | The message prints this handset's plan name from a template that names no plan | One template, every plan |
 | Open a few categories, then Discover | The offers rail reorders | On the handset, with no network call. The scores are this device's; the sorting is the SDK's |
-| Near you, ask, start tracking, then Stand here | Whatever the account sends for that region, and the local card naming the region | Both. The message is Dengage's, the card is the app's, and the fix is reported as a mock rather than dressed up as a real one |
+| Near you, ask, start tracking, then Stand here | Whatever the account sends for that region, and a card naming the region, its centre and its radius | Both. The message is what the region is set to send, the card repeats the region so the room can read it, and the fix is reported as a mock rather than dressed up as a real one |
 | Near you, check in at a store | A row keyed to the contact rather than to the handset | Walking past a shop and saying "I am here" are two different moments, and only the second should start a collect in store journey |
 | This device, tag the network rating | A tag a segment can read, written from app code | The panel's tag list. The website writes contact tags through the engine's own form; this is the other writer |
 | This device, both consent switches | The device record changes in Dengage | Turning notifications off here does not revoke the Android permission and turning it on does not grant one. Two consents, two holders |
