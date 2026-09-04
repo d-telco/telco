@@ -450,9 +450,15 @@ table.compare tbody th { color: var(--muted); font-weight: 600; }
   .wide-only { display: none; }
   .narrow-only { display: inline; }
 
-  /* The utility bar has the same problem for the same reason and takes the same answer. */
-  .utility .wrap { flex-wrap: wrap; height: auto; gap: 6px 16px; padding-top: 6px; padding-bottom: 6px; }
-  .utility .spacer { margin-left: 0; }
+  /* The utility bar has the same problem and takes a smaller answer: it is three words and a
+     toggle, so tightening the type and the gap fits them on one row rather than spending a second
+     row on them. Wrapping stays as the floor for a narrower handset than 320. */
+  .utility { font-size: 12.5px; }
+  .utility .wrap { flex-wrap: wrap; height: auto; gap: 4px 14px; padding-top: 5px; padding-bottom: 5px; }
+  .utility .spacer { margin-left: auto; }
+  /* Padding only. The 40 pixel floor stays: the phone check caught this rule taking the theme
+     toggle to 34 and was right to, because a control a thumb misses is worse than a second row. */
+  .utility .theme-toggle button { padding: 3px 8px; }
 }
 
 @media (max-width: 640px) {
