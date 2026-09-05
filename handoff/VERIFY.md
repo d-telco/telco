@@ -128,14 +128,19 @@ own layer rather than a footnote to the one above.
 | This device, draw the live update, twice with a different step | One notification that changes, not two notifications | The lock screen |
 | Inbox tab, mark all read and empty the mailbox | The list is read again from Dengage rather than from what the screen assumed | A mailbox the app emptied and a mailbox Dengage emptied are the same mailbox, and only one of them is worth trusting |
 | A push carrying `dtelco://product/<id>` | The product screen, with the product on it | The deep link, the manifest filter and the catalogue's own `android_deep_link`, all agreeing |
+| Shop, add something and place the order | The spin wheel opens, spins for about four seconds and lands on a wedge | A `creative_shown` and a `creative_action` row in `dtelco_events`, a win row in `dtelco-games`, and on a coupon prize the coupon list read live with a count. No code, ever: it arrives inside the message the platform sends. The wheel is the site's, drawn in the app, and the panel's Gamification template takes it over when confirm item 21 lands |
+| Discover, Rewards, scratch the foil, or Reveal it for me | The foil wears away under the finger and clears past about two fifths, and the prize shows | The same three records as the wheel, and the same truth about the code. On demand from Discover so it shows without an order, the way the site's console launches a creative |
+| Home, the seasonal countdown | The clock counts to the day's end and turns urgent under the last hour | A `creative_shown` row and nothing else: the countdown never posts a win, because urgency has no prize, which is the same rule the site's countdown follows |
 
 **The source rules.** `node tools/check-android.mjs` asserts every screen fires its page view and
 calls `setNavigation`, that only the bridge names the SDK anywhere, that the contact key shape and
 the event table match the web, that the app replaces no device id and creates no geofence region,
 that a fix it hands over is labelled a mock, that every in-app property a screen fills is written
-down for whoever creates the content, and that the manifest asks the operating system about no
-package outside this demonstration. It reads source rather than running the app, so it catches the
-silent failures a compiler does not.
+down for whoever creates the content, that the manifest asks the operating system about no package
+outside this demonstration, and that the native gamification names the same games and coupons
+functions the web does, reports an impression and an action, records a win only for the two games
+the backend accepts, and never mints or shows a coupon code. It reads source rather than running
+the app, so it catches the silent failures a compiler does not.
 
 ---
 
