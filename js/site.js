@@ -200,6 +200,7 @@
       if (p) { REC.record(p); }             // after pageView, never before it
     }
     updateCart();
+    updateAuth();
   }
 
   /* A renderer that wants its own newly created sections drawn calls this, never draw(). */
@@ -236,7 +237,40 @@
     if (el) { el.hidden = !n; el.textContent = String(n); }
   }
 
+  /* The header reflects who is signed in. Signed out shows Join and Sign in; signed in hides both
+     and shows the account link, greeting the visitor by first name, beside Log out. It reads the
+     explicit sign in flag rather than the contact key, so an anonymous visitor who saved a wishlist
+     is not treated as signed in. Runs on every page because the header is on every page. */
+  function updateAuth() {
+    var name = ID.signedIn ? ID.signedIn() : null;
+    var on = !!name;
+    var join = document.getElementById('join-link');
+    var signin = document.getElementById('signin-link');
+    var account = document.getElementById('account-link');
+    var logout = document.getElementById('logout-link');
+    if (join) { join.hidden = on; }
+    if (signin) { signin.hidden = on; }
+    if (logout) { logout.hidden = !on; }
+    if (account) {
+      account.hidden = !on;
+      var label = account.querySelector('[data-account-name]');
+      if (label && typeof name === 'string' && name !== 'account') {
+        label.textContent = name.split(/\s+/)[0] || 'My account';
+      }
+    }
+  }
+  window.addEventListener('dps:' + (window.DTELCO_CONFIG ? window.DTELCO_CONFIG.slug : 'dtelco') +
+    ':auth', updateAuth);
+
   document.addEventListener('click', function (e) {
+    var out = e.target.closest && e.target.closest('[data-act="logout"]');
+    if (out) {
+      ID.signOut();
+      updateAuth();
+      confirm('Logged out', 'You are browsing as a guest again.');
+      window.setTimeout(function () { window.location.href = rel() + 'index.html'; }, 700);
+      return;
+    }
     var join = e.target.closest && e.target.closest('[data-join]');
     if (join) {
       var p = CAT.product(join.getAttribute('data-join'));

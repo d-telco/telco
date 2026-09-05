@@ -27,6 +27,10 @@
       if (!session) { window.sessionStorage.setItem(key(name), value); }
     } catch (e) { /* private mode: the demo still runs, it just forgets */ }
   }
+  function clearKey(name) {
+    try { window.sessionStorage.removeItem(key(name)); window.localStorage.removeItem(key(name)); }
+    catch (e) { /* private mode */ }
+  }
 
   function valid(k) { return typeof k === 'string' && SHAPE.test(k); }
 
@@ -77,7 +81,26 @@
       return resolved;
     },
     read: read,
-    write: write
+    write: write,
+    // Signed in is a stronger fact than a contact key: a wishlist save mints a key on an
+    // anonymous device, and that visitor is not signed in. So it is its own flag, set only when a
+    // person actually signs in, registers or picks a persona, and it carries the display name the
+    // header greets them by. The header reads this rather than the key, so anonymous browsing
+    // still shows Join and Sign in.
+    signedIn: function () { var v = read('signedin'); return v ? v : null; },
+    signIn: function (name) {
+      write('signedin', name || resolved || 'account', false);
+      window.dispatchEvent(new CustomEvent('dps:' + SLUG + ':auth',
+        { detail: { signedIn: true, name: name || null } }));
+    },
+    // Logout returns the browser to a guest: the sign in flag and the contact key both go, so the
+    // next page load initialises anonymous. Nothing is removed from Dengage or Supabase, only this
+    // browser's own local state, which is what the reset clears too.
+    signOut: function () {
+      clearKey('signedin'); clearKey('ck');
+      resolved = null;
+      window.dispatchEvent(new CustomEvent('dps:' + SLUG + ':auth', { detail: { signedIn: false } }));
+    }
   };
 
   /* -------------------------------------------------------------------------------------

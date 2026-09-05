@@ -636,6 +636,7 @@
       // the relay creates the contact over REST from the allowlisted IP.
       var key = ID.claim('register');
       EV.setContactKey(key);
+      ID.signIn(f.username.value.trim());   // the header now greets them and offers Log out
       EV.pageView('login');            // so the new contact owns a page view row of its own
       relay({ contact_key: key, form: 'register', username: f.username.value.trim(),
               name: f.username.value.trim(), email: f.email.value.trim(), gsm: f.gsm.value.trim(),
@@ -674,6 +675,8 @@
       if (!b) { return; }
       var key = b.getAttribute('data-persona');
       ID.adopt(key, 'persona');
+      var nm = b.querySelector('strong');
+      ID.signIn(nm ? nm.textContent : key);   // the header now greets them and offers Log out
       EV.setContactKey(key);
       EV.pageView('login');
       S.confirm('Signed in', 'Browsing as ' + key + '. The web and the app land on one profile.');
@@ -688,6 +691,7 @@
       if (!f.username.value.trim()) { note.textContent = 'Enter the username you registered.'; return; }
       var key = ID.get() || ID.claim('signin');
       EV.setContactKey(key);
+      ID.signIn(f.username.value.trim());   // the header now greets them and offers Log out
       EV.pageView('login');
       note.textContent = 'Signed in as ' + key + '.';
       window.setTimeout(function () { window.location.href = rel() + 'account.html'; }, 700);
