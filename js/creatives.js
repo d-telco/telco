@@ -241,17 +241,94 @@
      offers no assignment call, so a full code exists only inside a message the platform sends,
      where it is also marked taken. */
 
+  /* Six wedges. A short face for the wheel itself, drawn on the segment, and the full prize the
+     result spells out, because a code the platform issues is described in full where it lands. */
   var WHEEL_SEGMENTS = [
-    { label: '5 dollars off', coupon: true },
-    { label: '10 percent off accessories', coupon: true },
-    { label: 'Free shipping', coupon: true },
-    { label: 'Double data for a month', coupon: false },
-    { label: 'Try again', coupon: false },
-    { label: '10 dollars off a device', coupon: true }
+    { face: '$5 OFF',    label: '5 dollars off', coupon: true,  fill: '#E4002B' },
+    { face: '10% ACC',   label: '10 percent off accessories', coupon: true,  fill: '#14161a' },
+    { face: 'FREE\nSHIP', label: 'Free shipping', coupon: true,  fill: '#FF6B00' },
+    { face: '2X DATA',   label: 'Double data for a month', coupon: false, fill: '#00A878' },
+    { face: 'TRY\nAGAIN', label: 'Try again', coupon: false, fill: '#5a6270' },
+    { face: '$10 OFF',   label: '10 dollars off a device', coupon: true,  fill: '#8338EC' }
   ];
+  var SEG = 360 / WHEEL_SEGMENTS.length;
 
   var STAND_IN = '<p class="dps-game-small">The site draws this stand in. The panel\'s ' +
                  'Gamification template takes the surface over when it is enabled.</p>';
+
+  /* The wheel as SVG, so the prizes are drawn on the wheel itself with crisp labels rather than
+     a striped disc with a legend beside it. Segment i spans [i*SEG, (i+1)*SEG] clockwise from the
+     top, which is the convention the landing maths below rotates against. A point at angle a
+     (clockwise from top) at radius r sits at (C + r sin a, C - r cos a). */
+  function wheelSVG() {
+    var C = 100, R = 96, rad = function (d) { return d * Math.PI / 180; };
+    var pt = function (a, r) {
+      return [ (C + r * Math.sin(rad(a))).toFixed(2), (C - r * Math.cos(rad(a))).toFixed(2) ];
+    };
+    var parts = ['<svg viewBox="0 0 200 200" class="dps-wheel-svg" data-wheel-disc aria-hidden="true">'];
+    for (var i = 0; i < WHEEL_SEGMENTS.length; i++) {
+      var s = WHEEL_SEGMENTS[i], a1 = i * SEG, a2 = (i + 1) * SEG;
+      var p1 = pt(a1, R), p2 = pt(a2, R);
+      parts.push('<path d="M' + C + ',' + C + ' L' + p1[0] + ',' + p1[1] +
+                 ' A' + R + ',' + R + ' 0 0 1 ' + p2[0] + ',' + p2[1] + ' Z" fill="' + s.fill +
+                 '" stroke="#ffffff" stroke-width="1.5"></path>');
+      /* The label sits at the wedge mid angle, rotated to read radially and flipped on the left
+         half so it never hangs upside down. Two short lines when the face carries a newline. */
+      var mid = a1 + SEG / 2, lp = pt(mid, 62);
+      var rot = mid + (mid > 90 && mid < 270 ? 180 : 0);
+      var lines = s.face.split('\n');
+      var tspans = '';
+      for (var k = 0; k < lines.length; k++) {
+        tspans += '<tspan x="' + lp[0] + '" dy="' + (k === 0 ? (lines.length > 1 ? '-0.35em' : '0.32em') : '1em') +
+                  '">' + lines[k] + '</tspan>';
+      }
+      parts.push('<text x="' + lp[0] + '" y="' + lp[1] + '" transform="rotate(' + rot.toFixed(1) +
+                 ' ' + lp[0] + ' ' + lp[1] + ')" text-anchor="middle" class="dps-wheel-label">' +
+                 tspans + '</text>');
+    }
+    parts.push('<circle cx="100" cy="100" r="16" fill="#ffffff" stroke="#14161a" stroke-width="2"></circle>');
+    parts.push('<circle cx="100" cy="100" r="5" fill="#E4002B"></circle></svg>');
+    return parts.join('');
+  }
+
+  /* A confetti burst, written here rather than pulled from a host, because nothing loads from a
+     third party at runtime. Forty paper rectangles fall with gravity and spin for a second and a
+     half over a canvas that covers the popup, then the canvas removes itself. */
+  var CONFETTI_COLORS = ['#E4002B', '#FF6B00', '#FFC300', '#00A878', '#3A86FF', '#8338EC'];
+  function confettiBurst(root) {
+    if (!root || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+      return;
+    }
+    var box = root.getBoundingClientRect();
+    var cv = document.createElement('canvas');
+    cv.className = 'dps-confetti';
+    cv.width = Math.max(1, Math.round(box.width));
+    cv.height = Math.max(1, Math.round(box.height));
+    root.appendChild(cv);
+    var ctx = cv.getContext('2d');
+    if (!ctx) { return; }
+    var bits = [];
+    for (var i = 0; i < 44; i++) {
+      bits.push({ x: cv.width / 2 + (Math.random() - 0.5) * 60, y: cv.height / 3,
+        vx: (Math.random() - 0.5) * 7, vy: -3 - Math.random() * 7,
+        w: 5 + Math.random() * 5, h: 7 + Math.random() * 6, rot: Math.random() * 6.28,
+        vr: (Math.random() - 0.5) * 0.4, c: CONFETTI_COLORS[i % CONFETTI_COLORS.length] });
+    }
+    var start = Date.now();
+    (function frame() {
+      var t = Date.now() - start;
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      for (var j = 0; j < bits.length; j++) {
+        var b = bits[j];
+        b.vy += 0.28; b.x += b.vx; b.y += b.vy; b.rot += b.vr;
+        ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.rot);
+        ctx.globalAlpha = Math.max(0, 1 - t / 1500); ctx.fillStyle = b.c;
+        ctx.fillRect(-b.w / 2, -b.h / 2, b.w, b.h); ctx.restore();
+      }
+      if (t < 1500 && cv.parentNode) { window.requestAnimationFrame(frame); }
+      else if (cv.parentNode) { cv.parentNode.removeChild(cv); }
+    })();
+  }
 
   /* One win, three records: the engine's own creative_action row, the dtelco-games row, and the
      live list read the visitor is shown. Never a code: the platform masks them on read, so the
@@ -288,6 +365,11 @@
               (win.win_id ? ', and dtelco-games row ' + esc(String(win.win_id)) : '') + '.</p>';
       mount.innerHTML = html;
       mount.hidden = false;
+      /* The reveal is the payoff: a short pop as the result lands and, for a real prize, a burst
+         of confetti over the whole popup. A "try again" never gets here, so every arrival here is
+         worth celebrating. */
+      mount.classList.remove('dps-pop'); void mount.offsetWidth; mount.classList.add('dps-pop');
+      confettiBurst(document.getElementById('dps-creative-' + c.id));
     });
   }
 
@@ -296,39 +378,49 @@
     return root ? root.querySelector('.dps-game-result') : null;
   }
 
-  /* The scratch cover: painted after the popup is attached, erased under the pointer, and
-     revealed when enough of it is gone. The same after-attach beat the sticky bar uses for its
-     height report. */
+  /* The scratch cover: a foil gradient with a diagonal sheen, painted after the popup is attached,
+     erased under the pointer with soft round strokes, and revealed once enough of it is gone. The
+     same after-attach beat the sticky bar uses for its height report. */
+  function paintFoil(ctx, w, h) {
+    var g = ctx.createLinearGradient(0, 0, w, h);
+    g.addColorStop(0, '#c3c8d2'); g.addColorStop(0.45, '#a7adb9');
+    g.addColorStop(0.5, '#d9dde4'); g.addColorStop(0.55, '#a7adb9');
+    g.addColorStop(1, '#b9bec9');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(90,98,112,0.9)';
+    ctx.font = '700 13px system-ui, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Scratch to reveal', w / 2, h / 2 + 4);
+  }
   function initScratch(c) {
     var root = document.getElementById('dps-creative-scratch_card');
     if (!root) { return; }
     var canvas = root.querySelector('canvas');
     if (!canvas || !canvas.getContext) { return; }
     var ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#b9bec9';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#5a6270';
-    ctx.font = '600 14px system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Scratch here', canvas.width / 2, canvas.height / 2 + 5);
-    var strokes = 0;
+    paintFoil(ctx, canvas.width, canvas.height);
+    var strokes = 0, last = null;
     function erase(e) {
       if (c.revealed) { return; }
       var r = canvas.getBoundingClientRect();
       var p = e.touches ? e.touches[0] : e;
+      var x = (p.clientX - r.left) * (canvas.width / r.width);
+      var y = (p.clientY - r.top) * (canvas.height / r.height);
       ctx.globalCompositeOperation = 'destination-out';
+      ctx.lineWidth = 30; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
       ctx.beginPath();
-      ctx.arc((p.clientX - r.left) * (canvas.width / r.width),
-              (p.clientY - r.top) * (canvas.height / r.height), 16, 0, Math.PI * 2);
-      ctx.fill();
+      if (last) { ctx.moveTo(last.x, last.y); ctx.lineTo(x, y); ctx.stroke(); }
+      ctx.arc(x, y, 15, 0, Math.PI * 2); ctx.fill();
+      last = { x: x, y: y };
       strokes += 1;
-      if (strokes % 8 !== 0) { return; }
+      if (strokes % 6 !== 0) { return; }
       var img = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
       var clear = 0;
       for (var i = 3; i < img.length; i += 4) { if (img[i] === 0) { clear += 1; } }
-      if (clear / (img.length / 4) > 0.45) { revealScratch(c, canvas); }
+      if (clear / (img.length / 4) > 0.42) { revealScratch(c, canvas); }
     }
+    canvas.addEventListener('mousedown', function () { last = null; });
     canvas.addEventListener('mousemove', function (e) { if (e.buttons) { erase(e); } });
+    canvas.addEventListener('touchstart', function () { last = null; }, { passive: true });
     canvas.addEventListener('touchmove', function (e) { e.preventDefault(); erase(e); },
                             { passive: false });
   }
@@ -336,26 +428,55 @@
   function revealScratch(c, canvas) {
     if (c.revealed) { return; }
     c.revealed = true;
-    if (canvas) { canvas.style.display = 'none'; }
+    /* The foil clears rather than snapping off: a quick fade, then the prize underneath is the
+       one thing on the card. */
+    if (canvas) {
+      canvas.style.transition = 'opacity .35s ease';
+      canvas.style.opacity = '0';
+      window.setTimeout(function () { if (canvas.parentNode) { canvas.style.display = 'none'; } }, 360);
+    }
+    var stage = document.querySelector('#dps-creative-scratch_card .dps-scratch-stage');
+    if (stage) { stage.classList.add('dps-scratch-won'); }
     var mount = gameMount('scratch_card');
     if (mount) { gameResult(c, mount, '10 percent off accessories', true); }
   }
 
   /* The countdown ticks to the demo day's end, because the dataset rolls daily: a deadline read
-     from the build rather than invented for the creative. Self clearing once the node is gone. */
+     from the build rather than invented for the creative. Each field is its own digit box and the
+     seconds box flips on every tick, so the clock reads as a live countdown rather than as text
+     that quietly changes. Self clearing once the node is gone. */
   function initCountdown() {
     var root = document.getElementById('dps-creative-countdown_offer');
     if (!root) { return; }
     var clock = root.querySelector('[data-countdown-clock]');
     if (!clock) { return; }
+    var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+    var box = function (v, label) {
+      return '<span class="dps-cd-box"><b data-cd="' + label + '">' + v + '</b>' +
+             '<i>' + label + '</i></span>';
+    };
+    var prev = {};
     var timer = window.setInterval(function () {
       if (!document.body.contains(clock)) { window.clearInterval(timer); return; }
       var now = new Date();
       var end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
       var s = Math.max(0, Math.floor((end - now) / 1000));
-      var pad = function (n) { return (n < 10 ? '0' : '') + n; };
-      clock.textContent = pad(Math.floor(s / 3600)) + ':' + pad(Math.floor((s % 3600) / 60)) +
-                          ':' + pad(s % 60);
+      var vals = { hrs: pad(Math.floor(s / 3600)), min: pad(Math.floor((s % 3600) / 60)),
+                   sec: pad(s % 60) };
+      if (!clock.firstChild) {
+        clock.innerHTML = box(vals.hrs, 'hrs') + '<em>:</em>' + box(vals.min, 'min') +
+                          '<em>:</em>' + box(vals.sec, 'sec');
+      }
+      for (var f in vals) {
+        if (vals[f] === prev[f]) { continue; }
+        prev[f] = vals[f];
+        var el = clock.querySelector('[data-cd="' + f + '"]');
+        if (el) { el.textContent = vals[f]; el.classList.remove('dps-cd-flip');
+                  void el.offsetWidth; el.classList.add('dps-cd-flip'); }
+      }
+      /* Under the last hour the clock turns urgent on its own, which is the whole point of a
+         countdown rather than a date printed on the tile. */
+      clock.classList.toggle('dps-cd-urgent', s < 3600);
     }, 500);
   }
 
@@ -472,17 +593,14 @@
       why: 'a top up completed, which is the telco moment gamification earns: recharge and win',
       when: function () { return true; },
       render: function () {
-        var legend = '';
-        for (var i = 0; i < WHEEL_SEGMENTS.length; i++) {
-          legend += '<li>' + esc(WHEEL_SEGMENTS[i].label) + '</li>';
-        }
         return '<div class="dps-creative-copy">' +
                  '<p class="dps-creative-kicker">Recharge and win</p>' +
                  '<h3>Spin for your reward</h3>' +
-                 '<div class="dps-wheel-stage"><div class="dps-wheel-pin"></div>' +
-                 '<div class="dps-wheel" data-wheel-disc></div></div>' +
-                 '<ol class="dps-game-legend">' + legend + '</ol>' +
-                 button('Spin', 'spin') +
+                 '<div class="dps-wheel-stage">' +
+                   '<span class="dps-wheel-pin" aria-hidden="true"></span>' +
+                   wheelSVG() +
+                 '</div>' +
+                 button('Spin the wheel', 'spin') +
                  '<div class="dps-game-result" hidden></div>' +
                  STAND_IN +
                '</div>';
@@ -492,26 +610,41 @@
         var c = this;
         var root = document.getElementById('dps-creative-spin_wheel');
         var disc = root ? root.querySelector('[data-wheel-disc]') : null;
+        var btn = root ? root.querySelector('[data-creative-action="spin"]') : null;
         if (!disc) { return; }
         c.spinning = true;
-        c.turns = (c.turns || 0) + 1;
+        if (btn) { btn.disabled = true; btn.textContent = 'Spinning...'; }
+        c.spun = (c.spun || 0);
         var idx = Math.floor(Math.random() * WHEEL_SEGMENTS.length);
-        var target = c.turns * 5 * 360 + (360 - (idx * 60 + 30));
-        disc.style.transition = 'transform 3s cubic-bezier(.2,.8,.2,1)';
-        disc.style.transform = 'rotate(' + target + 'deg)';
+        /* Five full turns on top of wherever it rests, plus the offset that brings this wedge's
+           middle under the pointer at the top. A small random jitter inside the wedge keeps two
+           spins from stopping at the identical pixel. Cumulative, so it never jumps backwards. */
+        var jitter = (Math.random() - 0.5) * (SEG - 14);
+        var landing = (360 - (idx * SEG + SEG / 2)) - jitter;
+        c.rot = (c.rot || 0);
+        var next = c.rot + 5 * 360 + (((landing - (c.rot % 360)) % 360 + 360) % 360);
+        c.rot = next;
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        disc.style.transition = reduce ? 'none' : 'transform 4.2s cubic-bezier(.15,.85,.25,1)';
+        void disc.getBoundingClientRect();
+        disc.style.transform = 'rotate(' + next + 'deg)';
         window.setTimeout(function () {
           c.spinning = false;
           var seg = WHEEL_SEGMENTS[idx];
           var mount = gameMount('spin_wheel');
           if (!mount) { return; }
-          if (seg.label === 'Try again') {
+          if (!seg.coupon && seg.label === 'Try again') {
             report('creative_action', c, 'win: try again');
-            mount.innerHTML = '<h3>Try again</h3><p>The wheel says one more spin.</p>';
+            mount.innerHTML = '<h3>So close</h3><p>The wheel landed on Try again. Give it ' +
+                              'another spin.</p>';
             mount.hidden = false;
+            mount.classList.remove('dps-pop'); void mount.offsetWidth; mount.classList.add('dps-pop');
+            if (btn) { btn.disabled = false; btn.textContent = 'Spin again'; }
             return;
           }
+          if (btn) { btn.remove(); }
           gameResult(c, mount, seg.label, seg.coupon);
-        }, 3200);
+        }, reduce ? 200 : 4300);
       }
     },
     {
@@ -528,11 +661,12 @@
           initScratch(c);
         }, 40);
         return '<div class="dps-creative-copy">' +
-                 '<p class="dps-creative-kicker">Thank you</p>' +
+                 '<p class="dps-creative-kicker">Thank you for the feedback</p>' +
                  '<h3>Scratch to reveal your reward</h3>' +
                  '<div class="dps-scratch-stage">' +
-                   '<div class="dps-scratch-under">10 percent off accessories</div>' +
-                   '<canvas width="240" height="84"></canvas>' +
+                   '<div class="dps-scratch-under"><span>10% off</span>' +
+                     '<small>accessories</small></div>' +
+                   '<canvas width="280" height="120"></canvas>' +
                  '</div>' +
                  button('Reveal it for me', 'reveal') +
                  '<div class="dps-game-result" hidden></div>' +
@@ -559,7 +693,8 @@
         window.setTimeout(initCountdown, 40);
         return '<div class="dps-creative-copy">' +
                  '<p class="dps-creative-kicker">' + esc(f.campaign) + '</p>' +
-                 '<h3>Ends in <span data-countdown-clock>--:--:--</span></h3>' +
+                 '<h3>Offer ends in</h3>' +
+                 '<div class="dps-countdown" data-countdown-clock></div>' +
                  '<p>' + esc(f.campaign_note || 'The best of it goes first.') +
                  ' The clock runs to the demo day\'s end, because the dataset rolls daily.</p>' +
                  button('See the offers', 'view_countdown') +

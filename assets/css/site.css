@@ -530,20 +530,79 @@ table.compare tbody th { color: var(--muted); font-weight: 600; }
 .cart-line .qty button { min-width: 40px; min-height: 40px; padding: 0; font-size: 17px; }
 .cart-line .qty span { min-width: 2ch; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
 
-/* Gamification stand ins, namespaced under their creative roots like every other creative. */
-#dps-creative-spin_wheel .dps-wheel-stage { position: relative; width: 170px; height: 170px; margin: 10px auto; }
-#dps-creative-spin_wheel .dps-wheel { width: 170px; height: 170px; border-radius: 50%; border: 4px solid #14161a;
-  background: conic-gradient(#E4002B 0 60deg, #FFD9E0 60deg 120deg, #E4002B 120deg 180deg,
-    #FFD9E0 180deg 240deg, #E4002B 240deg 300deg, #FFD9E0 300deg 360deg); }
-#dps-creative-spin_wheel .dps-wheel-pin { position: absolute; top: -8px; left: 50%; margin-left: -7px;
-  width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent;
-  border-top: 12px solid #14161a; z-index: 1; }
-#dps-creative-spin_wheel .dps-game-legend { font-size: 12px; color: #5a6270; margin: 6px 0 0; padding-left: 18px;
-  columns: 2; }
-#dps-creative-scratch_card .dps-scratch-stage { position: relative; width: 240px; height: 84px; margin: 10px auto; }
-#dps-creative-scratch_card .dps-scratch-under { position: absolute; inset: 0; display: flex; align-items: center;
-  justify-content: center; background: #FFF0F3; border-radius: 10px; font-weight: 700; color: #14161a; }
-#dps-creative-scratch_card canvas { position: absolute; inset: 0; border-radius: 10px; touch-action: none; }
-.dps-creative .dps-game-result { margin-top: 10px; border-top: 1px solid #e4e7ec; padding-top: 10px; }
+/* Gamification stand ins, namespaced under their creative roots like every other creative.
+   The animation is the point: a wheel that spins and settles, a foil that scratches off, a clock
+   that flips, and a confetti burst on a win. All of it CSS and canvas, nothing loaded at runtime. */
+
+/* A confetti canvas covers whichever popup fired it, and never eats a click. */
+.dps-creative .dps-confetti { position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 5; }
+
+/* The wheel. An SVG disc under a fixed pointer, spun by a transform transition from the script. */
+#dps-creative-spin_wheel .dps-wheel-stage { position: relative; width: 220px; height: 232px;
+  margin: 12px auto 4px; }
+#dps-creative-spin_wheel .dps-wheel-svg { position: absolute; top: 12px; left: 10px;
+  width: 200px; height: 200px; transform: rotate(0deg); transform-origin: 50% 50%;
+  filter: drop-shadow(0 6px 14px rgba(20,22,26,0.22)); }
+#dps-creative-spin_wheel .dps-wheel-label { fill: #ffffff; font: 800 12px system-ui, sans-serif;
+  letter-spacing: .2px; }
+/* The pointer sits at the top, dips into the rim, and nudges on each settle. */
+#dps-creative-spin_wheel .dps-wheel-pin { position: absolute; top: 2px; left: 50%;
+  margin-left: -11px; width: 0; height: 0; z-index: 2;
+  border-left: 11px solid transparent; border-right: 11px solid transparent;
+  border-top: 20px solid #14161a; filter: drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
+
+/* The result card pops as it lands. */
+@keyframes dps-pop { 0% { transform: scale(.82); opacity: 0; }
+  60% { transform: scale(1.04); } 100% { transform: scale(1); opacity: 1; } }
+.dps-creative .dps-pop { animation: dps-pop .42s cubic-bezier(.2,1.4,.3,1) both; }
+
+/* The scratch card. A prize underneath, a foil canvas over it, a soft glow once won. */
+#dps-creative-scratch_card .dps-scratch-stage { position: relative; width: 280px; height: 120px;
+  margin: 12px auto 4px; border-radius: 12px; overflow: hidden;
+  box-shadow: inset 0 0 0 2px #e4e7ec; }
+#dps-creative-scratch_card .dps-scratch-under { position: absolute; inset: 0; display: flex;
+  flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  background: linear-gradient(135deg, #FFF0F3, #ffe0d3); color: #E4002B; }
+#dps-creative-scratch_card .dps-scratch-under span { font-size: 30px; font-weight: 800;
+  line-height: 1; }
+#dps-creative-scratch_card .dps-scratch-under small { font-size: 13px; color: #14161a;
+  font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+#dps-creative-scratch_card .dps-scratch-stage.dps-scratch-won {
+  box-shadow: inset 0 0 0 2px #E4002B, 0 0 0 4px rgba(228,0,43,.15); }
+#dps-creative-scratch_card canvas { position: absolute; inset: 0; width: 100%; height: 100%;
+  border-radius: 12px; touch-action: none; cursor: grab; }
+
+/* The countdown. Three digit boxes, the changed one flipping on each tick, urgent under the hour. */
+#dps-creative-countdown_offer .dps-countdown { display: flex; align-items: center;
+  justify-content: center; gap: 4px; margin: 10px 0; }
+#dps-creative-countdown_offer .dps-cd-box { display: inline-flex; flex-direction: column;
+  align-items: center; }
+#dps-creative-countdown_offer .dps-cd-box b { display: block; min-width: 42px; padding: 8px 4px;
+  background: #14161a; color: #fff; border-radius: 8px; font-size: 22px; font-weight: 800;
+  font-variant-numeric: tabular-nums; }
+#dps-creative-countdown_offer .dps-cd-box i { font-style: normal; font-size: 10px; color: #5a6270;
+  text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+#dps-creative-countdown_offer .dps-countdown em { font-style: normal; font-size: 20px;
+  font-weight: 800; color: #14161a; align-self: flex-start; padding-top: 8px; }
+@keyframes dps-cd-flip { 0% { transform: rotateX(-90deg); opacity: .4; }
+  100% { transform: rotateX(0); opacity: 1; } }
+#dps-creative-countdown_offer .dps-cd-flip { animation: dps-cd-flip .3s ease both;
+  transform-origin: 50% 0; }
+#dps-creative-countdown_offer .dps-countdown.dps-cd-urgent b { background: #E4002B;
+  animation: dps-cd-pulse 1s ease-in-out infinite; }
+@keyframes dps-cd-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(228,0,43,.5); }
+  50% { box-shadow: 0 0 0 6px rgba(228,0,43,0); } }
+
+.dps-creative .dps-game-result { margin-top: 12px; border-top: 1px solid #e4e7ec; padding-top: 10px;
+  position: relative; z-index: 6; }
 .dps-creative .dps-game-result[hidden] { display: none; }
 .dps-creative .dps-game-small { font-size: 11px; color: #5a6270; margin: 8px 0 0; }
+
+/* Motion is a courtesy, not a requirement: honour a reduced-motion preference. */
+@media (prefers-reduced-motion: reduce) {
+  #dps-creative-spin_wheel .dps-wheel-svg { transition: none !important; }
+  .dps-creative .dps-pop,
+  #dps-creative-countdown_offer .dps-cd-flip,
+  #dps-creative-countdown_offer .dps-countdown.dps-cd-urgent b { animation: none; }
+}
