@@ -3,7 +3,7 @@
  * The verification console can prove a page fired an event. It cannot prove Dengage stored it, and
  * a demonstration that says "sent" is worth nothing next to one that says "stored, and here is the
  * count". This walks the Data Space listing, finds the demo's own custom tables, and reports their
- * row counts beside the six standard tables.
+ * row counts beside the six standard event tables and the two master tables.
  *
  * Three properties of that read shape how it is done here.
  *
@@ -71,6 +71,11 @@ const BSS_TABLE = Deno.env.get('DTELCO_BSS_EVENT_TABLE') ?? 'dtelco_bss_events';
 
 const STANDARD = ['page_view_events', 'shopping_cart_events', 'order_events',
                   'order_events_detail', 'wishlist_events', 'search_events'];
+/* The two master tables, counted for the same reason the event tables are: a contact write is
+   proved the way an event is. The persona seed answers accepted; the master_contact count is
+   what says stored, and it is the only number that can tell an upsert that landed from one the
+   reply only half described. */
+const MASTER = ['master_contact', 'master_device'];
 
 let token: { value: string; until: number } | null = null;
 
@@ -132,7 +137,7 @@ Deno.serve(async (req) => {
       { status: 429, headers: { ...headers, 'retry-after': '60' } });
   }
 
-  const wanted = [...STANDARD, EVENT_TABLE, BSS_TABLE];
+  const wanted = [...STANDARD, ...MASTER, EVENT_TABLE, BSS_TABLE];
   const bearer = await login();
   if (!bearer) {
     return new Response(JSON.stringify({
