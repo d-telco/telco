@@ -341,15 +341,19 @@ def values_for_push(moment: dict) -> dict:
 
 
 def push_txt(moment: dict) -> str:
-    """One push content as a person pastes it, field by field.
+    """One push content as a person pastes it, mirroring the panel editor field by field.
 
-    Text rather than JSON by decision: the panel's push editor takes a title, a message, a target
-    URL and a media URL, so the file mirrors those fields and nothing else. The guardrails ride
-    along as prose, because a truncated push is the most common way this channel quietly fails.
+    Text rather than JSON by decision: the file follows the editor's own sections, Content, the
+    platform pick, Android settings, Web settings, Custom Parameters, so a person fills the form
+    top to bottom without translating. One content serves every platform: the editor's Select
+    Platform checkboxes share one public id across Android and web, confirmed in the panel on
+    5 September 2026, so nothing here is created twice. The guardrails ride along as prose,
+    because a truncated push is the most common way this channel quietly fails.
     """
     p = moment["push"]
     media = p.get("media")
     lane = moment["lane"]
+    media_url = f"{mc.ASSETS}push/{media}.jpg" if media else "none"
     values = (f"Transactional: values travel in the call. See panel/values/{moment['id']}.json."
               if lane == "transactional" else
               "Campaign: $Current resolves from the journey's own event or audience columns.")
@@ -357,18 +361,37 @@ def push_txt(moment: dict) -> str:
         f"D-TELCO push content: {moment['id']} [{lane}]",
         f"Trigger: {moment['trigger']} (journey {moment['journey']})",
         values,
-        "Create this content twice, once on the web application and once on the Android",
-        "application: they are two applications in the panel and nothing set up for one reaches",
-        "the other.",
+        "One content, every platform: under Select Platform tick Android and WEB. iOS stays off,",
+        "there is no iOS app in this build. The web and Android applications stay separate for",
+        "tokens and guids; the content itself is shared under one public id.",
         f"Save To Inbox: {'on, expire 7 days' if moment.get('inbox') else 'off'}.",
         "",
-        f"Title:      {render(p['title'])}",
-        f"Message:    {render(p['body'])}",
-        f"Target URL: {tag('link')}",
-    ]
-    if media:
-        lines.append(f"Media:      {mc.ASSETS}push/{media}.jpg")
-    lines += [
+        "Content",
+        f"  Title:      {render(p['title'])}",
+        f"  Message:    {render(p['body'])}",
+        "",
+        "Android settings",
+        "  Notification Type: Rich",
+        "  Sub Text:   leave empty, the message carries the line",
+        f"  Media:      {media_url}  (under 600kb, aspect 2:1)",
+        f"  Target URL: {tag('link')}",
+        "  Sound:      Default",
+        "  Badge:      off",
+        "  Action Buttons: none. The tap opens the target URL, and a button that repeats the tap",
+        "  is a control that does nothing extra.",
+        "",
+        "Web settings",
+        "  Notification Type: Rich",
+        f"  Media:      {media_url}",
+        f"  Target URL: {tag('link')}",
+        "  Badge URL:  leave empty",
+        "  Icon:       Default",
+        "  Action Buttons: none",
+        "  macOS Safari shows no media, icon or badge URL, so the same push arrives plainer",
+        "  there. That is the platform's note, not a fault.",
+        "",
+        "Custom Parameters: add none. The transactional sender passes values as both current and",
+        "customParameters, so the tags above resolve without parameters typed here.",
         "",
         f"Title {len(p['title'])} of 50 characters and message {len(p['body'])} of 120: inside "
         "what a phone truncates.",

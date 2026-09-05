@@ -529,3 +529,21 @@ table.compare tbody th { color: var(--muted); font-weight: 600; }
 .cart-line .qty { display: flex; align-items: center; gap: 6px; }
 .cart-line .qty button { min-width: 40px; min-height: 40px; padding: 0; font-size: 17px; }
 .cart-line .qty span { min-width: 2ch; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Gamification stand ins, namespaced under their creative roots like every other creative. */
+#dps-creative-spin_wheel .dps-wheel-stage { position: relative; width: 170px; height: 170px; margin: 10px auto; }
+#dps-creative-spin_wheel .dps-wheel { width: 170px; height: 170px; border-radius: 50%; border: 4px solid #14161a;
+  background: conic-gradient(#E4002B 0 60deg, #FFD9E0 60deg 120deg, #E4002B 120deg 180deg,
+    #FFD9E0 180deg 240deg, #E4002B 240deg 300deg, #FFD9E0 300deg 360deg); }
+#dps-creative-spin_wheel .dps-wheel-pin { position: absolute; top: -8px; left: 50%; margin-left: -7px;
+  width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent;
+  border-top: 12px solid #14161a; z-index: 1; }
+#dps-creative-spin_wheel .dps-game-legend { font-size: 12px; color: #5a6270; margin: 6px 0 0; padding-left: 18px;
+  columns: 2; }
+#dps-creative-scratch_card .dps-scratch-stage { position: relative; width: 240px; height: 84px; margin: 10px auto; }
+#dps-creative-scratch_card .dps-scratch-under { position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; background: #FFF0F3; border-radius: 10px; font-weight: 700; color: #14161a; }
+#dps-creative-scratch_card canvas { position: absolute; inset: 0; border-radius: 10px; touch-action: none; }
+.dps-creative .dps-game-result { margin-top: 10px; border-top: 1px solid #e4e7ec; padding-top: 10px; }
+.dps-creative .dps-game-result[hidden] { display: none; }
+.dps-creative .dps-game-small { font-size: 11px; color: #5a6270; margin: 8px 0 0; }

@@ -99,8 +99,10 @@ and this one reads well without a lookup.
 
 ## The served surfaces: which panel type carries which use case
 
-The panel's on site and in app galleries, mapped to this build. Web push contents are created
-twice, once per application, because the web and Android applications share nothing.
+The panel's on site and in app galleries, mapped to this build. A push content is created once
+and serves Android and web together through the editor's Select Platform checkboxes, one public
+id across both, confirmed in the panel on 5 September 2026; the two applications stay separate
+for tokens and guids only. Each push sheet mirrors the editor's sections field by field.
 
 **On site (web).** The 13 inline slots and their selectors are in `handoff/ONSITE-SLOTS.md`.
 

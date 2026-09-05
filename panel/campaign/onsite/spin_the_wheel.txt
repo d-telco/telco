@@ -1,7 +1,7 @@
 D-TELCO onsite experience: spin_the_wheel [campaign]
 Panel type: Gamification: Spin to Win
-Placement: offers.html, as a popup
-Trigger: second page view of the session, once per visitor
+Placement: topup.html, as a popup the moment a top up completes
+Trigger: a completed top up: recharge and win
 
 Title: Spin for your reward
 Body:  One spin per visitor. Every winning segment is a real code from the D-TELCO coupon list.

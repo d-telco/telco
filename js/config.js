@@ -68,6 +68,7 @@ window.DTELCO_CONFIG = {
     feed: 'dtelco-product-feed',
     counts: 'dtelco-dengage-tables',
     coupons: 'dtelco-coupons',
+    games: 'dtelco-games',
     personaSeed: 'dtelco-persona-seed',
     dataspace: 'dtelco-dataspace',
     ecomm: 'dtelco-ecomm',

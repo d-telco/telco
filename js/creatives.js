@@ -10,16 +10,20 @@
  * from the page. The switch is remembered per browser and it is a switch rather than a race, so a
  * popup on screen always has one explainable origin.
  *
- * Five experiences across three placements, exercising all four rule kinds, because the engine is
- * what is being demonstrated rather than any one message. Page view carries two of them: it is a
- * state rather than a gesture, and the state differs. Dwell, scroll depth and exit intent are the
- * other three, which is the complete set:
+ * Eight experiences across three placements, exercising all four rule kinds plus the event
+ * trigger the games use, because the engine is what is being demonstrated rather than any one
+ * message. Page view carries three of them: it is a state rather than a gesture, and the state
+ * differs. Dwell, scroll depth and exit intent are three more, and the two games fire from the
+ * moment that earns them rather than from a rule:
  *
  *   focus_popup         popup   page view, when a focus product exists      once per product
  *   usage_upsell_bar    bar     page view, when the line is past 80 percent once per session
  *   upgrade_inline      inline  dwell, six seconds                          once per session
  *   seasonal_inline     inline  scroll depth, half the page, after a dwell  once per session
  *   churn_save_popup    popup   exit intent                                 once per visitor
+ *   spin_wheel          popup   event, a completed top up                   once per session
+ *   scratch_card        popup   event, an NPS answer of 9 or 10             once per session
+ *   countdown_offer     inline  page view, while the seasonal window is open once per session
  *
  * Every appearance writes a creative_shown row and every action that is not a close writes a
  * creative_action row, both carrying source rule or launcher, so a self drawn experience has the
@@ -59,6 +63,9 @@
  * @maps upgrade_inline :: Inline Onsite, or Custom Inline :: docs/inline-onsite :: yes
  * @maps seasonal_inline :: Inline Onsite on a campaign audience :: docs/inline-onsite :: yes
  * @maps churn_save_popup :: Image Popup on an exit intent trigger :: docs/image-popup :: yes
+ * @maps spin_wheel :: Gamification, Spin to Win, on the top up moment :: docs/gamification :: verify
+ * @maps scratch_card :: Gamification, Scratch Card, as the NPS thank you :: docs/gamification :: verify
+ * @maps countdown_offer :: Gamification, Countdown, on the seasonal window :: docs/gamification :: verify
  */
 (function (window, document) {
   'use strict';
@@ -69,6 +76,7 @@
   var REC = window.DTelcoRecognition;
   var CAT = window.DTelcoCatalog;
   var S = window.DTelcoSite;
+  var ID = window.DTelcoIdentity;
 
   function key(name) { return 'dps:' + SLUG + ':' + name; }
   function esc(s) { return S ? S.esc(s) : String(s == null ? '' : s); }
@@ -222,6 +230,133 @@
 
   function focusProduct() { return REC ? REC.focus() : null; }
 
+  /* ---------------------------------------------------------------- the games */
+
+  /* Stand ins for the panel's Gamification templates, drawn by this engine under its own caps and
+     reported through its own rows while the templates await enabling: confirm item 21 in
+     ACCOUNT-SETUP.md, arriving next week per the account owner. Three honesty rules hold them
+     together. The surface is the site's and each one says so on its face. The coupon list is the
+     account's, read live at the moment of the win. And no code is minted here: dtelco-games hands
+     out only codes the platform already issued into the pocket, and an empty pocket is said out
+     loud rather than papered over with an invented DTELCO- string. */
+
+  var WHEEL_SEGMENTS = [
+    { label: '5 dollars off', coupon: true },
+    { label: '10 percent off accessories', coupon: true },
+    { label: 'Free shipping', coupon: true },
+    { label: 'Double data for a month', coupon: false },
+    { label: 'Try again', coupon: false },
+    { label: '10 dollars off a device', coupon: true }
+  ];
+
+  var STAND_IN = '<p class="dps-game-small">The site draws this stand in. The panel\'s ' +
+                 'Gamification template takes the surface over when it is enabled.</p>';
+
+  /* One win, three records: the engine's own creative_action row, the dtelco-games row with the
+     pocket draw, and the live list read the visitor is shown. */
+  function gameResult(c, mount, prize, couponBacked) {
+    report('creative_action', c, 'win: ' + prize);
+    var contact = ID ? (ID.get() || ID.claim(c.id)) : null;
+    var base = cfg.functions.base;
+    var posted = contact ? fetch(base + cfg.functions.games, {
+      method: 'POST', credentials: 'omit', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ contact_key: contact, game: c.id, placement: c.kind,
+                             prize: prize, coupon: couponBacked === true })
+    }).then(function (r) { return r.json(); }).catch(function () { return {}; })
+      : Promise.resolve({});
+    var list = fetch(base + cfg.functions.coupons, { credentials: 'omit' })
+      .then(function (r) { return r.json(); }).catch(function () { return {}; });
+    Promise.all([posted, list]).then(function (both) {
+      var win = both[0] || {}, l = both[1] || {};
+      var html = '<h3>' + esc(prize) + '</h3>';
+      if (win.code) {
+        html += '<p>Your code: <strong>' + esc(win.code) + '</strong>. A real code from the ' +
+                'account\'s own list, and the checkout recognises it.</p>';
+      } else if (couponBacked) {
+        html += '<p>' + (l.name
+          ? esc(l.name) + ', read live from the account: ' + esc(String(l.available)) + ' of ' +
+            esc(String(l.total)) + ' codes available.'
+          : 'The coupon list could not be read just now.') +
+          ' The served template issues a code of your own; this stand in never invents one.</p>';
+      } else {
+        html += '<p>Recorded against your line as a demonstration reward.</p>';
+      }
+      html += '<p class="dps-game-small">The win is on record: a creative action row in the ' +
+              'platform\'s event table' +
+              (win.win_id ? ', and dtelco-games row ' + esc(String(win.win_id)) : '') + '.</p>';
+      mount.innerHTML = html;
+      mount.hidden = false;
+    });
+  }
+
+  function gameMount(id) {
+    var root = document.getElementById('dps-creative-' + id);
+    return root ? root.querySelector('.dps-game-result') : null;
+  }
+
+  /* The scratch cover: painted after the popup is attached, erased under the pointer, and
+     revealed when enough of it is gone. The same after-attach beat the sticky bar uses for its
+     height report. */
+  function initScratch(c) {
+    var root = document.getElementById('dps-creative-scratch_card');
+    if (!root) { return; }
+    var canvas = root.querySelector('canvas');
+    if (!canvas || !canvas.getContext) { return; }
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#b9bec9';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#5a6270';
+    ctx.font = '600 14px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Scratch here', canvas.width / 2, canvas.height / 2 + 5);
+    var strokes = 0;
+    function erase(e) {
+      if (c.revealed) { return; }
+      var r = canvas.getBoundingClientRect();
+      var p = e.touches ? e.touches[0] : e;
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath();
+      ctx.arc((p.clientX - r.left) * (canvas.width / r.width),
+              (p.clientY - r.top) * (canvas.height / r.height), 16, 0, Math.PI * 2);
+      ctx.fill();
+      strokes += 1;
+      if (strokes % 8 !== 0) { return; }
+      var img = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      var clear = 0;
+      for (var i = 3; i < img.length; i += 4) { if (img[i] === 0) { clear += 1; } }
+      if (clear / (img.length / 4) > 0.45) { revealScratch(c, canvas); }
+    }
+    canvas.addEventListener('mousemove', function (e) { if (e.buttons) { erase(e); } });
+    canvas.addEventListener('touchmove', function (e) { e.preventDefault(); erase(e); },
+                            { passive: false });
+  }
+
+  function revealScratch(c, canvas) {
+    if (c.revealed) { return; }
+    c.revealed = true;
+    if (canvas) { canvas.style.display = 'none'; }
+    var mount = gameMount('scratch_card');
+    if (mount) { gameResult(c, mount, '10 percent off accessories', true); }
+  }
+
+  /* The countdown ticks to the demo day's end, because the dataset rolls daily: a deadline read
+     from the build rather than invented for the creative. Self clearing once the node is gone. */
+  function initCountdown() {
+    var root = document.getElementById('dps-creative-countdown_offer');
+    if (!root) { return; }
+    var clock = root.querySelector('[data-countdown-clock]');
+    if (!clock) { return; }
+    var timer = window.setInterval(function () {
+      if (!document.body.contains(clock)) { window.clearInterval(timer); return; }
+      var now = new Date();
+      var end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+      var s = Math.max(0, Math.floor((end - now) / 1000));
+      var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+      clock.textContent = pad(Math.floor(s / 3600)) + ':' + pad(Math.floor((s % 3600) / 60)) +
+                          ':' + pad(s % 60);
+    }, 500);
+  }
+
   var CREATIVES = [
     {
       id: 'focus_popup',
@@ -323,6 +458,110 @@
                  '<p>Your port out is already in and nothing here delays it. If this is not ' +
                  'enough, it goes ahead exactly as you asked.</p>' +
                  button('See the offer', 'view_save') +
+               '</div>';
+      },
+      onAction: function () { window.location.href = (S ? S.rel() : '') + 'offers.html'; }
+    },
+    {
+      id: 'spin_wheel',
+      kind: 'popup',
+      rule: 'event',
+      once: 'session',
+      why: 'a top up completed, which is the telco moment gamification earns: recharge and win',
+      when: function () { return true; },
+      render: function () {
+        var legend = '';
+        for (var i = 0; i < WHEEL_SEGMENTS.length; i++) {
+          legend += '<li>' + esc(WHEEL_SEGMENTS[i].label) + '</li>';
+        }
+        return '<div class="dps-creative-copy">' +
+                 '<p class="dps-creative-kicker">Recharge and win</p>' +
+                 '<h3>Spin for your reward</h3>' +
+                 '<div class="dps-wheel-stage"><div class="dps-wheel-pin"></div>' +
+                 '<div class="dps-wheel" data-wheel-disc></div></div>' +
+                 '<ol class="dps-game-legend">' + legend + '</ol>' +
+                 button('Spin', 'spin') +
+                 '<div class="dps-game-result" hidden></div>' +
+                 STAND_IN +
+               '</div>';
+      },
+      onAction: function (name) {
+        if (name !== 'spin' || this.spinning) { return; }
+        var c = this;
+        var root = document.getElementById('dps-creative-spin_wheel');
+        var disc = root ? root.querySelector('[data-wheel-disc]') : null;
+        if (!disc) { return; }
+        c.spinning = true;
+        c.turns = (c.turns || 0) + 1;
+        var idx = Math.floor(Math.random() * WHEEL_SEGMENTS.length);
+        var target = c.turns * 5 * 360 + (360 - (idx * 60 + 30));
+        disc.style.transition = 'transform 3s cubic-bezier(.2,.8,.2,1)';
+        disc.style.transform = 'rotate(' + target + 'deg)';
+        window.setTimeout(function () {
+          c.spinning = false;
+          var seg = WHEEL_SEGMENTS[idx];
+          var mount = gameMount('spin_wheel');
+          if (!mount) { return; }
+          if (seg.label === 'Try again') {
+            report('creative_action', c, 'win: try again');
+            mount.innerHTML = '<h3>Try again</h3><p>The wheel says one more spin.</p>';
+            mount.hidden = false;
+            return;
+          }
+          gameResult(c, mount, seg.label, seg.coupon);
+        }, 3200);
+      }
+    },
+    {
+      id: 'scratch_card',
+      kind: 'popup',
+      rule: 'event',
+      once: 'session',
+      why: 'an NPS answer of 9 or 10, and the thank you is a card rather than a sentence',
+      when: function () { return true; },
+      render: function () {
+        this.revealed = false;
+        window.setTimeout(function () {
+          var c = CREATIVES.filter(function (x) { return x.id === 'scratch_card'; })[0];
+          initScratch(c);
+        }, 40);
+        return '<div class="dps-creative-copy">' +
+                 '<p class="dps-creative-kicker">Thank you</p>' +
+                 '<h3>Scratch to reveal your reward</h3>' +
+                 '<div class="dps-scratch-stage">' +
+                   '<div class="dps-scratch-under">10 percent off accessories</div>' +
+                   '<canvas width="240" height="84"></canvas>' +
+                 '</div>' +
+                 button('Reveal it for me', 'reveal') +
+                 '<div class="dps-game-result" hidden></div>' +
+                 STAND_IN +
+               '</div>';
+      },
+      onAction: function (name) {
+        if (name !== 'reveal') { return; }
+        var root = document.getElementById('dps-creative-scratch_card');
+        revealScratch(this, root ? root.querySelector('canvas') : null);
+      }
+    },
+    {
+      id: 'countdown_offer',
+      kind: 'inline',
+      slot: 'dn_inline_target_in_grid',
+      rule: 'pageView',
+      once: 'session',
+      pages: ['shop', 'plans'],
+      why: 'the seasonal window is open and between the tiles is where a deadline sells',
+      when: function () { return !!flags().campaign; },
+      render: function () {
+        var f = flags();
+        window.setTimeout(initCountdown, 40);
+        return '<div class="dps-creative-copy">' +
+                 '<p class="dps-creative-kicker">' + esc(f.campaign) + '</p>' +
+                 '<h3>Ends in <span data-countdown-clock>--:--:--</span></h3>' +
+                 '<p>' + esc(f.campaign_note || 'The best of it goes first.') +
+                 ' The clock runs to the demo day\'s end, because the dataset rolls daily.</p>' +
+                 button('See the offers', 'view_countdown') +
+                 STAND_IN +
                '</div>';
       },
       onAction: function () { window.location.href = (S ? S.rel() : '') + 'offers.html'; }

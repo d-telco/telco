@@ -164,10 +164,45 @@ Deno.serve(async (req) => {
           'DTELCO_API_PROXY to a host that holds the allowlisted address')
     : `answered HTTP ${http} with no token`;
 
+  /* ?froms=1: the GetEmailFroms listing, read only, because a transactional email that answers
+     code 6, Vmta information not found, is asking exactly this question: which sender identities
+     does the account hold, and under which id. Measured 5 September 2026 when the first two
+     template sends both answered code 6. The reference gives the call relative, so the two
+     plausible paths are both tried and each answer is reported as itself. From names and
+     addresses are account configuration on the same shelf as the sender profile the panel shows;
+     no token and no credential is ever echoed. */
+  let froms: unknown = undefined;
+  if (hasToken && new URL(req.url).searchParams.has('froms')) {
+    let bearer = '';
+    try { bearer = JSON.parse(full)?.access_token ?? ''; } catch { /* guarded above */ }
+    const probes = [];
+    for (const path of ['/email/froms', '/transactional/email/froms']) {
+      try {
+        const r = await fetch(`${API}${path}`, {
+          headers: { authorization: `Bearer ${bearer}` },
+          signal: AbortSignal.timeout(12000),
+        });
+        const text = await r.text();
+        let parsed: unknown = null;
+        try { parsed = JSON.parse(text); } catch { /* reported as text below */ }
+        const data = (parsed as { data?: unknown })?.data;
+        probes.push({
+          path, http: r.status,
+          entries: Array.isArray(data) ? data.slice(0, 10) : undefined,
+          raw: Array.isArray(data) ? undefined : text.slice(0, 300),
+        });
+      } catch (e) {
+        probes.push({ path, http: null, raw: String(e).slice(0, 150) });
+      }
+    }
+    froms = probes;
+  }
+
   return new Response(JSON.stringify({
     ...base,
     ok: hasToken,
     login: { http, issued_token: hasToken, verdict },
+    email_froms: froms,
     /* Never the token, and never the body when it holds one. */
     detail: echoable ? (full.slice(0, 300) || undefined) : undefined,
   }, null, 1), { headers });

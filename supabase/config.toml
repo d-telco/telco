@@ -62,3 +62,6 @@ verify_jwt = false
 
 [functions.dtelco-reset]
 verify_jwt = false
+
+[functions.dtelco-games]
+verify_jwt = false

@@ -1,7 +1,7 @@
 D-TELCO onsite experience: countdown_offer [campaign]
 Panel type: Gamification: Countdown
-Placement: offers.html inline, and shop.html in the results grid slot
-Trigger: while a seasonal offer window is open
+Placement: shop.html and plans.html, inline between the tiles
+Trigger: while the seasonal window is open. The clock runs to the demo day's end, because the dataset rolls daily
 
 Title: Ends in {countdown}
 Body:  The seasonal bundle at its offer price until the clock runs out.

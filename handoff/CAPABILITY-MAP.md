@@ -400,7 +400,7 @@ keyboard. Every one of the eight screens is here because of something a browser 
 
 | Gap | Handling |
 |---|---|
-| G9 gamification on a new account | **verify** in the panel. If the template is not enabled, the moment renders locally and is reported as a creative row, and the panel capability is shown as a canvas |
+| G9 gamification on a new account | **verify** in the panel, confirm item 21: the type gallery showed no Gamification section on 5 September 2026 and the account owner's team enables it the following week. The site draws all three as labeled stand ins meanwhile: the wheel on a completed top up, the scratch card on a promoter NPS, the countdown on the seasonal window, each reporting through the creative engine, recording wins in `dtelco-games`, and reading the coupon list live at the win. No code is minted locally; the pocket holds only platform issued codes. The served template takes each surface over when it arrives |
 | G6 and G7 dynamic content resolving a product from a contact held id | **verify** in the panel, confirm items 1 to 3. The contact carries ids only, by decision: no title or price column shadows the catalogue. Until the `$from` lookup passes the check, the message is shown as its canvas and said so plainly |
 | Journeys 5 and 6 narrowing to wishers of one product id | **verify** in the panel. Fallback is a per contact event raised by the simulator |
 | F5 and F6 live sends | Suppressed by decision. Composed, rendered and shown; never claimed as delivered |

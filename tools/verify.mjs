@@ -802,14 +802,16 @@ const SCRIPTS = (await Promise.all(
    action, and that the switch hands the whole thing to Dengage without a race. */
 {
   const { page, events } = await open('index.html');
-  /* Four rule kinds is the complete set the engine supports: page view, dwell, scroll depth and
-     exit intent. Page view carries two creatives because it is a state rather than a gesture. */
-  ok('the engine registers five creatives across three placements and all four rule kinds',
+  /* Four rule kinds plus the event trigger the two games use. Page view carries three creatives
+     because it is a state rather than a gesture, and the games fire from the moment that earns
+     them: a completed top up, an NPS of nine or ten. */
+  ok('the engine registers eight creatives across three placements, four rule kinds and the event trigger',
      await page.evaluate(() => {
        const l = window.DTelcoCreatives.list();
        const rules = new Set(l.map(c => c.rule));
-       return l.length === 5 && new Set(l.map(c => c.kind)).size === 3 &&
-              ['pageView', 'dwell', 'scroll', 'exit'].every(r => rules.has(r)) && rules.size === 4;
+       return l.length === 8 && new Set(l.map(c => c.kind)).size === 3 &&
+              ['pageView', 'dwell', 'scroll', 'exit', 'event'].every(r => rules.has(r)) &&
+              rules.size === 5;
      }));
 
   /* Nothing appears unprompted on a first visit: every rule reads a flag or a focus product and
@@ -964,7 +966,7 @@ const SCRIPTS = (await Promise.all(
        ?.replace(/\s+/g, ' ') ?? 'absent');
 
   ok('every creative has a card',
-     await page.locator('#dps-launcher [data-show]').count() === 5);
+     await page.locator('#dps-launcher [data-show]').count() === 8);
   /* Exit intent and scroll depth are native triggers. A card that claimed to fire one would be
      lying, so those two say which gesture to make instead. */
   ok('the two native triggers say what gesture to make rather than firing anything',

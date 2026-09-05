@@ -1,6 +1,6 @@
 D-TELCO onsite experience: scratch_card [campaign]
 Panel type: Gamification: Scratch Card
-Placement: account.html, as a popup for identified visitors
+Placement: any page carrying the NPS block, as a popup
 Trigger: an NPS answer of 9 or 10, as the thank you
 
 Title: Scratch to reveal your thank you

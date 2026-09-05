@@ -72,8 +72,11 @@ const APP_GUID = Deno.env.get('DENGAGE_APP_GUID') ?? '';
    an address in source is an address somebody copies into another build. Nothing here invents one,
    and with the variable unset the email path refuses rather than guessing. */
 const REHEARSAL_TO = Deno.env.get('DTELCO_REHEARSAL_EMAIL') ?? '';
-/* GetEmailFroms gives the from name and address pairs. A transactional email built from inline
-   html needs one; an email built from a saved template does not, because the template carries it. */
+/* GetEmailFroms gives the from name and address pairs, at GET /email/froms: measured 5 September
+   2026, code 0 there and 404 on the transactional spelling. The measurement that matters more:
+   a template send carrying no from answered code 6, Vmta information not found, twice. So the
+   from travels on every send: from this environment name when set, otherwise the account's own
+   default identity, read from /email/froms and cached below. */
 const FROM_NAME_ID = Deno.env.get('DENGAGE_FROM_NAME_ID') ?? '';
 const EMAIL_SHAPE = /^[^@\s]+@[^@\s.]+\.[^@\s]+$/;
 
@@ -108,6 +111,29 @@ async function login(): Promise<string | null> {
 }
 
 type SendResult = { code: number | null; meaning: string; transactionId?: string; raw?: string };
+
+/* The account's default sender identity, cached ten minutes. Without one on the send, the
+   template route answers code 6 and delivers nothing. */
+let fromCache: { id: string; until: number } | null = null;
+
+async function defaultFromId(bearer: string): Promise<string> {
+  if (FROM_NAME_ID) return FROM_NAME_ID;
+  if (fromCache && Date.now() < fromCache.until) return fromCache.id;
+  try {
+    const r = await fetch(`${API}/email/froms`, {
+      headers: { authorization: `Bearer ${bearer}` },
+      signal: AbortSignal.timeout(10000),
+    });
+    const body = await r.json();
+    const list = body?.data?.emailFroms as Array<{ id?: string; isDefault?: boolean }> | undefined;
+    const pick = Array.isArray(list) ? (list.find((f) => f?.isDefault) ?? list[0]) : null;
+    if (pick?.id) {
+      fromCache = { id: String(pick.id), until: Date.now() + 10 * 60 * 1000 };
+      return fromCache.id;
+    }
+  } catch { /* the send below reports its own refusal */ }
+  return '';
+}
 
 /* The email sibling of push, and the differences are worth stating rather than smoothing over.
  *
@@ -323,12 +349,14 @@ Deno.serve(async (req) => {
   };
 
   if (channel === 'email') {
-    /* content takes a templateId OR html plus subject plus fromNameId. The saved content is the
-       route here, so fromNameId is not required; it is passed only when the environment holds one,
-       because reference/sendtransactionalemail pairs it with the html route and sending an empty
-       string would be sending a field rather than omitting it. */
+    /* content takes a templateId OR html plus subject plus fromNameId. The reference pairs
+       fromNameId with the html route, but the measured account disagrees about the template
+       route: without a from the send answers code 6, Vmta information not found. So the from
+       travels on every send, from the environment when set and otherwise the account's own
+       default identity. An empty id is still omitted rather than sent as an empty field. */
     const content: Record<string, unknown> = { templateId: contentId };
-    if (FROM_NAME_ID) content.fromNameId = FROM_NAME_ID;
+    const fromId = await defaultFromId(bearer!);
+    if (fromId) content.fromNameId = fromId;
     const emailResult = await email(bearer!, {
       send: { to, toLanguage: 'EN' },
       content,

@@ -573,6 +573,9 @@
       S.confirm('Topped up', money(amount) + ' is on its way to ' + f.msisdn.value.trim() + '.');
       document.getElementById('topup-note').textContent =
         'Reference ' + id + '. Your balance is updated.';
+      // Recharge and win: the gamification stand in fires from the moment that earns it,
+      // not from a page rule. In panel mode the engine hands the event to Dengage instead.
+      if (window.DTelcoCreatives) { window.DTelcoCreatives.show('spin_wheel'); }
     });
   });
 })(window, document);
@@ -996,6 +999,8 @@
            now says. */
         EV.tags([{ tag: 'nps_band', value: score >= 9 ? 'promoter' : (score >= 7 ? 'passive' : 'detractor') },
                  { tag: 'nps_score', value: String(score) }]);
+        // A promoter's thank you is the scratch card, the second gamification stand in.
+        if (score >= 9 && window.DTelcoCreatives) { window.DTelcoCreatives.show('scratch_card'); }
         Array.prototype.forEach.call(host.querySelectorAll('[data-nps]'), function (b) {
           b.classList.toggle('on', Number(b.getAttribute('data-nps')) === score); });
         document.getElementById('nps-note').textContent =

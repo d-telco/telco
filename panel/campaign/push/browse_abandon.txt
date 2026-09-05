@@ -1,15 +1,37 @@
 D-TELCO push content: browse_abandon [campaign]
 Trigger: two plan views, no cart, 24 hours (journey 4)
 Campaign: $Current resolves from the journey's own event or audience columns.
-Create this content twice, once on the web application and once on the Android
-application: they are two applications in the panel and nothing set up for one reaches
-the other.
+One content, every platform: under Select Platform tick Android and WEB. iOS stays off,
+there is no iOS app in this build. The web and Android applications stay separate for
+tokens and guids; the content itself is shared under one public id.
 Save To Inbox: off.
 
-Title:      Still deciding?
-Message:    The two tariffs you looked at, side by side.
-Target URL: {%= $Current.link || 'https://d-telco.github.io/telco/' %}
-Media:      https://d-telco.github.io/telco/assets/push/usage-80.jpg
+Content
+  Title:      Still deciding?
+  Message:    The two tariffs you looked at, side by side.
+
+Android settings
+  Notification Type: Rich
+  Sub Text:   leave empty, the message carries the line
+  Media:      https://d-telco.github.io/telco/assets/push/usage-80.jpg  (under 600kb, aspect 2:1)
+  Target URL: {%= $Current.link || 'https://d-telco.github.io/telco/' %}
+  Sound:      Default
+  Badge:      off
+  Action Buttons: none. The tap opens the target URL, and a button that repeats the tap
+  is a control that does nothing extra.
+
+Web settings
+  Notification Type: Rich
+  Media:      https://d-telco.github.io/telco/assets/push/usage-80.jpg
+  Target URL: {%= $Current.link || 'https://d-telco.github.io/telco/' %}
+  Badge URL:  leave empty
+  Icon:       Default
+  Action Buttons: none
+  macOS Safari shows no media, icon or badge URL, so the same push arrives plainer
+  there. That is the platform's note, not a fault.
+
+Custom Parameters: add none. The transactional sender passes values as both current and
+customParameters, so the tags above resolve without parameters typed here.
 
 Title 15 of 50 characters and message 44 of 120: inside what a phone truncates.
 The target URL is a tag rather than an address: a shared content with an address in it

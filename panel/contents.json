@@ -444,8 +444,8 @@
       "id": "spin_the_wheel",
       "panel_type": "Gamification: Spin to Win",
       "lane": "campaign",
-      "placement": "offers.html, as a popup",
-      "trigger": "second page view of the session, once per visitor",
+      "placement": "topup.html, as a popup the moment a top up completes",
+      "trigger": "a completed top up: recharge and win",
       "title": "Spin for your reward",
       "body": "One spin per visitor. Every winning segment is a real code from the D-TELCO coupon list.",
       "segments": [
@@ -457,30 +457,45 @@
         "10 dollars off a device"
       ],
       "coupon": "the DTELCO- coupon list the account owner created. dtelco-coupons reads its stock live; a winning segment hands out a code of the visitor's own and the platform marks it taken",
-      "verify": "G9. Until the gamification template is confirmed enabled on the account, this is shown as its canvas and said so plainly"
+      "verify": "G9. Until the gamification template is confirmed enabled on the account, this is shown as its canvas and said so plainly",
+      "stand_in": "drawn by the site today through js/creatives.js, labeled on its face, wins recorded by dtelco-games and the coupon list read live. The served template takes the surface over when enabled"
     },
     {
       "id": "countdown_offer",
       "panel_type": "Gamification: Countdown",
       "lane": "campaign",
-      "placement": "offers.html inline, and shop.html in the results grid slot",
-      "trigger": "while a seasonal offer window is open",
+      "placement": "shop.html and plans.html, inline between the tiles",
+      "trigger": "while the seasonal window is open. The clock runs to the demo day's end, because the dataset rolls daily",
       "title": "Ends in {countdown}",
       "body": "The seasonal bundle at its offer price until the clock runs out.",
       "coupon": "none. Urgency rather than discount: the price shown is the catalogue's own discounted_price, never a number typed into a creative",
-      "verify": "G9. Same handling as the wheel"
+      "verify": "G9. Same handling as the wheel",
+      "stand_in": "drawn by the site today through js/creatives.js, labeled on its face, wins recorded by dtelco-games and the coupon list read live. The served template takes the surface over when enabled"
     },
     {
       "id": "scratch_card",
       "panel_type": "Gamification: Scratch Card",
       "lane": "campaign",
-      "placement": "account.html, as a popup for identified visitors",
+      "placement": "any page carrying the NPS block, as a popup",
       "trigger": "an NPS answer of 9 or 10, as the thank you",
       "title": "Scratch to reveal your thank you",
       "body": "A reward for the feedback. Scratch the card to reveal your code.",
       "coupon": "the same DTELCO- coupon list. One code per contact, marked taken by the platform",
-      "verify": "G9. Same handling as the wheel"
+      "verify": "G9. Same handling as the wheel",
+      "stand_in": "drawn by the site today through js/creatives.js, labeled on its face, wins recorded by dtelco-games and the coupon list read live. The served template takes the surface over when enabled"
     }
   ],
-  "_onsite_experiences_note": "Panel side gamification, proposed placements. The copy and the coupon linkage live here so the wheel, the countdown and the scratch card are written once; the account owner creates each from the panel's gamification templates. All three are campaign lane and verify item G9: anything unconfirmed is shown as a canvas."
+  "_onsite_experiences_note": "Panel side gamification, proposed placements. The copy and the coupon linkage live here so the wheel, the countdown and the scratch card are written once; the account owner creates each from the panel's gamification templates. All three are campaign lane and verify item G9: anything unconfirmed is shown as a canvas.",
+  "transactional_content_ids": {
+    "newsletter_welcome": {
+      "email": "3bdb870e-e476-489d-89d6-801024dc0036"
+    },
+    "order_confirmation": {
+      "email": "7aed18b1-df0f-44d5-9424-149a47c05ac3"
+    },
+    "low_balance": {
+      "push": "f7f833ef-21e2-4ae0-a487-40f8c4a33928"
+    }
+  },
+  "_transactional_content_ids_note": "One id per moment per channel, from the panel, filled in as the account owner creates each content. A push content carries one id for web and Android together: Select Platform shares the public id. The senders and the coming trigger wiring read this map, so an id is typed once."
 }
