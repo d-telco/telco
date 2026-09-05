@@ -166,10 +166,15 @@ Deno.serve(async (req) => {
                        'dtelco-dataspace syncs to a Dengage send list table, where the same ids ' +
                        'arrive as $Current on every channel including push. A transactional send ' +
                        'reads neither: it cannot see a contact column at all.',
-      whatsapp_permission: 'a custom column, not a platform permission. /bulk/contacts documents ' +
-                           'email_permission and gsm_permission and no third. WhatsApp consent is ' +
-                           'a condition a journey or segment reads, not a suppression the ' +
-                           'platform enforces.',
+      whatsapp_permission: 'written as collected. The column already exists on this account, ' +
+                           'confirmed in the panel column list on 5 September 2026, so consent ' +
+                           'goes to the column the account carries rather than an invented twin. ' +
+                           'reference/updatecontactsbulk documents only email_permission and ' +
+                           'gsm_permission, so whether the WhatsApp channel enforces this one at ' +
+                           'send time is confirm item 19; journey steps condition on it either way.',
+      recognition: 'focus_product_id and focus_views only. The creative resolves title, price ' +
+                   'and image from the product table by the id, so the card quotes the ' +
+                   'catalogue as it stands rather than as it stood when the visitor browsed.',
       rate_cap: `${CAP} per IP per ${WINDOW_MS / 1000} seconds, per instance`,
     }, null, 1), { headers });
   }
@@ -284,23 +289,25 @@ Deno.serve(async (req) => {
   put('gsm', lead.gsm);
   contact.email_permission = lead.marketing_consent;
   contact.gsm_permission = lead.sms_consent;
-  /* WhatsApp consent is a custom column, and that is a statement about Dengage rather than a
-     shortcut. reference/updatecontactsbulk documents exactly two permission columns on
-     master_contact, email_permission and gsm_permission. There is no WhatsApp permission, so a
-     WhatsApp consent collected on a form is a value the operator's own compliance holds and a
-     journey or segment reads as a condition. It is not a platform level suppression, and saying
-     so is better than letting a room assume it is. */
-  contact.whatsapp_consent = lead.whatsapp_consent;
+  /* Written to the column this account already carries. whatsapp_permission is on master_contact,
+     confirmed in the panel's own column list on 5 September 2026, so the consent the form collects
+     goes there rather than into an invented whatsapp_consent twin. reference/updatecontactsbulk
+     documents only email_permission and gsm_permission, so whether the WhatsApp channel enforces
+     this third one at send time the way gsm_permission suppresses SMS is a panel check, confirm
+     item 19 in ACCOUNT-SETUP.md; a journey step conditions on the column either way. The lead row
+     above keeps the value under whatsapp_consent, which is its Postgres column name and stays. */
+  contact.whatsapp_permission = lead.whatsapp_consent;
 
   /* The NPS score reaches segments as the nps_band and nps_score tags the page writes, and the
      watch reaches them through the watcher views, so neither writes a contact column. The lead
      row above keeps both values. */
   if (form === 'recognition' && product) {
+    /* The id and the count, nothing else. The recognition creative resolves title, price and
+       image from the product table by this id, the same $from lookup the recommendation message
+       relies on, so a title or price stored here would only freeze the card at browse time and
+       drift from the catalogue. The productFacts read above is what makes the id safe to write:
+       an id that does not resolve writes nothing. */
     put('focus_product_id', product.product_id);
-    put('focus_product_title', product.title);
-    /* Derived here, never taken from the page: the price the visitor is shown and the price the
-       email quotes have to be the same number and only one of them can be authoritative. */
-    put('focus_product_price', product.discounted_price ?? product.price);
     const views = Number(body.views);
     if (Number.isFinite(views)) put('focus_views', views);
   }

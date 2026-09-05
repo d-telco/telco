@@ -19,11 +19,17 @@
  * It writes no email address. A rehearsal never invents one, and every one of these eight is
  * invented. A contact with no email cannot be sent an email by accident.
  *
- * It writes gsm_permission false. The numbers are invented 555 block mobiles and SMS is composed
- * and never sent in this demonstration, so the platform's own permission is the cheapest possible
- * guarantee that no message can ever reach a number that might belong to somebody real. The
- * number itself is written, because a contact card with no mobile on it looks broken and a
- * message can still print it.
+ * It writes gsm_permission and whatsapp_permission false. The numbers are invented 555 block
+ * mobiles and SMS and WhatsApp are composed and never sent in this demonstration, so the
+ * permission columns are the cheapest possible guarantee that no message can ever reach a number
+ * that might belong to somebody real. whatsapp_permission is the account's own column, confirmed
+ * in the panel column list on 5 September 2026.
+ *
+ * The number itself is sent and the platform refuses it: measured 5 September 2026, every 555
+ * block mobile came back "gsm value is invalid. Default value is used!". That outcome is accepted
+ * rather than worked around, because a number shaped well enough to store is a number that could
+ * belong to somebody, and a card with no mobile on it is the price of the guarantee. The reply's
+ * warnings list is where the refusal shows, which is one more reason to read bodies, not codes.
  */
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
@@ -111,10 +117,12 @@ async function rows() {
       name: name[0] ?? '',
       surname: name.slice(1).join(' '),
       gsm: s.msisdn,
-      /* Never true. See the note at the top of this file: invented numbers, and nothing in this
-         demonstration sends an SMS. The number itself travels in the standard gsm column, which
-         is where a message prints it from, so there is no msisdn custom column beside it. */
+      /* Never true, either of them. See the note at the top of this file: invented numbers, and
+         nothing in this demonstration sends an SMS or a WhatsApp. The number is sent in the
+         standard gsm column, so there is no msisdn custom column beside it, and the platform's
+         validator refuses the 555 block and stores its default, which the note above accepts. */
       gsm_permission: false,
+      whatsapp_permission: false,
       plan_name: title.get(s.plan_id) ?? s.plan_id,
       lifecycle: s.lifecycle,
       contract_end: s.contract_end,
@@ -138,9 +146,10 @@ Deno.serve(async (req) => {
       writes_email: false,
       why_no_email: 'a rehearsal never invents an email address, and all eight are invented',
       gsm_permission: false,
-      why_no_gsm_permission: 'the numbers are invented and SMS is composed and never sent, so the ' +
-                             'platform permission is the cheapest guarantee nothing reaches a ' +
-                             'number that might belong to somebody real',
+      whatsapp_permission: false,
+      why_no_send_permissions: 'the numbers are invented and SMS and WhatsApp are composed and ' +
+                               'never sent, so the permission columns are the cheapest guarantee ' +
+                               'nothing reaches a number that might belong to somebody real',
       personas: list.length,
       dengage_configured: !!(USERKEY && PASSWORD),
       note: 'idempotent. /bulk/contacts upserts, so a second run updates rather than duplicates.',

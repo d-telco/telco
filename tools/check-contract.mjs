@@ -379,7 +379,8 @@ const CARD = ['plan_name', 'lifecycle', 'contract_end'];
 const REHOMED = ['msisdn', 'plan_id', 'plan_type', 'arpu_band', 'esim', 'device_model',
                  'family_lines', 'preferred_store', 'preferred_channel', 'city', 'last_nps',
                  'last_watch_product_id', 'last_watch_list', 'focus_product_brand',
-                 'focus_product_category', 'reco_at'];
+                 'focus_product_category', 'focus_product_title', 'focus_product_price',
+                 'whatsapp_consent', 'reco_at'];
 const starTable = contract.slice(contract.indexOf('Served by the star schema instead'));
 const lost = REHOMED.filter((c) => !starTable.includes(`\`${c}\``));
 ok('every column the contact no longer carries is re-homed, not lost', lost.length === 0,
@@ -391,7 +392,7 @@ ok('and nothing still writes a re-homed column', stillWritten.length === 0,
                        : 'writers and the panel list agree');
 const noWriter = CARD.filter((c) => !contactCols.has(c));
 ok('and the contact card columns keep their writer', noWriter.length === 0,
-   noWriter.length ? `${noWriter.join(', ')} would be empty on every contact` : 'all twelve');
+   noWriter.length ? `${noWriter.join(', ')} would be empty on every contact` : 'all three');
 
 /* ------------------------------------------------- 10. the places, one list */
 

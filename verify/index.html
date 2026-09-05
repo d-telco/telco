@@ -473,10 +473,11 @@
           var extras = cols.filter(function (c) { return want.indexOf(c) < 0; });
           var allThere = want.every(function (c) { return cols.indexOf(c) >= 0; });
           return { ok: allThere && extras.length === 0 && b.personas === 8 &&
-                       b.writes_email === false && b.gsm_permission === false,
+                       b.writes_email === false && b.gsm_permission === false &&
+                       b.whatsapp_permission === false,
                    detail: extras.length ? 'writes ' + extras.join(', ') + ' beyond the card three'
                      : cols.length + ' columns for ' + b.personas + ' personas, no email ' +
-                       'and no gsm permission on invented numbers' };
+                       'and no send permission on invented numbers' };
         });
       }
     },

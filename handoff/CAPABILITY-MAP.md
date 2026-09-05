@@ -32,7 +32,7 @@ could see it because no check reads prose. `tools/audit.mjs` now refuses a secon
 | A2 | Contact key identification, and the anonymous to known stitch on one profile |
 | A3 | Contact created and updated from a web form, by a backend over REST from an allowlisted IP |
 | A4 | Contact created by the engine's own native subscription form |
-| A5 | Custom contact columns, 12 of them, each read from the contact by a named mechanism, listed in ACCOUNT-SETUP.md |
+| A5 | Custom contact columns, nine of them, each read from the contact by a named mechanism, listed in ACCOUNT-SETUP.md, plus the account's own `whatsapp_permission` written as collected |
 | A6 | Contact tags written by the engine's native question form |
 | A7 | Contact 360 in the panel: web, app, order, wishlist and offline history on one card |
 | A8 | The same profile made visible to the customer, working before anyone knows their name |
@@ -401,7 +401,7 @@ keyboard. Every one of the eight screens is here because of something a browser 
 | Gap | Handling |
 |---|---|
 | G9 gamification on a new account | **verify** in the panel. If the template is not enabled, the moment renders locally and is reported as a creative row, and the panel capability is shown as a canvas |
-| G6 and G7 dynamic content resolving a product from a contact held id | **verify** in the panel. Fallback columns `reco_title_1` and siblings already in the model, so the message prints from the contact alone |
+| G6 and G7 dynamic content resolving a product from a contact held id | **verify** in the panel, confirm items 1 to 3. The contact carries ids only, by decision: no title or price column shadows the catalogue. Until the `$from` lookup passes the check, the message is shown as its canvas and said so plainly |
 | Journeys 5 and 6 narrowing to wishers of one product id | **verify** in the panel. Fallback is a per contact event raised by the simulator |
 | F5 and F6 live sends | Suppressed by decision. Composed, rendered and shown; never claimed as delivered |
 
@@ -456,12 +456,13 @@ moment that lands, and it costs one query parameter.
 
 ### New contact columns
 
-Four: `focus_product_id`, `focus_product_title`, `focus_product_price` and `focus_views`. The
-title and the price travel with the id so a message prints the card from the contact alone even
-if the dynamic content lookup fails the panel check, which is the same fallback already designed
-for the recommendation columns, and the view count is what the served popup prints. Brand and
-category were dropped as decoration: a column earns a place on the contact only when a mechanism
-reads it from the contact.
+Two: `focus_product_id` and `focus_views`. The creative resolves the title, the price and the
+image from the `product` table by the id, exactly as the recommendation message does, so the
+card quotes the catalogue as it stands rather than as it stood when the visitor browsed, and one
+lookup mechanism serves both experiences instead of two. The view count is what the served popup
+prints. Title, price, brand and category all stayed off the contact for the same reason: a
+column earns a place there only when a mechanism reads it from the contact, and the id is the
+join key the star schema already offers.
 
 ### Where the recognition rule sits in the engine
 

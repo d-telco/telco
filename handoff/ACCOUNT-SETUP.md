@@ -156,8 +156,9 @@ Each line is what the documentation requires.
    API's own DateTime Formats list. Whether that fills the preconfigured column or is ignored is
    confirm item 18.
 
-   `GET dtelco-dengage-tables` counts it beside the six standard tables and `dtelco_events`, so a
-   table that has not been created reads as `not found in Data Space` rather than as a zero.
+   `GET dtelco-dengage-tables` counts it beside the six standard event tables, the two master
+   tables and `dtelco_events`, so a table that has not been created reads as `not found in Data
+   Space` rather than as a zero.
 
 ## Panel setup the Android app needs
 
@@ -250,7 +251,7 @@ appears to do nothing at all.
 
 ## The custom columns on `master_contact`
 
-**Twelve, and the number used to be twenty seven.** The question that shrank it is the right one
+**Nine to create, and the number used to be twenty seven.** The question that shrank it is the right one
 to ask of any CDP integration: a column earns a place on the contact only when a mechanism reads
 it FROM the contact, a marketing message printing `$Contact`, a dynamic content creative resolving
 it, a send step conditioning on it, or a segment built over contact columns. Everything else the
@@ -264,28 +265,31 @@ writers actually send and fails if this list does not carry every one of them.
 
 | # | Column | Type | Written by | What reads it from the contact |
 |---|---|---|---|---|
-| 1 | `whatsapp_consent` | Boolean | relay | The condition on every WhatsApp journey step |
-| 2 | `focus_product_id` | Text | relay | The dynamic content creative that makes the returning visitor's hero their product |
-| 3 | `focus_product_title` | Text | relay | The same creative prints the card from the contact alone while the `$from` lookup is unconfirmed |
-| 4 | `focus_product_price` | Decimal | relay | Same |
-| 5 | `focus_views` | Integer | relay | The served popup prints how many times they looked |
-| 6 | `reco_product_id_1` | Text | relay | Journey 25's message resolves it against the product table |
-| 7 | `reco_product_id_2` | Text | relay | Same |
-| 8 | `reco_product_id_3` | Text | relay | Same, and `$blockSend` cancels the send when all three are empty |
-| 9 | `reco_rule` | Text | relay | The segment over contact columns, and the rule shown beside the rail |
-| 10 | `plan_name` | Text | persona seed | The contact card, and any upsell copy that names the plan they are on |
-| 11 | `lifecycle` | Text | persona seed | The contact card, and journey conditions at send time |
-| 12 | `contract_end` | Date | persona seed | The contract clock on the card |
+| 1 | `focus_product_id` | Text | relay | The dynamic content creative that makes the returning visitor's hero their product, resolving title, price and image from the `product` table by this id |
+| 2 | `focus_views` | Integer | relay | The served popup prints how many times they looked |
+| 3 | `reco_product_id_1` | Text | relay | Journey 25's message resolves it against the product table |
+| 4 | `reco_product_id_2` | Text | relay | Same |
+| 5 | `reco_product_id_3` | Text | relay | Same, and `$blockSend` cancels the send when all three are empty |
+| 6 | `reco_rule` | Text | relay | The segment over contact columns, and the rule shown beside the rail |
+| 7 | `plan_name` | Text | persona seed | The contact card, and any upsell copy that names the plan they are on |
+| 8 | `lifecycle` | Text | persona seed | The contact card, and journey conditions at send time |
+| 9 | `contract_end` | Date | persona seed | The contract clock on the card |
+
+Created 5 September 2026 by the account owner. If a `whatsapp_consent`, `focus_product_title` or
+`focus_product_price` was typed in along the way, it sits empty and harmless: nothing writes it,
+nothing reads it, and nothing in this build deletes a column.
 
 The standard columns beside them, `contact_key`, `name`, `surname`, `email`, `gsm`,
-`email_permission` and `gsm_permission`, exist already and need creating nowhere. The persona
+`email_permission` and `gsm_permission`, exist already and need creating nowhere, and so does
+`whatsapp_permission`, confirmed in the panel's own column list on 5 September 2026. The persona
 number travels in `gsm`, which is where a message prints it from.
 
-`whatsapp_consent` is a custom column rather than a permission, and the difference is worth saying
-out loud in the room. `reference/updatecontactsbulk` documents exactly two permission columns,
-`email_permission` and `gsm_permission`. There is no WhatsApp permission on `master_contact`, so a
-WhatsApp consent is a value the operator's own compliance holds and a journey or a segment reads as
-a condition. It is not a suppression the platform enforces.
+The forms' WhatsApp consent is written to that existing `whatsapp_permission` column rather than
+into an invented `whatsapp_consent` twin. One honest caveat travels with it:
+`reference/updatecontactsbulk` documents only `email_permission` and `gsm_permission`, so whether
+the WhatsApp channel enforces this third one at send time the way `gsm_permission` suppresses SMS
+is confirm item 19 below. A journey step conditions on the column either way, and the persona
+seeder writes it false for the same reason it writes `gsm_permission` false: invented numbers.
 
 **Served by the star schema instead, so deliberately not created:**
 
@@ -295,14 +299,16 @@ a condition. It is not a suppression the platform enforces.
 | `msisdn` | The standard `gsm` column already carries it |
 | `last_nps` | The `nps_band` and `nps_score` tags the page writes, which segments filter on |
 | `last_watch_product_id`, `last_watch_list` | `dtelco_watch` and the watcher views, and the price drop and back in stock messages print the product from the triggering event's own attributes |
-| `focus_product_brand`, `focus_product_category` | Decoration. The id, title, price and view count print the card |
+| `focus_product_title`, `focus_product_price` | The `product` table, resolved at send time by the same `$from` lookup the recommendation message relies on, confirm items 1 to 3. A title and price stored at browse time would drift from the catalogue, and the id is the join key |
+| `focus_product_brand`, `focus_product_category` | Decoration. The creative resolves the whole card from the id |
+| `whatsapp_consent` | Renamed rather than created: the account's `master_contact` already carries `whatsapp_permission`, so the relay writes the column that exists |
 | `reco_at` | Freshness belongs to the audience view that routes journey 25, and the lead row carries the timestamp |
 
 **The refusal is the friend here.** Measured 4 September 2026: a `/bulk/contacts` call carrying a
 column the table does not have is refused whole, HTTP 400 with a readable message naming every
 missing column, and nothing written. It is the one place in this integration where a missing
 column says so out loud rather than accepting the value and dropping it, so the first persona seed
-run after creating the twelve is itself the check that they were all created.
+run after creating the nine is itself the check that they were all created.
 
 ## The egress address, and when a proxy is needed
 
@@ -345,7 +351,7 @@ as missing.
 
 ## Confirm in the panel before the first demonstration
 
-Eighteen answers the panel holds and no document can. Each is checked in the account before it is
+Nineteen answers the panel holds and no document can. Each is checked in the account before it is
 said out loud, and the surface that depends on it is shown as a canvas if the check does not pass.
 
 `tools/check-coverage.mjs` reads this list: a mechanism annotated **verify** in `js/reco.js` or
@@ -372,6 +378,7 @@ commitment to confirm something specific rather than a word that makes a claim s
 | 16 | Whether App Inbox is enabled for the Android application as well as the web one. They are two applications and nothing set up for one reaches the other | Whether the app inbox screen fills or reports an empty mailbox |
 | 17 | How the account's own RFM scores reach the handset, so `saveRFMScores` carries the platform's numbers rather than a stand in | Whether the Discover tab orders on a score across the whole contact or only across what this device has seen |
 | 18 | Whether the `event_time` an operator signal carries fills the column a Big Data table arrives with, or is ignored in favour of the platform's own stamp | Whether a journey timed off an operator fact reads the moment the fact happened or the moment it arrived |
+| 19 | Whether `whatsapp_permission`, present on this account's `master_contact`, is enforced by the WhatsApp channel at send time the way `gsm_permission` suppresses SMS, or is a column only journeys and segments read. `reference/updatecontactsbulk` documents just the two | One sentence in the room: whether consent collected on the site is a platform suppression or a journey condition. What the relay writes does not change either way |
 
 ### Measurements, recorded rather than assumed
 
@@ -383,3 +390,4 @@ commitment to confirm something specific rather than a word that makes a claim s
 | 5 September 2026 | Both custom Data Space tables, after creation in the panel | `dtelco_events` and `dtelco_bss_events` appear in the table listing with a row count, where the day before both read not found. `dtelco_events` relates to `master_device` on `device_id <> key`, `dtelco_bss_events` to `master_contact` on `contact_key <> key` |
 | 5 September 2026 | `dtelco_events` storage, and the browser path with it | One labelled verification row sent through the Event API at 06:25:28; the count read 31 at 06:27:38. The other thirty arrived from the live site on their own since the table was created that morning, which proves the path this table exists for: the SDK writing device keyed rows from a browser with nobody asking it to |
 | 5 September 2026 | The Event API write path, end to end | One `care_call` row for `DPS-DTELCO-1` sent to `POST https://event.dengage.com/api/web/event` with account id and no login token. HTTP 200 with an empty body at 05:51:39 UTC; the table count read 1 at 05:53:13. Sent and stored are eighty two seconds apart here, which is why a count and never a status code is the proof |
+| 5 September 2026 | The WhatsApp permission column | `whatsapp_permission` is present on `master_contact`, seen by the account owner in the panel's Add Column listing. The relay writes it, the persona seeder writes it false, and no custom `whatsapp_consent` column was created |

@@ -234,10 +234,11 @@ export const CHECKS = [
       const cols = b.columns ?? [];
       const extras = cols.filter((c) => !want.includes(c));
       return { ok: want.every((c) => cols.includes(c)) && extras.length === 0 &&
-                   b.personas === 8 && b.writes_email === false && b.gsm_permission === false,
+                   b.personas === 8 && b.writes_email === false && b.gsm_permission === false &&
+                   b.whatsapp_permission === false,
                detail: extras.length ? `writes ${extras.join(', ')} beyond the card three`
-                 : `${cols.length} columns for ${b.personas} personas, no email and no ` +
-                       'gsm permission on invented numbers' };
+                 : `${cols.length} columns for ${b.personas} personas, no email and no send ` +
+                       'permission on invented numbers' };
     },
   
   },
