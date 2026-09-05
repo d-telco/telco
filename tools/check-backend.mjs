@@ -235,10 +235,10 @@ export const CHECKS = [
       const extras = cols.filter((c) => !want.includes(c));
       return { ok: want.every((c) => cols.includes(c)) && extras.length === 0 &&
                    b.personas === 8 && b.writes_email === false && b.gsm_permission === false &&
-                   b.whatsapp_permission === false,
+                   b.whatsapp_permission === false && b.writes_gsm === false,
                detail: extras.length ? `writes ${extras.join(', ')} beyond the card three`
-                 : `${cols.length} columns for ${b.personas} personas, no email and no send ` +
-                       'permission on invented numbers' };
+                 : `${cols.length} columns for ${b.personas} personas, no email, no gsm and no ` +
+                       'send permission on invented numbers' };
     },
   
   },
@@ -256,10 +256,20 @@ export const CHECKS = [
       });
       const b = await r.json();
       const s = b.sample ?? {};
+      /* The endpoint refuses a price of 0 as empty, measured 5 September 2026, and one free row
+         refused the whole batch. So the preview must name every free row it will skip, and the
+         number has to reconcile with the catalogue the feed serves: a skip list that drifted
+         from the data would either hold the batch hostage again or quietly drop a priced
+         product. */
+      const feed = await (await fetch(BASE + 'dtelco-product-feed')).json();
+      const free = (feed.products ?? []).filter((p) => !(Number(p.price) > 0)).length;
       return { ok: b.missing_required === 0 && b.products > 0 && b.variants > 0 &&
+                   b.skipped_products_no_price === free &&
+                   b.would_send === b.products - b.skipped_products_no_price &&
                    /^https:\/\//.test(s.link ?? '') && /^https:\/\//.test(s.image_link ?? '') &&
                    typeof s.price === 'number' && typeof s.is_active === 'boolean',
-               detail: `${b.products} products, ${b.variants} variants, ${b.missing_required} missing a required field` };
+               detail: `${b.products} products, ${b.variants} variants, ${b.missing_required} ` +
+                       `missing a required field, ${b.skipped_products_no_price} free and skipped by name` };
     },
   },
   {

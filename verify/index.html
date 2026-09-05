@@ -474,10 +474,10 @@
           var allThere = want.every(function (c) { return cols.indexOf(c) >= 0; });
           return { ok: allThere && extras.length === 0 && b.personas === 8 &&
                        b.writes_email === false && b.gsm_permission === false &&
-                       b.whatsapp_permission === false,
+                       b.whatsapp_permission === false && b.writes_gsm === false,
                    detail: extras.length ? 'writes ' + extras.join(', ') + ' beyond the card three'
-                     : cols.length + ' columns for ' + b.personas + ' personas, no email ' +
-                       'and no send permission on invented numbers' };
+                     : cols.length + ' columns for ' + b.personas + ' personas, no email, no ' +
+                       'gsm and no send permission on invented numbers' };
         });
       }
     },
@@ -489,11 +489,22 @@
           body: JSON.stringify({ op: 'products' })   // a preview; the write is asked for by name
         }).then(function (r) { return r.json(); }).then(function (b) {
           var s = b.sample || {};
-          return { ok: b.missing_required === 0 && b.products > 0 && b.variants > 0 &&
-                       /^https:\/\//.test(s.link || '') && /^https:\/\//.test(s.image_link || '') &&
-                       typeof s.price === 'number' && typeof s.is_active === 'boolean',
-                   detail: b.products + ' products, ' + b.variants + ' variants, ' +
-                           b.missing_required + ' missing a required field' };
+          /* The endpoint refuses a price of 0 as empty, so the preview names every free row it
+             skips, and the count reconciles with the catalogue the feed serves. */
+          return fetch(FN + 'dtelco-product-feed').then(function (fr) { return fr.json(); })
+            .then(function (feed) {
+              var free = (feed.products || []).filter(function (p) {
+                return !(Number(p.price) > 0);
+              }).length;
+              return { ok: b.missing_required === 0 && b.products > 0 && b.variants > 0 &&
+                           b.skipped_products_no_price === free &&
+                           b.would_send === b.products - b.skipped_products_no_price &&
+                           /^https:\/\//.test(s.link || '') && /^https:\/\//.test(s.image_link || '') &&
+                           typeof s.price === 'number' && typeof s.is_active === 'boolean',
+                       detail: b.products + ' products, ' + b.variants + ' variants, ' +
+                               b.missing_required + ' missing a required field, ' +
+                               b.skipped_products_no_price + ' free and skipped by name' };
+            });
         });
       }
     },

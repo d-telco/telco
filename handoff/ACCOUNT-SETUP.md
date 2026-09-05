@@ -282,7 +282,9 @@ nothing reads it, and nothing in this build deletes a column.
 The standard columns beside them, `contact_key`, `name`, `surname`, `email`, `gsm`,
 `email_permission` and `gsm_permission`, exist already and need creating nowhere, and so does
 `whatsapp_permission`, confirmed in the panel's own column list on 5 September 2026. The persona
-number travels in `gsm`, which is where a message prints it from.
+number does not travel at all: the validator refuses the invented 555 block and a refused value
+blocks a new contact's creation, so the seeder omits `gsm` and the card shows no mobile, which is
+the price of a number that can never belong to anybody.
 
 The forms' WhatsApp consent is written to that existing `whatsapp_permission` column rather than
 into an invented `whatsapp_consent` twin. One honest caveat travels with it:
@@ -296,7 +298,7 @@ seeder writes it false for the same reason it writes `gsm_permission` false: inv
 | Not a contact column | Where it lives and what serves it |
 |---|---|
 | `plan_id`, `plan_type`, `arpu_band`, `esim`, `device_model`, `family_lines`, `preferred_store`, `preferred_channel`, `city` | `dtelco_subscriber` and `dtelco_usage`, read live by the remote views every segment uses. The card shows the plan by name; the machine joins by the tables |
-| `msisdn` | The standard `gsm` column already carries it |
+| `msisdn` | Nowhere on the contact. The platform's validator refuses the invented 555 block, so the number stays in `dtelco_subscriber` and the card shows no mobile |
 | `last_nps` | The `nps_band` and `nps_score` tags the page writes, which segments filter on |
 | `last_watch_product_id`, `last_watch_list` | `dtelco_watch` and the watcher views, and the price drop and back in stock messages print the product from the triggering event's own attributes |
 | `focus_product_title`, `focus_product_price` | The `product` table, resolved at send time by the same `$from` lookup the recommendation message relies on, confirm items 1 to 3. A title and price stored at browse time would drift from the catalogue, and the id is the join key |
@@ -351,7 +353,7 @@ as missing.
 
 ## Confirm in the panel before the first demonstration
 
-Nineteen answers the panel holds and no document can. Each is checked in the account before it is
+Twenty answers the panel holds and no document can. Each is checked in the account before it is
 said out loud, and the surface that depends on it is shown as a canvas if the check does not pass.
 
 `tools/check-coverage.mjs` reads this list: a mechanism annotated **verify** in `js/reco.js` or
@@ -379,6 +381,7 @@ commitment to confirm something specific rather than a word that makes a claim s
 | 17 | How the account's own RFM scores reach the handset, so `saveRFMScores` carries the platform's numbers rather than a stand in | Whether the Discover tab orders on a score across the whole contact or only across what this device has seen |
 | 18 | Whether the `event_time` an operator signal carries fills the column a Big Data table arrives with, or is ignored in favour of the platform's own stamp | Whether a journey timed off an operator fact reads the moment the fact happened or the moment it arrived |
 | 19 | Whether `whatsapp_permission`, present on this account's `master_contact`, is enforced by the WhatsApp channel at send time the way `gsm_permission` suppresses SMS, or is a column only journeys and segments read. `reference/updatecontactsbulk` documents just the two | One sentence in the room: whether consent collected on the site is a platform suppression or a journey condition. What the relay writes does not change either way |
+| 20 | Why `/bulk/contacts` creates no contact for an unseen key on this account: three measured runs each answered 2 updated, 0 inserted, no error, with and without `gsm`, and `master_contact` did not move. Whether a setting or an API user permission governs creation | How the six persona contacts that do not exist yet come to exist. The Event API provably creates on an unseen key, so their first operator fact creates them and the seed then fills the card; if the panel names a switch instead, one run after flipping it finishes the job |
 
 ### Measurements, recorded rather than assumed
 
@@ -392,4 +395,7 @@ commitment to confirm something specific rather than a word that makes a claim s
 | 5 September 2026 | The Event API write path, end to end | One `care_call` row for `DPS-DTELCO-1` sent to `POST https://event.dengage.com/api/web/event` with account id and no login token. HTTP 200 with an empty body at 05:51:39 UTC; the table count read 1 at 05:53:13. Sent and stored are eighty two seconds apart here, which is why a count and never a status code is the proof |
 | 5 September 2026 | The WhatsApp permission column | `whatsapp_permission` is present on `master_contact`, seen by the account owner in the panel's Add Column listing. The relay writes it, the persona seeder writes it false, and no custom `whatsapp_consent` column was created |
 | 5 September 2026 | The persona seed against the created columns | Eight rows sent at 06:47 UTC, HTTP 200, errors none: every column in the send exists, `whatsapp_permission` included, which is the refusal check passing. The reply named 2 updated, 0 inserted, and left six keys in neither list; `master_contact` read 4 at 06:56, so the updates stored and at most one insert had, nine minutes on. Creation of unseen keys through `/bulk/contacts` outlasts the two minute event lag, and only a later count can tell slow from refused. The seeder is idempotent, so a later run costs nothing |
-| 5 September 2026 | The gsm validator against invented numbers | All eight rows warned `gsm value is invalid. Default value is used!`. The 555 block fails the platform's validation, so the contact card shows no mobile. Accepted rather than worked around: a number shaped well enough to store could belong to somebody |
+| 5 September 2026 | The gsm validator against invented numbers | All eight rows warned `gsm value is invalid. Default value is used!`. The 555 block fails the platform's validation, so the contact card shows no mobile. Accepted rather than worked around: a number shaped well enough to store could belong to somebody. The seeder omits `gsm` entirely now |
+| 5 September 2026 | Whether `/bulk/contacts` creates a contact for an unseen key | It did not, on three runs: 8 rows sent each time, 2 updated, 0 inserted, no error, with `gsm` refused, and with `gsm` omitted and a warning free reply. `master_contact` stayed at 4 for 45 minutes. Creation on an unseen key is proved only for the Event API on this account, which is confirm item 20 |
+| 5 September 2026 | The product upsert endpoint, `/dataspace/ecomm/product/upsert` | Three shapes measured, all inside HTTP 200. A batch holding one row whose `price` is 0 is refused whole, one readable line per empty field, and the count stays 0: twelve free add ons refused all 245. Success is one bare JSON string, `Number of product(s) affected: 233`, with no `code` field, so a reader expecting `code: 0` calls success failure. The fix: the twelve free services are skipped by name, the feed still serves them to the site, and 233 priced products with 484 variants went in one batch. Proved by count: `product` read 233 and `product_variant` 484 at 07:47, from 0 at 07:28 |
+| 5 September 2026 | Account owner confirmations, panel side | Web push is active on the published origin, the remote data sources are connected, and the coupon list is generated. The list id still needs to land in `DTELCO_COUPON_LIST_ID` so `dtelco-coupons` reads the same list the panel content points at |

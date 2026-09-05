@@ -110,7 +110,20 @@ async function call(bearer: string, path: string, payload: unknown) {
   return { http: r.status, parsed, text };
 }
 
+/* Success from these ecommerce endpoints is not an object. Measured 5 September 2026 on the
+   product upsert: the body is one bare JSON string, "Number of product(s) affected: 233", and a
+   refusal is a JSON array of readable per-field messages, both inside an HTTP 200. Reading a
+   code out of either yields null, and null !== 0 read the first successful push as a failure. */
+function affectedCount(parsed: unknown): number | null {
+  if (typeof parsed !== 'string') return null;
+  const m = /^Number of .+ affected: (\d+)$/.exec(parsed);
+  return m ? Number(m[1]) : null;
+}
+
 const money = (v: unknown) => {
+  /* Number(null) and Number('') are both 0, which is the same trap the pages guard against in
+     stock_count: a price nobody set must arrive as null, never turned into a free product. */
+  if (v === null || v === undefined || v === '') return null;
   const n = Number(v);
   return Number.isFinite(n) ? Number(n.toFixed(2)) : null;
 };
@@ -279,6 +292,30 @@ Deno.serve(async (req) => {
     }
     const built = list.map((p) => productRow(p, byProduct.get(String(p.product_id)) ?? []));
 
+    /* The endpoint refuses a price of 0 as empty. Measured 5 September 2026: twelve free add ons
+       in the batch and the whole batch of 245 was refused, one readable line per empty field,
+       inside an HTTP 200, and the product count sat at 0. A telco catalogue legitimately carries
+       free services, VoLTE, call waiting, a port in, and their price of 0 is the honest value, so
+       they are skipped by name here rather than priced into acceptability: the feed still serves
+       them to the site and the app, and the 233 priced products are not held hostage by the
+       twelve the endpoint cannot take. A variant priced 0 is dropped the same way. */
+    const skippedProducts: string[] = [];
+    const skippedVariants: string[] = [];
+    for (const b of built) {
+      const vs = Array.isArray(b.variants) ? (b.variants as Record<string, unknown>[]) : [];
+      const keep = vs.filter((v) => typeof v.price === 'number' && (v.price as number) > 0);
+      for (const v of vs) {
+        if (!keep.includes(v)) skippedVariants.push(String(v.product_variant_id));
+      }
+      if (keep.length) b.variants = keep; else delete b.variants;
+    }
+    const sendable = built.filter((b) => {
+      const priced = typeof b.price === 'number' && (b.price as number) > 0 &&
+                     typeof b.discounted_price === 'number' && (b.discounted_price as number) > 0;
+      if (!priced) skippedProducts.push(String(b.product_id));
+      return priced;
+    });
+
     /* Preview unless somebody asked to send, and not the other way round.
      *
      * This used to send whenever an API user happened to be configured, and the difference between
@@ -301,6 +338,10 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({
         ok: false, op, sent: false, products: built.length,
         variants: (vrows ?? []).length,
+        would_send: sendable.length,
+        skipped_products_no_price: skippedProducts.length,
+        skipped_variants_no_price: skippedVariants.length,
+        skipped_ids: [...skippedProducts, ...skippedVariants],
         missing_required: missing.length,
         missing_examples: missing.slice(0, 3).map((m) => m.product_id),
         why: send
@@ -312,22 +353,33 @@ Deno.serve(async (req) => {
     }
 
     const chunks: Record<string, unknown>[][] = [];
-    for (let i = 0; i < built.length; i += PRODUCT_CHUNK) {
-      chunks.push(built.slice(i, i + PRODUCT_CHUNK));
+    for (let i = 0; i < sendable.length; i += PRODUCT_CHUNK) {
+      chunks.push(sendable.slice(i, i + PRODUCT_CHUNK));
     }
     const results = [];
     /* Sequential, never parallel. Parallel Data Space reads trip 429 and a batch that half landed
        is worse than one that took two seconds longer. */
     for (const chunk of chunks) {
       const r = await call(bearer, '/dataspace/ecomm/product/upsert', { products: chunk });
+      const affected = affectedCount(r.parsed);
       results.push({ sent: chunk.length, http: r.http,
-                     code: (r.parsed?.code as number | undefined) ?? null,
-                     message: r.parsed?.message ?? null,
-                     raw: r.parsed ? undefined : r.text.slice(0, 300) });
+                     affected,
+                     /* The refusal shape is an array of per-field messages, and the first twenty
+                        name the row and the field. Anything else unexpected is kept whole,
+                        because a 200 that stores nothing is only diagnosable from what it
+                        actually said, and the first version of this discarded exactly that. */
+                     refusals: Array.isArray(r.parsed)
+                       ? (r.parsed as unknown[]).slice(0, 20) : undefined,
+                     raw: affected === null && !Array.isArray(r.parsed)
+                       ? r.text.slice(0, 400) : undefined });
     }
-    const failed = results.filter((x) => x.code !== 0);
+    const failed = results.filter((x) => x.affected !== x.sent);
     return new Response(JSON.stringify({
       ok: failed.length === 0, op, sent: true, products: built.length,
+      sent_products: sendable.length,
+      skipped_products_no_price: skippedProducts.length,
+      skipped_variants_no_price: skippedVariants.length,
+      skipped_ids: [...skippedProducts, ...skippedVariants],
       batches: results.length, results,
       note: 'accepted is not stored. Storage lags about two minutes; dtelco-dengage-tables counts ' +
             'the product table and a count is the only proof.',
@@ -460,18 +512,23 @@ Deno.serve(async (req) => {
       items,
     }],
   });
-  const code = (r.parsed?.code as number | undefined) ?? null;
-  const detail = `code ${code}: ${r.parsed?.message ?? (r.parsed ? 'no message' : r.text.slice(0, 200))}`;
+  /* The same two reply shapes as the product upsert: a bare string counting what was affected on
+     success, an array of readable messages on refusal. The code === 0 shape was never seen from
+     this family and reading it here marked the first successful push refused. */
+  const affected = affectedCount(r.parsed);
+  const sentOk = affected !== null ? affected >= 1
+    : ((r.parsed as { code?: number } | null)?.code === 0);
+  const detail = affected !== null ? `affected ${affected}` : r.text.slice(0, 200);
   await db.from('dtelco_order')
-    .update({ dengage_status: code === 0 ? 'accepted' : 'refused', dengage_detail: detail.slice(0, 1000) })
+    .update({ dengage_status: sentOk ? 'accepted' : 'refused', dengage_detail: detail.slice(0, 1000) })
     .eq('order_id', orderId);
 
   return new Response(JSON.stringify({
-    ok: code === 0,
-    order_id: orderId, stored: true, sent: code === 0, items: items.length,
+    ok: sentOk,
+    order_id: orderId, stored: true, sent: sentOk, items: items.length,
     item_count: itemCount, total_amount: totalAmount, notes,
-    http: r.http, code, message: r.parsed?.message ?? null,
-    raw: code === null ? r.text.slice(0, 400) : undefined,
+    http: r.http, affected,
+    raw: sentOk ? undefined : r.text.slice(0, 400),
     note: 'this is the orders family. The browser also sent ec:order, which is the order_events ' +
           'family, and both are on purpose: one is the record, the other is the moment.',
   }, null, 1), { headers });
