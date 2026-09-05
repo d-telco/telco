@@ -76,6 +76,10 @@ const STANDARD = ['page_view_events', 'shopping_cart_events', 'order_events',
    what says stored, and it is the only number that can tell an upsert that landed from one the
    reply only half described. */
 const MASTER = ['master_contact', 'master_device'];
+/* The two ecommerce catalogue tables, because dtelco-ecomm's push names this count as its proof.
+   If the platform does not list them in /dataspace/tables they read not found, which is itself
+   the honest answer rather than a zero. */
+const ECOMM = ['product', 'product_variant'];
 
 let token: { value: string; until: number } | null = null;
 
@@ -137,7 +141,7 @@ Deno.serve(async (req) => {
       { status: 429, headers: { ...headers, 'retry-after': '60' } });
   }
 
-  const wanted = [...STANDARD, ...MASTER, EVENT_TABLE, BSS_TABLE];
+  const wanted = [...STANDARD, ...MASTER, ...ECOMM, EVENT_TABLE, BSS_TABLE];
   const bearer = await login();
   if (!bearer) {
     return new Response(JSON.stringify({

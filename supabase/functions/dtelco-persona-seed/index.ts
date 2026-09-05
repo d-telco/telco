@@ -25,11 +25,14 @@
  * that might belong to somebody real. whatsapp_permission is the account's own column, confirmed
  * in the panel column list on 5 September 2026.
  *
- * The number itself is sent and the platform refuses it: measured 5 September 2026, every 555
- * block mobile came back "gsm value is invalid. Default value is used!". That outcome is accepted
- * rather than worked around, because a number shaped well enough to store is a number that could
- * belong to somebody, and a card with no mobile on it is the price of the guarantee. The reply's
- * warnings list is where the refusal shows, which is one more reason to read bodies, not codes.
+ * The number is not sent at all. Measured 5 September 2026, twice: the validator refuses the
+ * invented 555 block with "gsm value is invalid. Default value is used!", and a row carrying the
+ * refused value updates an existing contact but does not create a new one. Two runs, eight rows
+ * each, both answered 2 updated, 0 inserted, no error, and master_contact sat at 4 half an hour
+ * on. Omitting the number is the site's own rule applied here: a value the platform will not
+ * store is omitted, never fabricated into a shape that would. The card shows no mobile, which is
+ * the price of a number that can never belong to anybody, and the permission columns still
+ * travel, false, so the channels stay shut whatever the card holds.
  */
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
@@ -116,11 +119,10 @@ async function rows() {
       contact_key: s.contact_key,
       name: name[0] ?? '',
       surname: name.slice(1).join(' '),
-      gsm: s.msisdn,
-      /* Never true, either of them. See the note at the top of this file: invented numbers, and
-         nothing in this demonstration sends an SMS or a WhatsApp. The number is sent in the
-         standard gsm column, so there is no msisdn custom column beside it, and the platform's
-         validator refuses the 555 block and stores its default, which the note above accepts. */
+      /* No gsm here, deliberately: the validator refuses the invented 555 block, and a refused
+         value on a new key blocks the whole contact's creation. See the note at the top of this
+         file. The permissions are never true: nothing in this demonstration sends an SMS or a
+         WhatsApp, and the numbers, wherever they appear on the site, are invented. */
       gsm_permission: false,
       whatsapp_permission: false,
       plan_name: title.get(s.plan_id) ?? s.plan_id,
@@ -150,6 +152,11 @@ Deno.serve(async (req) => {
       why_no_send_permissions: 'the numbers are invented and SMS and WhatsApp are composed and ' +
                                'never sent, so the permission columns are the cheapest guarantee ' +
                                'nothing reaches a number that might belong to somebody real',
+      writes_gsm: false,
+      why_no_gsm: 'measured 5 September 2026, twice: the validator refuses the invented 555 ' +
+                  'block, and a row carrying the refused value updates an existing contact but ' +
+                  'does not create a new one. A value the platform will not store is omitted, ' +
+                  'never fabricated into a shape that would.',
       personas: list.length,
       dengage_configured: !!(USERKEY && PASSWORD),
       note: 'idempotent. /bulk/contacts upserts, so a second run updates rather than duplicates.',
