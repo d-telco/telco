@@ -85,6 +85,9 @@ Each line is what the documentation requires.
    `master_device`, created before any page sends to it. Until it exists every row is accepted
    and stored nowhere, with no error.
 
+   **Done, 5 September 2026.** Created in the panel and related to `master_device` with
+   `device_id <> key` in the star schema. The Data Space listing reports it.
+
    **In the panel, not over the API.** Data Space > Tables > + New > **Big Data Table**, then the
    name, the retention policy, Next, and the columns. `POST /dataspace/tables` creates Regular and
    Sendable tables only: its request body has a name, columns, an optional `contactKeyColumn` and
@@ -120,7 +123,17 @@ Each line is what the documentation requires.
    does not name every one of them, so a new field cannot be added to a payload without being
    added here first.
 
-9. **A second custom table, `dtelco_bss_events`, for the operator's own facts.** The simulator
+9. **A second custom table, `dtelco_bss_events`, for the operator's own facts.**
+
+   **Done, 5 September 2026.** Created in the panel and related to `master_contact` with
+   `contact_key <> key` in the star schema, which is the relation that lets a fact about a person
+   join to the person. Proved the same day: one `care_call` row for `DPS-DTELCO-1` through the
+   Event API, and the count moved from zero to one inside two minutes.
+
+   **The app writes this table too.** Its check in is a fact about the person, so
+   `DengageBridge.contactEvent` sends `store_checkin` here in the same shape the operator writes,
+   `event_name`, `source` and `note`, rather than a second vocabulary. The table's `event_name`
+   values are therefore the operator's closed signal list plus `store_checkin`. The simulator
    stands in for a BSS, a care desk, a store and a chatbot, and it sends each fact to Dengage
    through the Event API from the server, with no browser involved. That endpoint writes to a Big
    Data table and nothing else, so the table has to exist first, and until it does every operator
@@ -356,3 +369,5 @@ commitment to confirm something specific rather than a word that makes a claim s
 | 4 September 2026 | The host serving `/api/inbox/getMessages`. `reference/inbox-rest-api` gives every path relative and names no host | `tr-push.dengage.com` and `tr-event.dengage.com` answer the documented `400 {"message":"Invalid Account"}`; `tr-api.dengage.com` answers 404 html; `tr-inapp.lib.dengage.com` answers a missing bucket key. The push host is the one, and it was already in `js/config.js` under `datacenters.tr.push`. Probed with no account data and nothing written |
 | 4 September 2026 | The Android SDK's published surface, read with `javap` against the shipped 6.0.99 artifact | Three signatures in the guide do not compile against it and `getRecommendation` is not in it at all. `DengageBridge.kt` records each difference beside the call it affects |
 | 4 September 2026 | Supabase Edge Function egress | Five consecutive calls left from five different addresses, so an allowlist needs the proxy described above |
+| 5 September 2026 | Both custom Data Space tables, after creation in the panel | `dtelco_events` and `dtelco_bss_events` appear in the table listing with a row count, where the day before both read not found. `dtelco_events` relates to `master_device` on `device_id <> key`, `dtelco_bss_events` to `master_contact` on `contact_key <> key` |
+| 5 September 2026 | The Event API write path, end to end | One `care_call` row for `DPS-DTELCO-1` sent to `POST https://event.dengage.com/api/web/event` with account id and no login token. HTTP 200 with an empty body at 05:51:39 UTC; the table count read 1 at 05:53:13. Sent and stored are eighty two seconds apart here, which is why a count and never a status code is the proof |

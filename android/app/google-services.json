@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "63793089577",
+    "project_id": "d-telco",
+    "storage_bucket": "d-telco.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:63793089577:android:e1728d602dc09b3be52038",
+        "android_client_info": {
+          "package_name": "com.dtelco.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUeSWsES8F9JQbIPiYtJYg0jLwvItKgyM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -146,7 +146,7 @@ fun NearbyScreen(activity: Activity, contactKey: String?, onBack: () -> Unit) {
         enabled = DengageBridge.live,
         onClick = {
           DengageBridge.contactEvent(contactKey, "store_checkin",
-            mapOf("store_name" to here, "geofence_id" to entered?.geofenceItemId))
+            note = here ?: "no region on record")
           said = "Checked in. That row is keyed to $contactKey rather than to this handset, so it " +
             "still reads correctly after a sign out."
         },

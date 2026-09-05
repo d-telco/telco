@@ -46,8 +46,11 @@ import com.dengage.sdk.ui.story.StoriesListView
  *                   so it is called on every screen change rather than once at start.
  *   sendDeviceEvent Table name first, then the map. The SDK fills key and event_date, so this app
  *                   must not send them.
- *   sendCustomEvent The same table, addressed by contact key rather than by device. Two different
- *                   writers into one table, and the difference decides which profile the row joins.
+ *   sendCustomEvent A caller supplied key instead of the device id. Which table it belongs in is
+ *                   settled by the star schema, not by taste: a contact key only joins in a table
+ *                   related to master_contact, so contact keyed rows go to the contact linked
+ *                   table and never to the device linked one, where they would store and join to
+ *                   nobody.
  *
  * WHAT THE MOBILE SDK HAS AND THE WEB SDK DOES NOT
  *
@@ -243,17 +246,25 @@ object DengageBridge {
     Dengage.sendDeviceEvent(Config.EVENT_TABLE, fieldsFor(eventType, fields))
   }
 
-  /* The same table, keyed by the contact rather than by the device. The difference matters and is
-     not cosmetic: a device row joins to whoever is holding the handset, and a contact row joins to
-     the person however they arrived. Anything about the line rather than about the phone goes
-     through here, so it still reads correctly after a sign out. */
-  fun contactEvent(contactKey: String, eventType: String, fields: Map<String, Any?> = emptyMap()) =
+  /* A fact about the person, into the contact linked table, keyed by the contact.
+     The difference from custom() is not cosmetic and the star schema enforces it: dtelco_events
+     joins key to master_device.device_id, so a contact key written there stores and joins to
+     nobody; dtelco_bss_events joins key to master_contact.contact_key, so this row reads
+     correctly after a sign out, however the person arrived. The row takes that table's shape,
+     event_name, source and note, which is the same shape the operator's backend writes, so one
+     table carries one vocabulary whichever system wrote the row. */
+  fun contactEvent(contactKey: String, eventName: String, note: String? = null,
+                   source: String = "app") =
     guard {
       if (!Identity.SHAPE.matches(contactKey)) {
         lastError = "refused a contact event for a key of the wrong shape: $contactKey"
         return@guard
       }
-      Dengage.sendCustomEvent(Config.EVENT_TABLE, contactKey, fieldsFor(eventType, fields))
+      val data = HashMap<String, Any>()
+      data["event_name"] = eventName
+      data["source"] = source
+      if (!note.isNullOrBlank()) data["note"] = note
+      Dengage.sendCustomEvent(Config.BSS_EVENT_TABLE, contactKey, data)
     }
 
   private fun fieldsFor(eventType: String, fields: Map<String, Any?>): HashMap<String, Any> {

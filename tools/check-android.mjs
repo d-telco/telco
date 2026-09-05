@@ -23,6 +23,8 @@
  *  13. the regions the app names are in the cities the site says the operator serves
  *  14. the manifest asks the operating system about no package outside this demonstration
  *  15. the scale of the structured cart's integer prices is written where a rule author reads it
+ *  16. rows keyed by contact go to the contact linked table, rows keyed by device to the device
+ *      linked one, matching the star schema in the account
  */
 import { readFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -194,6 +196,20 @@ const handsOver = /DengageGeofence\.handleLocation\(/.test(bridge);
 ok('and a location it hands over is labelled a mock',
    !handsOver || /GeofenceLocationSource\.MOCK_LOCATION/.test(bridge),
    handsOver ? 'handleLocation is called with MOCK_LOCATION' : 'no location is handed over');
+
+/* ------------------------------------------------- 11b. the star schema decides the table */
+
+/* Confirmed in the account on 5 September 2026: dtelco_events relates to master_device on
+   device_id <> key, dtelco_bss_events to master_contact on contact_key <> key. A row keyed the
+   wrong way stores and joins to nobody, with no error anywhere, so the rule is held here where
+   the compiler cannot hold it: sendDeviceEvent goes only to the device linked table and
+   sendCustomEvent, which carries a contact key, goes only to the contact linked one. */
+ok('device keyed rows go to the device linked table',
+   /Dengage\.sendDeviceEvent\(Config\.EVENT_TABLE/.test(bridge) &&
+   !/Dengage\.sendDeviceEvent\(Config\.BSS_EVENT_TABLE/.test(bridge));
+ok('and contact keyed rows go to the contact linked table',
+   /Dengage\.sendCustomEvent\(Config\.BSS_EVENT_TABLE/.test(bridge) &&
+   !/Dengage\.sendCustomEvent\(Config\.EVENT_TABLE/.test(bridge));
 
 /* ------------------------------------------------- 12. the properties the panel has to match */
 

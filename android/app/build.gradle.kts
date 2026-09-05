@@ -2,6 +2,10 @@ plugins {
   id("com.android.application")
   id("org.jetbrains.kotlin.android")
   id("org.jetbrains.kotlin.plugin.compose")
+  /* Reads google-services.json into the build. Without this plugin the file sits in the module
+     and is never read, Firebase starts with no configuration, and no token is ever issued, all
+     of it silently: the one failure mode worse than a build error. */
+  id("com.google.gms.google-services") version "4.4.2"
 }
 
 android {
