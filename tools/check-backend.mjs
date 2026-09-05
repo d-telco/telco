@@ -221,22 +221,25 @@ export const CHECKS = [
     },
   },
   {
-    name: 'the twelve operator columns on the contact have a writer, and it names them',
+    name: 'the contact card columns have a writer, and the rest of the line stays relational',
     async run() {
-      /* Brief A9.4 confirms these on master_contact and nothing in the build wrote them, so a
-         segment on plan_name or a message printing $Contact.lifecycle finds every one
-         empty with no error at either end. This is the endpoint that fills them. */
+      /* Three columns, not the whole line: a column earns a place on master_contact only when a
+         mechanism reads it from the contact, and the card and the messages read these three. The
+         rest of the operator's record is served to segments live by the remote views, so a seeder
+         that started writing plan_type or arpu_band again would be flattening the relational
+         model back onto the contact, and this fails on extras as firmly as on absences. */
       const r = await j('dtelco-persona-seed');
       const b = r.json ?? {};
-      const want = ['msisdn', 'plan_id', 'plan_name', 'plan_type', 'lifecycle', 'arpu_band',
-                    'esim', 'device_model', 'contract_end', 'family_lines', 'preferred_store',
-                    'preferred_channel'];
+      const want = ['plan_name', 'lifecycle', 'contract_end'];
       const cols = b.columns ?? [];
-      return { ok: want.every((c) => cols.includes(c)) && b.personas === 8 &&
-                   b.writes_email === false && b.gsm_permission === false,
-               detail: `${cols.length} columns for ${b.personas} personas, no email and no ` +
+      const extras = cols.filter((c) => !want.includes(c));
+      return { ok: want.every((c) => cols.includes(c)) && extras.length === 0 &&
+                   b.personas === 8 && b.writes_email === false && b.gsm_permission === false,
+               detail: extras.length ? `writes ${extras.join(', ')} beyond the card three`
+                 : `${cols.length} columns for ${b.personas} personas, no email and no ` +
                        'gsm permission on invented numbers' };
     },
+  
   },
   {
     name: 'the catalogue the product API would send carries every required field',

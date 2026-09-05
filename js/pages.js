@@ -985,12 +985,15 @@
         var score = Number(n.getAttribute('data-nps'));
         EV.custom('survey_response', { amount: String(score), rule: 'nps', source: 'web' });
         EV.custom('complaint_resolved', { note: 'nps ' + score, source: 'web' });
-        relay({ contact_key: ID.claim('nps'), form: 'nps', nps: score,
+        /* The relay records that the survey was answered; the score itself travels by the two
+           mechanisms below, the tag a campaign filters on and the event row a segment reads. A
+           contact column for it was dropped on purpose: nothing read the score from the contact,
+           and a value the tags and the event table already carry does not earn a second home. */
+        relay({ contact_key: ID.claim('nps'), form: 'nps',
                 page_url: window.location.href });
         /* The score as a real tag, so a campaign can target on it with a tag filter. It keys on
            the device rather than the contact, which is what the SDK does and what the copy below
-           now says. The relay separately writes last_nps as a contact column, which is what a
-           segment reads. Two mechanisms, two different jobs, and the page shows both. */
+           now says. */
         EV.tags([{ tag: 'nps_band', value: score >= 9 ? 'promoter' : (score >= 7 ? 'passive' : 'detractor') },
                  { tag: 'nps_score', value: String(score) }]);
         Array.prototype.forEach.call(host.querySelectorAll('[data-nps]'), function (b) {

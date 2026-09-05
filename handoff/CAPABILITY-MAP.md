@@ -32,7 +32,7 @@ could see it because no check reads prose. `tools/audit.mjs` now refuses a secon
 | A2 | Contact key identification, and the anonymous to known stitch on one profile |
 | A3 | Contact created and updated from a web form, by a backend over REST from an allowlisted IP |
 | A4 | Contact created by the engine's own native subscription form |
-| A5 | Custom contact columns, 27 of them, listed in ACCOUNT-SETUP.md, written by the backend and read by journeys |
+| A5 | Custom contact columns, 12 of them, each read from the contact by a named mechanism, listed in ACCOUNT-SETUP.md |
 | A6 | Contact tags written by the engine's native question form |
 | A7 | Contact 360 in the panel: web, app, order, wishlist and offline history on one card |
 | A8 | The same profile made visible to the customer, working before anyone knows their name |
@@ -204,7 +204,7 @@ headlined twice unless Part 4 argues for it in writing.
 | 16 | Services | **B6** a genuine zero: a free service ordered at value 0 | C2 | An order row at 0 that is a fact, not a gap |
 | 17 | Offers and campaigns | **G8** the A/B test, two variants of one served campaign | B1, G1 | Both variants seen, each reported |
 | 18 | Register and sign in | **A3** a contact created by a backend, which no page can do | A2, A5 | `dengage_status` reads inserted or updated, never pending |
-| 19 | My account | **A8** the profile made visible, the customer side of the contact card | A5, G7, I3 | The 26 columns read back and drawn |
+| 19 | My account | **A8** the profile made visible, the customer side of the contact card | A5, G7, I3 | The line drawn from the operator's own record |
 | 20 | Inbox drawer (every page) | **F8** two message sources merged, only one reported back | F7 | Own rows carry a `demo-` id and are never reported |
 | 21 | Support and care | **A6** a tag from care that a segment can read | C2, G5 | NPS tag written, segment counts it |
 | 22 | Newsletter and consent | **A4** a contact created by the engine's own form | G1, G4 | A stored `DPS-` contact, never an `sf_` one |
@@ -456,11 +456,12 @@ moment that lands, and it costs one query parameter.
 
 ### New contact columns
 
-Eight, taking the custom column count from 26 to 34: `focus_product_id`,
-`focus_product_title`, `focus_product_image`, `focus_product_price`, `focus_brand`,
-`focus_category`, `focus_view_count`, `focus_at`. The title, image and price travel with the id
-so a message prints from the contact alone even if the dynamic content lookup fails the panel
-check, which is the same fallback already designed for the recommendation columns.
+Four: `focus_product_id`, `focus_product_title`, `focus_product_price` and `focus_views`. The
+title and the price travel with the id so a message prints the card from the contact alone even
+if the dynamic content lookup fails the panel check, which is the same fallback already designed
+for the recommendation columns, and the view count is what the served popup prints. Brand and
+category were dropped as decoration: a column earns a place on the contact only when a mechanism
+reads it from the contact.
 
 ### Where the recognition rule sits in the engine
 

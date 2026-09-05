@@ -1,13 +1,15 @@
-/* dtelco-persona-seed: put the operator's own columns on the eight personas' Dengage contacts.
+/* dtelco-persona-seed: put the operator's three contact card columns on the eight personas.
  *
- * master_contact carries seventeen custom columns for this build. The relay writes five of them
- * at the moment a visitor identifies themselves. The other twelve, plan_name, lifecycle,
- * arpu_band, contract_end, family_lines, preferred_channel and the rest, describe a line rather
- * than a form submission, so they are written from the operator record instead.
+ * Three custom columns, not the whole line. plan_name, lifecycle and contract_end are the values
+ * the contact card shows a room and a message can print with $Contact, so they live on the
+ * contact and need a writer. Everything else the operator knows, the plan type, the ARPU band,
+ * the device, the household, the store, the city, stays in the subscriber tables where the star
+ * schema serves it to segments live through the remote views. A contact is not the place to
+ * flatten a relational model.
  *
- * They need a writer. A contact segment on plan_name, or a message printing $Contact.lifecycle,
- * finds an empty column and reports nothing: accepted, stored nowhere, no error. That is the same
- * shape of failure a custom table has when it does not exist yet.
+ * They still need this writer. A message printing $Contact.lifecycle against an unwritten column
+ * prints nothing: accepted, stored nowhere, no error. That is the same shape of failure a custom
+ * table has when it does not exist yet.
  *
  * Run it once after the personas are seeded, and again after the operator simulator has changed
  * a plan or a lifecycle. It is idempotent: /bulk/contacts upserts, so a second run updates.
@@ -70,12 +72,9 @@ function secret(names: string[]): string {
 const USERKEY = secret(['DENGAGE_USERKEY', 'TELCO_API_USER', 'telco_api_user']);
 const PASSWORD = secret(['DENGAGE_PASSWORD', 'TELCO_API_PASSWORD', 'telco_api_password']);
 
-/* The twelve, in a fixed order. Published on the health line so a person creating the columns
-   in the panel can work from the same list the code writes. */
-const COLUMNS = [
-  'msisdn', 'plan_id', 'plan_name', 'plan_type', 'lifecycle', 'arpu_band', 'esim',
-  'device_model', 'contract_end', 'family_lines', 'preferred_store', 'preferred_channel',
-] as const;
+/* The three, in a fixed order. Published on the health line so a person creating the columns in
+   the panel can work from the same list the code writes. */
+const COLUMNS = ['plan_name', 'lifecycle', 'contract_end'] as const;
 
 let token: { value: string; until: number } | null = null;
 
@@ -99,11 +98,8 @@ async function rows() {
     .eq('is_persona', true).order('contact_key');
   if (!subs?.length) return [];
 
-  /* One read for every plan and device the eight of them are on, rather than one per persona.
-     Sixteen sequential Data Space style reads would be slower and, against the real API, would
-     be exactly the parallel read pattern that trips 429. */
-  const ids = [...new Set(subs.flatMap((s) =>
-    [s.plan_id, s.device_product_id].filter(Boolean) as string[]))];
+  /* One read for every plan the eight of them are on, rather than one per persona. */
+  const ids = [...new Set(subs.map((s) => s.plan_id).filter(Boolean) as string[])];
   const { data: products } = await db.from('dtelco_product')
     .select('product_id, title').in('product_id', ids.length ? ids : ['__none__']);
   const title = new Map((products ?? []).map((p) => [p.product_id as string, p.title as string]));
@@ -115,22 +111,13 @@ async function rows() {
       name: name[0] ?? '',
       surname: name.slice(1).join(' '),
       gsm: s.msisdn,
-      city: s.city,
       /* Never true. See the note at the top of this file: invented numbers, and nothing in this
-         demonstration sends an SMS. */
+         demonstration sends an SMS. The number itself travels in the standard gsm column, which
+         is where a message prints it from, so there is no msisdn custom column beside it. */
       gsm_permission: false,
-      msisdn: s.msisdn,
-      plan_id: s.plan_id,
       plan_name: title.get(s.plan_id) ?? s.plan_id,
-      plan_type: s.plan_type,
       lifecycle: s.lifecycle,
-      arpu_band: s.arpu_band,
-      esim: s.esim,
-      device_model: s.device_product_id ? (title.get(s.device_product_id) ?? null) : null,
       contract_end: s.contract_end,
-      family_lines: s.family_lines,
-      preferred_store: s.preferred_store,
-      preferred_channel: s.preferred_channel,
     } as Record<string, unknown>;
   });
 }
@@ -144,9 +131,9 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       function: 'dtelco-persona-seed',
       does: 'POST upserts the eight personas into master_contact through /bulk/contacts',
-      why: 'these columns exist on the contact and need a writer. ' +
-           'A segment on plan_name or a message printing $Contact.lifecycle finds ' +
-           'every one of them empty, with no error anywhere.',
+      why: 'the contact card columns need a writer. A message printing $Contact.lifecycle ' +
+           'against an unwritten column prints nothing, with no error anywhere. The rest of ' +
+           'the line stays in the subscriber tables the star schema serves to segments live.',
       columns: COLUMNS,
       writes_email: false,
       why_no_email: 'a rehearsal never invents an email address, and all eight are invented',

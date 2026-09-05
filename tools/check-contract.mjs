@@ -368,13 +368,29 @@ ok('and every one is in the list the handoff asks for',
      ? `${missingCols.join(', ')} would be accepted and stored nowhere`
      : `${customCols.length} columns, all named in ACCOUNT-SETUP.md`);
 
-/* The twelve that had no writer. Naming them keeps the seeder from being quietly deleted as
-   redundant, which is what it would look like to anybody who did not know why it exists. */
-const OPERATOR = ['msisdn', 'plan_id', 'plan_name', 'plan_type', 'lifecycle', 'arpu_band', 'esim',
-                  'device_model', 'contract_end', 'family_lines', 'preferred_store',
-                  'preferred_channel'];
-const noWriter = OPERATOR.filter((c) => !contactCols.has(c));
-ok('and the operator columns a telecom journey reads have a writer', noWriter.length === 0,
+/* The contact carries only what a mechanism reads from the contact; the rest of the operator's
+   record is served relationally. Two invariants keep that decision from rotting. The three card
+   columns must keep their writer, or a message printing $Contact.lifecycle goes quietly empty
+   again. And every column the old design carried must be either written or explicitly re-homed
+   in the setup document's star schema table, so a value can be moved but never silently lost:
+   that table is where last_nps, the watch columns and the operator's line facts now point at
+   the tag, the view or the subscriber table that serves them. */
+const CARD = ['plan_name', 'lifecycle', 'contract_end'];
+const REHOMED = ['msisdn', 'plan_id', 'plan_type', 'arpu_band', 'esim', 'device_model',
+                 'family_lines', 'preferred_store', 'preferred_channel', 'city', 'last_nps',
+                 'last_watch_product_id', 'last_watch_list', 'focus_product_brand',
+                 'focus_product_category', 'reco_at'];
+const starTable = contract.slice(contract.indexOf('Served by the star schema instead'));
+const lost = REHOMED.filter((c) => !starTable.includes(`\`${c}\``));
+ok('every column the contact no longer carries is re-homed, not lost', lost.length === 0,
+   lost.length ? `${lost.join(', ')} was dropped and nothing says what serves it now`
+               : `${REHOMED.length} re-homed in ACCOUNT-SETUP.md`);
+const stillWritten = REHOMED.filter((c) => contactCols.has(c));
+ok('and nothing still writes a re-homed column', stillWritten.length === 0,
+   stillWritten.length ? `${stillWritten.join(', ')} is written but not in the panel list, so the whole upsert is refused`
+                       : 'writers and the panel list agree');
+const noWriter = CARD.filter((c) => !contactCols.has(c));
+ok('and the contact card columns keep their writer', noWriter.length === 0,
    noWriter.length ? `${noWriter.join(', ')} would be empty on every contact` : 'all twelve');
 
 /* ------------------------------------------------- 10. the places, one list */

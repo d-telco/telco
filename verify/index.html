@@ -460,19 +460,23 @@
       }
     },
     {
-      name: 'the twelve operator columns on the contact have a writer, and it names them',
+      name: 'the contact card columns have a writer, and the rest of the line stays relational',
       run: function () {
+        /* Three columns, not the whole line: a column earns a place on master_contact only when
+           a mechanism reads it from the contact, and the card and the messages read these three.
+           The rest of the operator's record is served to segments live by the remote views, so
+           this fails on extras as firmly as on absences. */
         return fetchJson(FN + 'dtelco-persona-seed').then(function (r) {
           var b = r.json || {};
-          var want = ['msisdn', 'plan_id', 'plan_name', 'plan_type', 'lifecycle', 'arpu_band',
-                      'esim', 'device_model', 'contract_end', 'family_lines', 'preferred_store',
-                      'preferred_channel'];
+          var want = ['plan_name', 'lifecycle', 'contract_end'];
           var cols = b.columns || [];
-          return { ok: want.every(function (c) { return cols.indexOf(c) >= 0; }) &&
-                       b.personas === 8 && b.writes_email === false &&
-                       b.gsm_permission === false,
-                   detail: cols.length + ' columns for ' + b.personas + ' personas, no email ' +
-                           'and no gsm permission on invented numbers' };
+          var extras = cols.filter(function (c) { return want.indexOf(c) < 0; });
+          var allThere = want.every(function (c) { return cols.indexOf(c) >= 0; });
+          return { ok: allThere && extras.length === 0 && b.personas === 8 &&
+                       b.writes_email === false && b.gsm_permission === false,
+                   detail: extras.length ? 'writes ' + extras.join(', ') + ' beyond the card three'
+                     : cols.length + ' columns for ' + b.personas + ' personas, no email ' +
+                       'and no gsm permission on invented numbers' };
         });
       }
     },

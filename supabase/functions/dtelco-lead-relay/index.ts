@@ -267,14 +267,21 @@ Deno.serve(async (req) => {
   }
 
   /* 3. The contact write. Only values that exist travel: an empty string would overwrite a good
-     value with nothing, and a transactional message would then print the nothing. */
+     value with nothing, and a transactional message would then print the nothing.
+
+     And only columns something reads FROM the contact travel at all. A column earns its place on
+     master_contact when a marketing message prints it, a dynamic content creative resolves it, a
+     send step conditions on it, or a segment over contact columns needs it. Everything else this
+     endpoint learns stays on the lead row above and in the subscriber tables, where the star
+     schema already serves it to segments live. Flattening the relational model onto the contact
+     would be working against the platform's own design, and every extra column here is one more
+     that has to exist in the panel before a single upsert succeeds. */
   const contact: Record<string, unknown> = { contact_key: key };
   const put = (k: string, v: unknown) => { if (v !== null && v !== undefined && v !== '') contact[k] = v; };
   put('name', lead.name);
   put('surname', lead.surname);
   put('email', lead.email);
   put('gsm', lead.gsm);
-  put('city', lead.city);
   contact.email_permission = lead.marketing_consent;
   contact.gsm_permission = lead.sms_consent;
   /* WhatsApp consent is a custom column, and that is a statement about Dengage rather than a
@@ -285,24 +292,17 @@ Deno.serve(async (req) => {
      so is better than letting a room assume it is. */
   contact.whatsapp_consent = lead.whatsapp_consent;
 
-  if (form === 'nps') {
-    const nps = Number(body.nps);
-    if (Number.isFinite(nps) && nps >= 0 && nps <= 10) put('last_nps', nps);
-  }
+  /* The NPS score reaches segments as the nps_band and nps_score tags the page writes, and the
+     watch reaches them through the watcher views, so neither writes a contact column. The lead
+     row above keeps both values. */
   if (form === 'recognition' && product) {
     put('focus_product_id', product.product_id);
     put('focus_product_title', product.title);
-    put('focus_product_brand', product.brand);
-    put('focus_product_category', product.category_path);
     /* Derived here, never taken from the page: the price the visitor is shown and the price the
        email quotes have to be the same number and only one of them can be authoritative. */
     put('focus_product_price', product.discounted_price ?? product.price);
     const views = Number(body.views);
     if (Number.isFinite(views)) put('focus_views', views);
-  }
-  if (form === 'wishlist' && product) {
-    put('last_watch_product_id', product.product_id);
-    put('last_watch_list', str(body.watch_list, 40));
   }
 
   /* The three products the site showed, so a marketing message prints the same three.
@@ -335,7 +335,6 @@ Deno.serve(async (req) => {
       put(`reco_product_id_${slot}`, id);
     }
     put('reco_rule', str(body.reco_rule, 60));
-    put('reco_at', str(body.reco_at, 40));
     if (slot === 0) notes.push('no recommended id resolved, so no reco column was written');
 
     /* The same three ids into Postgres, which is a second place on purpose rather than by

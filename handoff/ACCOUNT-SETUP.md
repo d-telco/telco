@@ -250,28 +250,36 @@ appears to do nothing at all.
 
 ## The custom columns on `master_contact`
 
-Twenty seven, created in the panel before anything writes to them. A column that does not exist is
-a value accepted and stored nowhere, exactly as with the custom event table, and with no error at
-either end. `tools/check-contract.mjs` reads the columns the two writers actually send and fails if
-this list does not carry every one of them.
+**Twelve, and the number used to be twenty seven.** The question that shrank it is the right one
+to ask of any CDP integration: a column earns a place on the contact only when a mechanism reads
+it FROM the contact, a marketing message printing `$Contact`, a dynamic content creative resolving
+it, a send step conditioning on it, or a segment built over contact columns. Everything else the
+operator knows stays in the relational tables, where the star schema and the remote views already
+serve it to segments live. That is the platform's own design, and flattening a subscriber record
+onto the contact would be working against it.
 
-**Written by `dtelco-persona-seed`**, from the operator's own record, and refreshed by running it
-again after the simulator changes a plan or a lifecycle:
+Create these in the panel, every one nullable, before anything writes to them. A column that does
+not exist is a whole upsert refused, and `tools/check-contract.mjs` reads the columns the two
+writers actually send and fails if this list does not carry every one of them.
 
-`msisdn`, `plan_id`, `plan_name`, `plan_type`, `lifecycle`, `arpu_band`, `esim`, `device_model`,
-`contract_end`, `family_lines`, `preferred_store`, `preferred_channel`
+| # | Column | Type | Written by | What reads it from the contact |
+|---|---|---|---|---|
+| 1 | `whatsapp_consent` | Boolean | relay | The condition on every WhatsApp journey step |
+| 2 | `focus_product_id` | Text | relay | The dynamic content creative that makes the returning visitor's hero their product |
+| 3 | `focus_product_title` | Text | relay | The same creative prints the card from the contact alone while the `$from` lookup is unconfirmed |
+| 4 | `focus_product_price` | Decimal | relay | Same |
+| 5 | `focus_views` | Integer | relay | The served popup prints how many times they looked |
+| 6 | `reco_product_id_1` | Text | relay | Journey 25's message resolves it against the product table |
+| 7 | `reco_product_id_2` | Text | relay | Same |
+| 8 | `reco_product_id_3` | Text | relay | Same, and `$blockSend` cancels the send when all three are empty |
+| 9 | `reco_rule` | Text | relay | The segment over contact columns, and the rule shown beside the rail |
+| 10 | `plan_name` | Text | persona seed | The contact card, and any upsell copy that names the plan they are on |
+| 11 | `lifecycle` | Text | persona seed | The contact card, and journey conditions at send time |
+| 12 | `contract_end` | Date | persona seed | The contract clock on the card |
 
-The relay writes web form values and the operator function reports `tells_dengage: false`,
-because a simulator writing contact fields would be pretending a page can do what a page cannot.
-So without this writer a segment on `plan_name`, or a message printing `$Contact.lifecycle`, finds
-them empty and nothing says so.
-
-**Written by `dtelco-lead-relay`**, from what a visitor typed or did:
-
-`whatsapp_consent`, `last_nps`, `focus_product_id`, `focus_product_title`, `focus_product_brand`,
-`focus_product_category`, `focus_product_price`, `focus_views`, `last_watch_product_id`,
-`last_watch_list`, `reco_product_id_1`, `reco_product_id_2`, `reco_product_id_3`, `reco_rule`,
-`reco_at`
+The standard columns beside them, `contact_key`, `name`, `surname`, `email`, `gsm`,
+`email_permission` and `gsm_permission`, exist already and need creating nowhere. The persona
+number travels in `gsm`, which is where a message prints it from.
 
 `whatsapp_consent` is a custom column rather than a permission, and the difference is worth saying
 out loud in the room. `reference/updatecontactsbulk` documents exactly two permission columns,
@@ -279,19 +287,22 @@ out loud in the room. `reference/updatecontactsbulk` documents exactly two permi
 WhatsApp consent is a value the operator's own compliance holds and a journey or a segment reads as
 a condition. It is not a suppression the platform enforces.
 
-The standard columns beside them, `contact_key`, `name`, `surname`, `email`, `gsm`,
-`email_permission` and `gsm_permission`, exist already and need creating nowhere.
+**Served by the star schema instead, so deliberately not created:**
 
-**`city` is not one of them.** Measured 4 September 2026 against this account: a `/bulk/contacts`
-call carrying it was refused with
+| Not a contact column | Where it lives and what serves it |
+|---|---|
+| `plan_id`, `plan_type`, `arpu_band`, `esim`, `device_model`, `family_lines`, `preferred_store`, `preferred_channel`, `city` | `dtelco_subscriber` and `dtelco_usage`, read live by the remote views every segment uses. The card shows the plan by name; the machine joins by the tables |
+| `msisdn` | The standard `gsm` column already carries it |
+| `last_nps` | The `nps_band` and `nps_score` tags the page writes, which segments filter on |
+| `last_watch_product_id`, `last_watch_list` | `dtelco_watch` and the watcher views, and the price drop and back in stock messages print the product from the triggering event's own attributes |
+| `focus_product_brand`, `focus_product_category` | Decoration. The id, title, price and view count print the card |
+| `reco_at` | Freshness belongs to the audience view that routes journey 25, and the lead row carries the timestamp |
 
-    code 1, Column does not exist: city, msisdn, plan_id, plan_name, plan_type, lifecycle,
-    arpu_band, esim, device_model, contract_end, family_lines, preferred_store, preferred_channel
-
-so `city` is created with the other twelve. That refusal is also the shape to expect while any
-column is missing: HTTP 400, a readable message naming every one, and nothing written. It is the
-one place in this integration where a missing column says so out loud rather than accepting the
-value and dropping it, and it is worth showing a room for exactly that reason.
+**The refusal is the friend here.** Measured 4 September 2026: a `/bulk/contacts` call carrying a
+column the table does not have is refused whole, HTTP 400 with a readable message naming every
+missing column, and nothing written. It is the one place in this integration where a missing
+column says so out loud rather than accepting the value and dropping it, so the first persona seed
+run after creating the twelve is itself the check that they were all created.
 
 ## The egress address, and when a proxy is needed
 
