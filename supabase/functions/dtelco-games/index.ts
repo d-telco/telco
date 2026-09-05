@@ -4,15 +4,20 @@
  * Gamification templates await enabling (ACCOUNT-SETUP.md confirm item 21). The surfaces are the
  * site's; the facts are real, and this function is where they land.
  *
- * A win is a row. POST records it in dtelco_game_win: which game, where, what prize, and for a
- * coupon backed prize, which code went with it. The site also reports the same win through the
- * creative engine as a creative_action event, so the platform's event table carries it too.
+ * A win is a row. POST records it in dtelco_game_win: which game, where, what prize. The site
+ * also reports the same win through the creative engine as a creative_action event, so the
+ * platform's event table carries it too.
  *
- * The code is never minted. dtelco-coupons only reads the account's list, and inventing a
- * DTELCO- shaped string here would hand a visitor a coupon that exists nowhere. So codes come
- * from dtelco_coupon_pocket, a table the account owner fills with real codes taken from the
- * panel's own list. Pocket empty means the win says so and shows the live list instead, which is
- * the honest state until the served template starts issuing codes of its own.
+ * No coupon code ever travels here, and that is the platform's design rather than this build's
+ * caution, measured 5 September 2026 at the account owner's own challenge: GET
+ * /contents/coupon-list/{id}/coupons lists every coupon with the code masked by the API itself,
+ * ****69, and no assignment call exists under any plausible spelling, six tried, all 404. A full
+ * code exists only inside a message the platform sends, the email coupon tag or the gamification
+ * template, which is also the moment it is marked taken. So a win here records the fact, the
+ * site shows the list read live, and the code arrives with the served surface.
+ * dtelco_coupon_pocket was created for a hand filled fallback and retired the same day, before
+ * ever holding a row, when that measurement settled the question. Nothing is deleted, so the
+ * empty table stands, referenced by nothing.
  *
  * Idempotence is not wanted here: two spins are two wins. The rate cap is the guard.
  */
@@ -46,28 +51,18 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers });
 
   if (req.method === 'GET') {
-    const [{ count: free }, { count: used }, { count: wins }] = await Promise.all([
-      db.from('dtelco_coupon_pocket').select('code', { count: 'exact', head: true })
-        .is('used_by', null),
-      db.from('dtelco_coupon_pocket').select('code', { count: 'exact', head: true })
-        .not('used_by', 'is', null),
-      db.from('dtelco_game_win').select('id', { count: 'exact', head: true }),
-    ]);
+    const { count: wins } = await db.from('dtelco_game_win')
+      .select('id', { count: 'exact', head: true });
     return new Response(JSON.stringify({
       function: 'dtelco-games',
-      does: 'POST { contact_key, game, placement, prize, coupon } records one win and, for a ' +
-            'coupon backed prize, hands out a code from the pocket',
+      does: 'POST { contact_key, game, placement, prize } records one win',
       games: GAMES,
-      pocket_available: free ?? 0,
-      pocket_used: used ?? 0,
       wins_recorded: wins ?? 0,
-      why_a_pocket: 'dtelco-coupons only reads the account\'s list and nothing here mints a ' +
-                    'code. The pocket holds real codes the account owner took from the panel\'s ' +
-                    'own list, so a handed out code exists and the checkout recognises it. ' +
-                    'Empty pocket, honest answer: the win shows the live list and says the ' +
-                    'served Gamification template is what issues codes of your own.',
-      fill_it: 'insert real codes from the panel list into dtelco_coupon_pocket. Only platform ' +
-               'issued codes belong there.',
+      coupon_codes: 'never handled here, and never duplicated anywhere. Measured 5 September ' +
+                    '2026: the API masks every code on read and offers no assignment call, so a ' +
+                    'full code exists only inside a message the platform sends, where it is ' +
+                    'also marked taken. The win shows the account\'s list read live; the served ' +
+                    'Gamification template is what hands the code out.',
       note: 'the surfaces are stand ins for the panel Gamification templates, confirm item 21. ' +
             'Every win is also a creative_action row in the platform\'s own event table.',
     }, null, 1), { headers });
@@ -101,27 +96,14 @@ Deno.serve(async (req) => {
       { status: 400, headers });
   }
 
-  /* A code only for a coupon backed prize, and only one the platform issued. The two step
-     update guards the race two simultaneous wins would run: the second update matches no row
-     and that win goes codeless, which is correct rather than shared. */
-  let code: string | null = null;
-  if (body.coupon === true) {
-    const { data: candidate } = await db.from('dtelco_coupon_pocket')
-      .select('code').is('used_by', null).order('code').limit(1).maybeSingle();
-    if (candidate?.code) {
-      const { data: taken } = await db.from('dtelco_coupon_pocket')
-        .update({ used_by: key, used_at: new Date().toISOString() })
-        .eq('code', candidate.code).is('used_by', null).select('code');
-      if (taken?.length) code = candidate.code;
-    }
-  }
-
+  /* The row carries no code, ever. See the header: the platform masks codes on read and offers
+     no assignment call, so a code reaches a winner only inside the message the platform sends. */
   const { data: win, error } = await db.from('dtelco_game_win').insert({
     contact_key: key,
     game,
     placement: String(body.placement ?? '').slice(0, 40) || null,
     prize,
-    coupon_code: code,
+    coupon_code: null,
     simulated: true,
   }).select('id').single();
   if (error) {
@@ -129,22 +111,13 @@ Deno.serve(async (req) => {
       { status: 500, headers });
   }
 
-  const { count: left } = await db.from('dtelco_coupon_pocket')
-    .select('code', { count: 'exact', head: true }).is('used_by', null);
-
   return new Response(JSON.stringify({
     ok: true,
     win_id: win.id,
     game,
     prize,
-    code,
-    pocket_left: left ?? 0,
-    note: code
-      ? 'a real code from the pocket, issued by the platform before it got here. The checkout ' +
-        'recognises its shape.'
-      : body.coupon === true
-        ? 'the pocket is empty, so no code travelled. The live list is what the visitor is ' +
-          'shown, and the served Gamification template is what issues codes of your own.'
-        : 'not a coupon prize, so no code was ever in question.',
+    note: 'recorded. When the prize carries a coupon, the code is issued by the platform inside ' +
+          'the message it sends, the served gamification template or the coupon tag on a journey ' +
+          'email, and marked taken at that same moment. Nothing here pretends otherwise.',
   }, null, 1), { headers });
 });

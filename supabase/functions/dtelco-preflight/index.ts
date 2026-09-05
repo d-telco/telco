@@ -198,11 +198,93 @@ Deno.serve(async (req) => {
     froms = probes;
   }
 
+  /* ?coupon_probe=<listId>: whether the REST surface can hand a single code out of a coupon
+     list, asked of the API itself rather than asserted. The account owner's question on
+     5 September 2026: why can the site not fetch real coupons from Dengage directly. The
+     documented read is /contents/coupon-list/{id}; these are the plausible siblings, GET only,
+     each answer reported as itself. Any code shaped string in a reply is masked before echo,
+     because this endpoint is public and a coupon list's codes are not. */
+  let couponProbe: unknown = undefined;
+  if (hasToken && new URL(req.url).searchParams.has('coupon_probe')) {
+    let bearer2 = '';
+    try { bearer2 = JSON.parse(full)?.access_token ?? ''; } catch { /* guarded above */ }
+    const listId = (new URL(req.url).searchParams.get('coupon_probe') || '').trim() || '1';
+    const mask = (s: string) => s.replace(/[A-Z]{3,10}-[A-Za-z0-9]{8}/g, '<code masked>');
+    const probes = [];
+    for (const path of [
+      `/contents/coupon-list/${listId}`,
+      `/contents/coupon-list/${listId}/coupons`,
+      `/contents/coupon-list/${listId}/coupon`,
+      `/contents/coupon-list/${listId}/codes`,
+      `/contents/coupons?listId=${listId}`,
+      `/coupons/${listId}`,
+      `/coupon/${listId}`,
+    ]) {
+      try {
+        const r = await fetch(`${API}${path}`, {
+          headers: { authorization: `Bearer ${bearer2}` },
+          signal: AbortSignal.timeout(10000),
+        });
+        const text = await r.text();
+        probes.push({ path, http: r.status, raw: mask(text.slice(0, 500)) || undefined });
+      } catch (e) {
+        probes.push({ path, http: null, raw: String(e).slice(0, 150) });
+      }
+    }
+    couponProbe = probes;
+  }
+
+  /* ?coupon_assign_probe=<listId>: round two of the same question, authorized by the account
+     owner on 5 September 2026: can a coupon be assigned to a contact over REST, and does an
+     assignment reveal the full code the listing masks. The listing at /coupons answers with
+     CouponId and ContactKey fields, so an assign shaped sibling is plausible. Each candidate is
+     tried once against the real list; a success consumes one code of the hundred, which is what
+     the probe is for. Codes stay masked in every echo. */
+  let assignProbe: unknown = undefined;
+  if (hasToken && new URL(req.url).searchParams.has('coupon_assign_probe')) {
+    let bearer3 = '';
+    try { bearer3 = JSON.parse(full)?.access_token ?? ''; } catch { /* guarded above */ }
+    const listId = (new URL(req.url).searchParams.get('coupon_assign_probe') || '').trim() || '1';
+    const mask = (s: string) => s.replace(/[A-Z]{3,10}-[A-Za-z0-9]{6,10}/g, '<code masked>')
+      .replace(/"Code"\s*:\s*"[^"]*"/g, '"Code":"<masked>"');
+    const probes = [];
+    const attempts: Array<{ method: string; path: string; body?: unknown }> = [
+      { method: 'GET', path: `/contents/coupon-list/${listId}/coupons/20` },
+      { method: 'GET', path: `/contents/coupon-list/${listId}/coupons?status=Unassigned&pageSize=2&page=1` },
+      { method: 'POST', path: `/contents/coupon-list/${listId}/coupons/assign`,
+        body: { contactKey: 'DPS-DTELCO-1' } },
+      { method: 'POST', path: `/contents/coupon-list/${listId}/assign`,
+        body: { contactKey: 'DPS-DTELCO-1' } },
+      { method: 'POST', path: `/contents/coupon-list/${listId}/coupon/assign`,
+        body: { contactKey: 'DPS-DTELCO-1' } },
+      { method: 'POST', path: `/contents/coupon/assign`,
+        body: { listId: Number(listId), contactKey: 'DPS-DTELCO-1' } },
+    ];
+    for (const a of attempts) {
+      try {
+        const r = await fetch(`${API}${a.path}`, {
+          method: a.method,
+          headers: { 'content-type': 'application/json', authorization: `Bearer ${bearer3}` },
+          body: a.body ? JSON.stringify(a.body) : undefined,
+          signal: AbortSignal.timeout(10000),
+        });
+        const text = await r.text();
+        probes.push({ method: a.method, path: a.path, http: r.status,
+                      raw: mask(text.slice(0, 500)) || undefined });
+      } catch (e) {
+        probes.push({ method: a.method, path: a.path, http: null, raw: String(e).slice(0, 150) });
+      }
+    }
+    assignProbe = probes;
+  }
+
   return new Response(JSON.stringify({
     ...base,
     ok: hasToken,
     login: { http, issued_token: hasToken, verdict },
     email_froms: froms,
+    coupon_probe: couponProbe,
+    coupon_assign_probe: assignProbe,
     /* Never the token, and never the body when it holds one. */
     detail: echoable ? (full.slice(0, 300) || undefined) : undefined,
   }, null, 1), { headers });

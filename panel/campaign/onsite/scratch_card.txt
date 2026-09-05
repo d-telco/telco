@@ -5,7 +5,7 @@ Trigger: an NPS answer of 9 or 10, as the thank you
 
 Title: Scratch to reveal your thank you
 Body:  A reward for the feedback. Scratch the card to reveal your code.
-Coupon: the same DTELCO- coupon list. One code per contact, marked taken by the platform
+Coupon: the same DTELCO- list, read live at the win. The platform reveals a full code only inside a message it sends and marks it taken at that moment, measured 5 September 2026: the API masks codes on read and has no assignment call. So the stand in shows the live list and the served Gamification template is what hands the code out
 
 Verify: G9. Same handling as the wheel
 The slot rules in handoff/ONSITE-SLOTS.md apply: padding 0, transparent background,

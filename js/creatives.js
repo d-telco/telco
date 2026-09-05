@@ -236,9 +236,10 @@
      reported through its own rows while the templates await enabling: confirm item 21 in
      ACCOUNT-SETUP.md, arriving next week per the account owner. Three honesty rules hold them
      together. The surface is the site's and each one says so on its face. The coupon list is the
-     account's, read live at the moment of the win. And no code is minted here: dtelco-games hands
-     out only codes the platform already issued into the pocket, and an empty pocket is said out
-     loud rather than papered over with an invented DTELCO- string. */
+     account's, read live at the moment of the win. And no surface but the platform's own ever
+     shows a code, because that is the measured platform design: the API masks codes on read and
+     offers no assignment call, so a full code exists only inside a message the platform sends,
+     where it is also marked taken. */
 
   var WHEEL_SEGMENTS = [
     { label: '5 dollars off', coupon: true },
@@ -252,32 +253,33 @@
   var STAND_IN = '<p class="dps-game-small">The site draws this stand in. The panel\'s ' +
                  'Gamification template takes the surface over when it is enabled.</p>';
 
-  /* One win, three records: the engine's own creative_action row, the dtelco-games row with the
-     pocket draw, and the live list read the visitor is shown. */
+  /* One win, three records: the engine's own creative_action row, the dtelco-games row, and the
+     live list read the visitor is shown. Never a code: the platform masks them on read, so the
+     code reaches a winner inside the message the platform sends, and this popup says so. */
   function gameResult(c, mount, prize, couponBacked) {
     report('creative_action', c, 'win: ' + prize);
     var contact = ID ? (ID.get() || ID.claim(c.id)) : null;
     var base = cfg.functions.base;
     var posted = contact ? fetch(base + cfg.functions.games, {
       method: 'POST', credentials: 'omit', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ contact_key: contact, game: c.id, placement: c.kind,
-                             prize: prize, coupon: couponBacked === true })
+      body: JSON.stringify({ contact_key: contact, game: c.id, placement: c.kind, prize: prize })
     }).then(function (r) { return r.json(); }).catch(function () { return {}; })
       : Promise.resolve({});
-    var list = fetch(base + cfg.functions.coupons, { credentials: 'omit' })
-      .then(function (r) { return r.json(); }).catch(function () { return {}; });
+    var list = couponBacked
+      ? fetch(base + cfg.functions.coupons, { credentials: 'omit' })
+          .then(function (r) { return r.json(); }).catch(function () { return {}; })
+      : Promise.resolve({});
     Promise.all([posted, list]).then(function (both) {
       var win = both[0] || {}, l = both[1] || {};
       var html = '<h3>' + esc(prize) + '</h3>';
-      if (win.code) {
-        html += '<p>Your code: <strong>' + esc(win.code) + '</strong>. A real code from the ' +
-                'account\'s own list, and the checkout recognises it.</p>';
-      } else if (couponBacked) {
+      if (couponBacked) {
         html += '<p>' + (l.name
           ? esc(l.name) + ', read live from the account: ' + esc(String(l.available)) + ' of ' +
-            esc(String(l.total)) + ' codes available.'
+            esc(String(l.total)) + ' codes waiting.'
           : 'The coupon list could not be read just now.') +
-          ' The served template issues a code of your own; this stand in never invents one.</p>';
+          ' Your code arrives inside the message the platform sends and is marked taken at that ' +
+          'moment: the API masks codes on read, so no surface but the platform\'s own ever ' +
+          'shows one.</p>';
       } else {
         html += '<p>Recorded against your line as a demonstration reward.</p>';
       }

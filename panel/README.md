@@ -138,11 +138,14 @@ for tokens and guids only. Each push sheet mirrors the editor's sections field b
 
 Three panel side experiences, copy in `contents.json` and one paste sheet each in
 `campaign/onsite/`: `spin_the_wheel.txt`, `countdown_offer.txt`, `scratch_card.txt`. The wheel
-and the scratch card hand out codes from the account's own `DTELCO-` coupon list, so every winner
-gets a code of their own and the platform marks it taken; the countdown sells urgency and prints
-the catalogue's own discounted price, never a number typed into a creative. All three are
-campaign lane and verify item G9: until the gamification template is confirmed enabled on the
-account, each is shown as its canvas and said so plainly.
+and the scratch card reward from the account's own `DTELCO-` coupon list, and the code itself is
+the platform's to reveal: measured 5 September 2026, the API masks every code on read and has no
+assignment call, so a full code exists only inside a message the platform sends, where it is
+also marked taken. The site's stand ins therefore show the list read live at the win and never a
+code, and the served Gamification template is what hands the code out. The countdown sells
+urgency and prints the catalogue's own discounted price, never a number typed into a creative.
+All three are campaign lane and confirm item 21: the stand ins run until the template is
+enabled, then the served surface takes over.
 
 ## Before the first send
 

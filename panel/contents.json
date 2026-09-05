@@ -456,9 +456,9 @@
         "Try again",
         "10 dollars off a device"
       ],
-      "coupon": "the DTELCO- coupon list the account owner created. dtelco-coupons reads its stock live; a winning segment hands out a code of the visitor's own and the platform marks it taken",
+      "coupon": "the DTELCO- coupon list, read live at the win. The platform reveals a full code only inside a message it sends and marks it taken at that moment, measured 5 September 2026: the API masks codes on read and has no assignment call. So the stand in shows the live list and the served Gamification template is what hands the code out",
       "verify": "G9. Until the gamification template is confirmed enabled on the account, this is shown as its canvas and said so plainly",
-      "stand_in": "drawn by the site today through js/creatives.js, labeled on its face, wins recorded by dtelco-games and the coupon list read live. The served template takes the surface over when enabled"
+      "stand_in": "drawn by the site today through js/creatives.js, labeled on its face, wins recorded by dtelco-games and the coupon list read live. Never a code: the platform masks them on read. The served template takes the surface over when enabled"
     },
     {
       "id": "countdown_offer",
@@ -470,7 +470,7 @@
       "body": "The seasonal bundle at its offer price until the clock runs out.",
       "coupon": "none. Urgency rather than discount: the price shown is the catalogue's own discounted_price, never a number typed into a creative",
       "verify": "G9. Same handling as the wheel",
-      "stand_in": "drawn by the site today through js/creatives.js, labeled on its face, wins recorded by dtelco-games and the coupon list read live. The served template takes the surface over when enabled"
+      "stand_in": "drawn by the site today through js/creatives.js, labeled on its face, wins recorded by dtelco-games and the coupon list read live. Never a code: the platform masks them on read. The served template takes the surface over when enabled"
     },
     {
       "id": "scratch_card",
@@ -480,9 +480,9 @@
       "trigger": "an NPS answer of 9 or 10, as the thank you",
       "title": "Scratch to reveal your thank you",
       "body": "A reward for the feedback. Scratch the card to reveal your code.",
-      "coupon": "the same DTELCO- coupon list. One code per contact, marked taken by the platform",
+      "coupon": "the same DTELCO- list, read live at the win. The platform reveals a full code only inside a message it sends and marks it taken at that moment, measured 5 September 2026: the API masks codes on read and has no assignment call. So the stand in shows the live list and the served Gamification template is what hands the code out",
       "verify": "G9. Same handling as the wheel",
-      "stand_in": "drawn by the site today through js/creatives.js, labeled on its face, wins recorded by dtelco-games and the coupon list read live. The served template takes the surface over when enabled"
+      "stand_in": "drawn by the site today through js/creatives.js, labeled on its face, wins recorded by dtelco-games and the coupon list read live. Never a code: the platform masks them on read. The served template takes the surface over when enabled"
     }
   ],
   "_onsite_experiences_note": "Panel side gamification, proposed placements. The copy and the coupon linkage live here so the wheel, the countdown and the scratch card are written once; the account owner creates each from the panel's gamification templates. All three are campaign lane and verify item G9: anything unconfirmed is shown as a canvas.",
