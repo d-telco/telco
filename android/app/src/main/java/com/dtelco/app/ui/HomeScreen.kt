@@ -124,6 +124,12 @@ fun HomeScreen(
     InlineInAppSlot(activity, Config.INLINE_HOME, "home",
                     Modifier.padding(horizontal = 16.dp))
 
+    /* The seasonal countdown, inline between the things a person browses, which is the app's answer
+       to the site's countdown creative and the same placement it uses. It reports an impression
+       like any creative and never posts a win, because urgency has no prize. */
+    Spacer(Modifier.height(8.dp))
+    CountdownOffer(Modifier.fillMaxWidth().padding(horizontal = 16.dp))
+
     /* The one thing on this app no browser can do, one tap from the home screen because a person
        walking past a shop is not going to go looking for it in a menu. */
     Card(

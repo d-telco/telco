@@ -134,6 +134,48 @@ object Backend {
   }
 }
 
+/* The two backend functions the gamification stand ins reach, the same two the website reaches and
+   for the same reasons. Nothing here talks to Dengage either: dtelco-games records a win as its own
+   row, and dtelco-coupons reads the account's coupon list live. A code is never in either answer,
+   by the platform's design, so this object cannot show one and does not try. */
+data class CouponList(val name: String?, val available: Int, val total: Int, val expires: String?)
+
+object Games {
+  /* Records one win and returns the row id the function assigned, or null if it could not be
+     recorded. Only the two games the function accepts ever post: the countdown has no prize and
+     never reaches here, which is the same rule the website's engine follows. The win id is read as
+     text because the row's id is the function's to shape, not this app's to assume. */
+  fun recordWin(contactKey: String, game: String, placement: String, prize: String): String? {
+    val payload = JSONObject()
+    payload.put("contact_key", contactKey)
+    payload.put("game", game)
+    payload.put("placement", placement)
+    payload.put("prize", prize)
+    val body = Http.post(Config.GAMES, payload.toString()) ?: return null
+    return try {
+      val o = JSONObject(body)
+      if (o.has("error") || !o.has("win_id") || o.isNull("win_id")) null else o.get("win_id").toString()
+    } catch (t: Throwable) { null }
+  }
+
+  /* The account's coupon list, read live. name, available and total are what the win card shows;
+     the codes themselves are never in this answer, which is why the card can show a count and never
+     a code. */
+  fun couponList(): CouponList? {
+    val body = Http.get(Config.COUPONS) ?: return null
+    return try {
+      val o = JSONObject(body)
+      if (o.has("error")) return null
+      CouponList(
+        name = if (o.isNull("name")) null else o.optString("name").ifBlank { null },
+        available = o.optInt("available"),
+        total = o.optInt("total"),
+        expires = if (o.isNull("expires")) null else o.optString("expires").ifBlank { null },
+      )
+    } catch (t: Throwable) { null }
+  }
+}
+
 /* org.json hands back the string "null" for a JSON null, which reads as a real value and puts the
    word null on a screen. These read it properly, and an unknown number stays unknown rather than
    becoming a zero. */

@@ -22,6 +22,10 @@ fun ShopScreen(activity: Activity, onOpenProduct: (String) -> Unit) {
   var results by remember { mutableStateOf<List<Product>>(emptyList()) }
   var showCart by remember { mutableStateOf(false) }
   var placed by remember { mutableStateOf<String?>(null) }
+  /* Recharge and win: a completed purchase is the handset's version of the site's completed top up,
+     which is the telco moment the wheel earns. Fired once when the order lands, dismissible so a
+     presenter can carry on. */
+  var showWheel by remember { mutableStateOf(false) }
 
   LaunchedEffect(Unit) {
     DengageBridge.pageView("category")
@@ -69,7 +73,8 @@ fun ShopScreen(activity: Activity, onOpenProduct: (String) -> Unit) {
          message that covers the screen, in the layout instead of over it. */
       InlineInAppSlot(activity, Config.INLINE_CART, "cart",
                       Modifier.padding(horizontal = 16.dp))
-      CartPanel(onPlaced = { placed = it })
+      CartPanel(onPlaced = { placed = it; showWheel = true })
+      if (showWheel) SpinWheelDialog(onDismiss = { showWheel = false })
       placed?.let { id ->
         Why("Order $id is placed. We will keep you posted.")
         /* The reversal, naming the order it reverses. The order API's status vocabulary is closed

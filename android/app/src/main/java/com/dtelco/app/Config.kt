@@ -47,6 +47,15 @@ object Config {
   const val MESSAGE = FUNCTIONS + "dtelco-message"
   const val RELAY = FUNCTIONS + "dtelco-lead-relay"
 
+  /* The two functions the native gamification reaches, the same two js/config.js names for the
+     web, and for the same reason. dtelco-games records a win as a row; dtelco-coupons reads the
+     account's coupon list live at the moment of the win. Neither mints nor returns a code: the
+     platform masks codes on read and has no assignment call, so a code exists only inside the
+     message the platform sends, where it is also marked taken. The app records the win and reads
+     the list, and never shows a code, exactly as the site does. */
+  const val GAMES = FUNCTIONS + "dtelco-games"
+  const val COUPONS = FUNCTIONS + "dtelco-coupons"
+
 
   /* The scheme the manifest answers, the catalogue's android_deep_link carries and an in-app
      message's button opens. One value, so a push, an in-app button and a story all land on the

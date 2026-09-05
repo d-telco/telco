@@ -251,11 +251,11 @@ notification, the nearby screen from a store card, the device screen from the ac
 | # | Screen | Headline capability | Also carries | Proved by |
 |---|---|---|---|---|
 | 26 | App sign in | **A2** the same contact key, so web and app land on one profile | L3, L14 | One contact card, two surfaces of history |
-| 27 | App home | **F10** mobile in app message, the app's answer to an on site campaign | L1, L3 | The message drawn on a real device |
+| 27 | App home | **F10** mobile in app message, the app's answer to an on site campaign | L1, L3, G9 | The message drawn on a real device |
 | 28 | App product | **F9** app push through Firebase, opening this screen from the notification | L1, B8 | A physical phone, a simulator raised push, the right screen |
 | 29 | App inbox | **F11** the inbox rendered natively and reported back | L15 | Impression and open recorded for Dengage's messages only |
-| 30 | App shop, catalogue and cart | **C3** app sourced rows landing in the same tables as the web | L1, L9, B7 | One count moving from two surfaces |
-| 31 | App discover | **L2** App Stories, served, drawn and reported by Dengage end to end | L1, L3, L10, L12 | The rail changes in the panel and on the handset, with no release |
+| 30 | App shop, catalogue and cart | **C3** app sourced rows landing in the same tables as the web | L1, L9, B7, G9 | One count moving from two surfaces |
+| 31 | App discover | **L2** App Stories, served, drawn and reported by Dengage end to end | L1, L3, L10, L12, G9 | The rail changes in the panel and on the handset, with no release |
 | 32 | App nearby | **L8** a geofence region, defined in the panel and entered by a handset | L7, L17 | A region entered on a walk, and the same region reached indoors with a mock fix |
 | 33 | App device and consent | **L5** the device subscription record, read back rather than assumed | L4, L6, L11, L13, L16 | A token, a contact key and an account switch, read from Dengage |
 
@@ -400,7 +400,7 @@ keyboard. Every one of the eight screens is here because of something a browser 
 
 | Gap | Handling |
 |---|---|
-| G9 gamification on a new account | **verify** in the panel, confirm item 21: the type gallery showed no Gamification section on 5 September 2026 and the account owner's team enables it the following week. The site draws all three as labeled stand ins meanwhile: the wheel on a completed top up, the scratch card on a promoter NPS, the countdown on the seasonal window, each reporting through the creative engine, recording wins in `dtelco-games`, and reading the coupon list live at the win. No code is minted, held or shown locally: measured, the API masks codes on read and has no assignment call, so the code arrives inside the message the platform sends. The served template takes each surface over when it arrives |
+| G9 gamification on a new account | **verify** in the panel, confirm item 21: the type gallery showed no Gamification section on 5 September 2026 and the account owner's team enables it the following week. The site draws all three as labeled stand ins meanwhile: the wheel on a completed top up, the scratch card on a promoter NPS, the countdown on the seasonal window, each reporting through the creative engine, recording wins in `dtelco-games`, and reading the coupon list live at the win. No code is minted, held or shown locally: measured, the API masks codes on read and has no assignment call, so the code arrives inside the message the platform sends. The app draws the same three natively and to the same rules: the wheel on a completed purchase and on demand from Discover, the scratch card as a Discover reward, the countdown inline on Home, each writing a `creative_shown` and a `creative_action` row through the bridge, recording wins in `dtelco-games`, reading the coupon list live, and never showing a code. `tools/check-android.mjs` holds these rules on the app the way `tools/check-coverage.mjs` holds them on the site. The served template takes each surface over when it arrives, on both channels |
 | G6 and G7 dynamic content resolving a product from a contact held id | **verify** in the panel, confirm items 1 to 3. The contact carries ids only, by decision: no title or price column shadows the catalogue. Until the `$from` lookup passes the check, the message is shown as its canvas and said so plainly |
 | Journeys 5 and 6 narrowing to wishers of one product id | **verify** in the panel. Fallback is a per contact event raised by the simulator |
 | F5 and F6 live sends | Suppressed by decision. Composed, rendered and shown; never claimed as delivered |

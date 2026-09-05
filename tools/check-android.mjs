@@ -5,7 +5,7 @@
  * the code obeys the rules that no compiler knows about, which is where every fault in this build
  * has actually come from.
  *
- * Fifteen things, each one a rule the compiler does not know about:
+ * Seventeen things, each one a rule the compiler does not know about:
  *
  *   1. one module talks to the SDK, and only that module names it anywhere
  *   2. every screen fires its page view first
@@ -25,6 +25,9 @@
  *  15. the scale of the structured cart's integer prices is written where a rule author reads it
  *  16. rows keyed by contact go to the contact linked table, rows keyed by device to the device
  *      linked one, matching the star schema in the account
+ *  17. the native gamification tells the same truth the site's stand ins tell: it names the same
+ *      backend functions, reports an impression and an action, records a win only for the two
+ *      games the backend accepts, and never mints or shows a coupon code
  */
 import { readFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -268,6 +271,58 @@ ok('the structured cart names its price scale', !!minor, minor ? `1 unit = 1/${m
 ok('and the scale is written where a rule author reads it',
    !!minor && /minor unit/i.test(setup),
    /minor unit/i.test(setup) ? 'ACCOUNT-SETUP.md says so' : 'no setup step mentions it');
+
+/* ------------------------------------------------- 17. the gamification honesty */
+
+/* The three games are drawn by this app, exactly as js/creatives.js draws them on the site, and
+   the same three rules a compiler cannot see hold them: the surface says it is a stand in, the
+   coupon list is read live, and no code is ever minted or shown. These check the source the way
+   check-coverage.mjs checks the web creatives, because the failure is silent: a card that quietly
+   printed a code would look finished and be the one thing this whole build exists to prevent. */
+const games = files['ui/Gamification.kt'] ?? '';
+ok('the app draws the gamification the site draws', games.length > 0,
+   games.length ? 'ui/Gamification.kt' : 'no native gamification file');
+
+/* The endpoints are the same two the web names, so the wheel the app records a win for is the wheel
+   the site records, and the list the app reads is the list the site reads. Same seam as the event
+   table check above. */
+const webGames = config.match(/games:\s*'([^']+)'/)?.[1];
+const webCoupons = config.match(/coupons:\s*'([^']+)'/)?.[1];
+const appGames = files['Config.kt'].match(/GAMES\s*=\s*FUNCTIONS\s*\+\s*"([^"]+)"/)?.[1];
+const appCoupons = files['Config.kt'].match(/COUPONS\s*=\s*FUNCTIONS\s*\+\s*"([^"]+)"/)?.[1];
+ok('and names the same games and coupons functions the web does',
+   !!webGames && webGames === appGames && !!webCoupons && webCoupons === appCoupons,
+   `games ${appGames}/${webGames}, coupons ${appCoupons}/${webCoupons}`);
+
+/* An impression and an action, so a self drawn experience on the handset reports what an engine
+   served one reports. This is capability C5 held on the app the way it is held on the web. */
+ok('and reports an impression and an action like an engine served creative',
+   /creative_shown/.test(games) && /creative_action/.test(games),
+   /creative_shown/.test(games) && /creative_action/.test(games)
+     ? 'creative_shown and creative_action both written'
+     : 'a creative row is missing');
+
+/* No code, ever. The coupon prefix must appear nowhere in the file, and the sentence that explains
+   why a code is not shown must appear, because the explanation is the point: the platform masks
+   codes on read and issues them inside the message it sends. */
+ok('and never mints or shows a coupon code',
+   !/DTELCO-[A-Za-z0-9]/.test(games) && /masks codes on read/.test(games),
+   /DTELCO-[A-Za-z0-9]/.test(games) ? 'a coupon code shape appears in the file'
+     : /masks codes on read/.test(games) ? 'no code, and the reason is stated'
+     : 'the reason a code is not shown is not stated');
+
+/* Only the two games the function accepts record a win; the countdown never posts, because urgency
+   has no prize. WinResult is the one win path, so every call site of it names one of the two. */
+const winGames = [...games.matchAll(/WinResult\("([a-z_]+)"/g)].map((m) => m[1]);
+ok('and records a win only for the two games the backend accepts',
+   winGames.length > 0 && winGames.every((g) => g === 'spin_wheel' || g === 'scratch_card'),
+   winGames.length ? winGames.join(', ') : 'no win path found');
+
+/* Not a screen. The games are drawn onto screens that already fire a page view, so the file must
+   not fire one of its own: a second page view for one appearance is a row that double counts. */
+ok('and fires no page view of its own, because it is not a screen',
+   !/DengageBridge\.pageView\(/.test(games),
+   /DengageBridge\.pageView\(/.test(games) ? 'a page view is fired outside a screen' : 'no stray page view');
 
 /* ------------------------------------------------------------------ report */
 

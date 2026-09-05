@@ -37,6 +37,8 @@ fun DiscoverScreen(activity: Activity, contactKey: String?, onOpenProduct: (Stri
   var ordered by remember { mutableStateOf<List<Product>>(emptyList()) }
   var reviewSaid by remember { mutableStateOf<String?>(null) }
   var infoSaid by remember { mutableStateOf<String?>(null) }
+  var showScratch by remember { mutableStateOf(false) }
+  var showWheel by remember { mutableStateOf(false) }
 
   LaunchedEffect(Unit) {
     DengageBridge.pageView("discover")
@@ -69,6 +71,30 @@ fun DiscoverScreen(activity: Activity, contactKey: String?, onOpenProduct: (Stri
     Spacer(Modifier.height(8.dp))
     InlineInAppSlot(activity, Config.INLINE_HOME, "discover",
                     Modifier.padding(horizontal = 16.dp))
+
+    /* Rewards, the app's gamification surface. The scratch card is the natural fit here, the way it
+       thanks a promoter on the site; the wheel is offered too so a presenter can show it without
+       placing an order, which is the same on demand launch the site's console gives. Both are this
+       app's own stand ins for the panel's Gamification templates, they say so on their face, and a
+       code only ever arrives inside the message the platform sends. */
+    Card(Modifier.fillMaxWidth().padding(16.dp)) {
+      Column(Modifier.padding(16.dp)) {
+        Text("Rewards", style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(4.dp))
+        Text(
+          "The same gamification the website shows, drawn in the app. Wins are recorded and the " +
+            "coupon list is read live; the wheel also fires on its own when an order is placed.",
+          style = MaterialTheme.typography.bodySmall,
+        )
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+          Button(onClick = { showScratch = true }) { Text("Scratch your reward") }
+          OutlinedButton(onClick = { showWheel = true }) { Text("Spin the wheel") }
+        }
+      }
+    }
+    if (showScratch) ScratchCardDialog(onDismiss = { showScratch = false })
+    if (showWheel) SpinWheelDialog(onDismiss = { showWheel = false })
 
     ScreenTitle("Offers, in your order")
     if (ordered.isEmpty()) {
