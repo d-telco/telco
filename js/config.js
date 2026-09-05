@@ -78,6 +78,16 @@ window.DTELCO_CONFIG = {
     preflight: 'dtelco-preflight'
   },
 
+  // The saved transactional push contents, by moment, as the panel created them. A guid here is
+  // account configuration on the same shelf as accountId and appGuid, not a secret: it names a
+  // content, it does not authorise anything. The operator simulator fires the matching push the
+  // second its signal lands, so a low balance event from the BSS reaches the device as the real
+  // transactional push rather than as a segment that a journey might send later. A moment with no
+  // id here simply records the event and sends no push, which is honest until its content exists.
+  transactionalPush: {
+    low_balance: 'f7f833ef-21e2-4ae0-a487-40f8c4a33928'
+  },
+
   // The six places this operator serves. One list, because the checkout writes a city onto a
   // contact and the outage broadcast puts a city in a push title, and two lists that drifted
   // apart would mean a fault announced for a town no customer is recorded in. check-contract

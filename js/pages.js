@@ -1316,7 +1316,9 @@
               esc(s[1]) + '</button>'; }).join('') + '</div></section>';
       }).join('') +
       '<section class="panel wide"><h2>What happened</h2><ol id="op-log" class="op-log">' +
-        '<li class="why">Press a signal. The persona it belongs to is selected for you.</li>' +
+        '<li class="why">Press a signal. It fires as the line selected above, your own session ' +
+        'by default, so a transactional push lands on this device. Switch the line to a persona ' +
+        'to watch a segment move.</li>' +
       '</ol></section>';
 
     function log(html, bad) {
@@ -1328,19 +1330,74 @@
       l.insertBefore(li, l.firstChild);
     }
 
+    /* The operator acts as the browser's own line by default, so a signal fired here reaches the
+       device the presenter is on rather than a story persona no device has subscribed to. The
+       session key is added to the picker and selected; a presenter can still switch to a persona
+       to watch a segment move. */
+    (function () {
+      var picker = document.getElementById('op-persona');
+      var mine = ID.get();
+      if (picker && mine) {
+        if (!picker.querySelector('[value="' + mine + '"]')) {
+          var o = document.createElement('option');
+          o.value = mine;
+          o.textContent = 'This session · ' + mine;
+          picker.insertBefore(o, picker.firstChild);
+        }
+        picker.value = mine;
+      }
+    })();
+
+    /* Transactional lane signals also fire the saved transactional push the second they land, so a
+       balance low event reaches the device as the real push rather than only as a segment a journey
+       might send later. Only moments whose content exists in the panel are wired; the rest record
+       the event and send nothing, which the reply says. The browser's own push token travels with
+       the send, so it lands on whichever device is demoing and has granted permission:
+       dtelco-message tries the contact route and falls to the token route on code 11, which is the
+       state of a persona key no device ever subscribed to. */
+    var SIGNAL_MOMENT = { balance_low: 'low_balance', plan_expiring: 'low_balance',
+      usage_80: 'usage_upsell', bill_issued: 'postpaid_billing', renewal_failed: 'renewal_recovery',
+      roaming_detected: 'roaming_arrival', number_activated: 'welcome_onboarding' };
+
+    function sendTransactionalPush(actingKey, signal) {
+      var moment = SIGNAL_MOMENT[signal];
+      var contentId = moment && cfg.transactionalPush && cfg.transactionalPush[moment];
+      if (!contentId) { return; }
+      EV.getToken(function (token) {
+        var body = { contact_key: actingKey, content_id: contentId, channel: 'push',
+          moment: moment, values: { link: cfg.origin + 'topup.html' } };
+        if (token) { body.token = token; }
+        fetch(cfg.functions.base + cfg.functions.message, {
+          method: 'POST', credentials: 'omit', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(body)
+        }).then(function (r) { return r.json(); }).then(function (d) {
+          log('<strong>' + esc(moment) + '</strong> transactional push' +
+            '<span class="' + (d.sent ? 'moved' : 'why') + '">' + esc(d.route || 'contact') +
+            ' route, code ' + esc(String(d.code)) + ': ' + esc(d.meaning || '') + '</span>' +
+            '<span class="why">The device token travels with the send, so a persona no device ' +
+            'subscribed to answers code 11 on the contact route and the token route lands it on ' +
+            'this device.</span>', !d.sent);
+        }).catch(function () {});
+      });
+    }
+
     host.addEventListener('click', function (e) {
       var b = e.target.closest('[data-signal]');
       if (b) {
         var signal = b.getAttribute('data-signal');
         var source = b.getAttribute('data-source');
-        // Select the persona whose story this signal belongs to, so a presenter never fires a
-        // signal at somebody it correctly does nothing for.
-        var key = b.getAttribute('data-for');
-        document.getElementById('op-persona').value = key;
+        // The operator acts as the currently selected line, which defaults to the browser's own
+        // session key, so a signal reaches the device the presenter is on. Switch the picker to a
+        // persona to watch a segment move instead.
+        var key = document.getElementById('op-persona').value;
 
         // 1. Dengage gets the fact, from the browser, as the custom row a journey triggers on.
         EV.setContactKey(key);
         EV.custom(signal, { source: source, note: 'operator simulator' });
+
+        // 1b. A transactional lane signal also sends its saved push now, addressed to this line
+        // and carrying this device's token so it lands on the presenter's screen.
+        sendTransactionalPush(key, signal);
 
         /* Two of these signals are also the reason an on site experience appears, so the flag the
            creative engine reads is set by the signal rather than by a presenter reaching for the

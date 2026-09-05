@@ -27,8 +27,50 @@
   panel.innerHTML =
     '<header><strong>Dengage readout</strong>' +
     '<button type="button" data-act="copy" title="Copy as JSON">copy</button>' +
-    '<button type="button" data-act="fold" title="Collapse">fold</button></header><ol></ol>';
+    '<button type="button" data-act="fold" title="Collapse">fold</button></header>' +
+    '<dl id="dps-sdk" class="dps-sdk"></dl><ol></ol>';
   var list = panel.querySelector('ol');
+  var sdkEl = panel.querySelector('#dps-sdk');
+
+  /* The SDK parameters, pinned above the event log so a presenter can reconcile a row in Dengage
+     against this browser without leaving the page: the contact key it is identified as, its device
+     id, the session id the custom tables join on, and the push token a send is addressed by. There
+     is no getSessionId, so the session is read from the SDK's own _dn_sessions store the way the
+     launcher reads it. The token and device id resolve through the SDK's callback getters, so they
+     fill in a moment after load and again whenever identity changes. */
+  var sdk = { contactKey: null, deviceId: null, sessionId: null, token: null };
+  function readSession() {
+    try {
+      var raw = window.localStorage.getItem('_dn_sessions');
+      if (!raw) { return null; }
+      var parsed = JSON.parse(raw);
+      return (parsed && (parsed.sessionId || (parsed[0] && parsed[0].sessionId))) || null;
+    } catch (e) { return null; }
+  }
+  function sdkRow(label, value) {
+    return '<div><dt>' + label + '</dt><dd>' +
+      (value == null || value === '' ? '<i>not set</i>' : String(value)) + '</dd></div>';
+  }
+  function paintSdk() {
+    if (!sdkEl) { return; }
+    sdk.sessionId = readSession();
+    sdkEl.innerHTML =
+      sdkRow('contact key', sdk.contactKey) +
+      sdkRow('device id', sdk.deviceId) +
+      sdkRow('session id', sdk.sessionId) +
+      sdkRow('push token', sdk.token) +
+      sdkRow('account id', cfg.dengage && cfg.dengage.accountId) +
+      sdkRow('app guid', cfg.dengage && cfg.dengage.appGuid);
+  }
+  function refreshSdk() {
+    var EV = window.DengageEvents, IDN = window.DTelcoIdentity;
+    sdk.contactKey = IDN ? IDN.get() : null;
+    paintSdk();
+    if (!EV) { return; }
+    try { EV.getContactKey(function (v) { if (v) { sdk.contactKey = v; paintSdk(); } }); } catch (e) {}
+    try { EV.getDeviceId(function (v) { sdk.deviceId = v || null; paintSdk(); }); } catch (e) {}
+    try { EV.getToken(function (v) { sdk.token = v || null; paintSdk(); }); } catch (e) {}
+  }
 
   function add(kind, title, detail, ok) {
     rows.unshift({ kind: kind, title: title, detail: detail, ok: ok, at: new Date().toISOString() });
@@ -48,10 +90,20 @@
       var act = e.target.getAttribute && e.target.getAttribute('data-act');
       if (act === 'fold') { panel.classList.toggle('folded'); }
       if (act === 'copy' && navigator.clipboard) {
-        navigator.clipboard.writeText(JSON.stringify(rows, null, 1));
+        navigator.clipboard.writeText(JSON.stringify({ sdk: sdk, events: rows }, null, 1));
       }
     });
     render();
+    /* The token and device id land after the SDK subscribes, so poll a few times over the first
+       few seconds rather than once on load, and refresh whenever the contact key changes. */
+    refreshSdk();
+    var tries = 0;
+    var poll = window.setInterval(function () {
+      refreshSdk();
+      if (++tries >= 6) { window.clearInterval(poll); }
+    }, 1500);
+    window.addEventListener('dps:' + SLUG + ':identified', refreshSdk);
+    window.addEventListener('dps:' + SLUG + ':auth', refreshSdk);
   });
 
   // What the page tried to send, and the table it was aimed at.

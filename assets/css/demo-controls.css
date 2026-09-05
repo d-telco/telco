@@ -48,7 +48,17 @@
 #dps-debug header button {
   background: #23262D; border: 0; color: #C9CDD6; border-radius: 6px; padding: 3px 9px; cursor: pointer;
 }
-#dps-debug.folded ol { display: none; }
+#dps-debug.folded ol,
+#dps-debug.folded .dps-sdk { display: none; }
+/* The SDK parameters, pinned above the event log for reconciliation. Labels dim, values bright and
+   monospace so a token or a device id reads and copies cleanly. */
+.dps-sdk { margin: 0; padding: 6px; display: grid; gap: 3px; border-bottom: 1px solid #2A2F38; }
+.dps-sdk > div { display: grid; grid-template-columns: 84px 1fr; gap: 8px; align-items: baseline;
+  padding: 3px 3px; }
+.dps-sdk dt { color: #98A0AE; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+.dps-sdk dd { margin: 0; color: #F2F4F8; font: 500 11px ui-monospace, SFMono-Regular, Menlo, monospace;
+  word-break: break-all; user-select: all; }
+.dps-sdk dd i { color: #6B7280; font-style: normal; }
 #dps-debug ol { list-style: none; margin: 0; padding: 6px; display: grid; gap: 4px; }
 #dps-debug li { padding: 7px 9px; border-radius: 7px; background: #14161B; border-left: 3px solid #3A3F49; }
 #dps-debug li b { display: block; color: #F2F4F8; font-weight: 600; }
