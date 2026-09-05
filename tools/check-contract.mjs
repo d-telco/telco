@@ -188,9 +188,23 @@ ok('and no sentence promises what the documentation rules out', survives.length 
 const values = Object.fromEntries(await Promise.all(
   (await readdir(join(ROOT, 'panel/values'))).filter((f) => f.endsWith('.json'))
     .map(async (f) => [f.replace(/\.json$/, ''), JSON.parse(await read(`panel/values/${f}`))])));
+const bodyFiles = [];
+for (const lane of ['transactional', 'campaign']) {
+  for (const f of await readdir(join(ROOT, `panel/${lane}/email`))) {
+    if (f.endsWith('.html') && !f.startsWith('_')) {
+      bodyFiles.push([f.replace(/\.html$/, ''), `panel/${lane}/email/${f}`, lane]);
+    }
+  }
+}
 const bodies = Object.fromEntries(await Promise.all(
-  (await readdir(join(ROOT, 'panel/email'))).filter((f) => f.endsWith('.html') && !f.startsWith('_'))
-    .map(async (f) => [f.replace(/\.html$/, ''), await read(`panel/email/${f}`)])));
+  bodyFiles.map(async ([id, p]) => [id, await read(p)])));
+/* The lane is the folder, so a body that reads the contact sitting under transactional/ would be
+   a message with holes in it filed as a service message. The generator refuses to write one; this
+   is the check that the tree did not drift by hand. */
+const misfiled = bodyFiles.filter(([id, , lane]) =>
+  lane === 'transactional' && bodies[id].includes('$Contact.'));
+ok('no body under the transactional lane reads the contact', misfiled.length === 0,
+   misfiled.map(([id]) => id).join(', '));
 
 const readsContact = Object.entries(bodies).filter(([, b]) => b.includes('$Contact.')).map(([k]) => k);
 const marked = Object.entries(values).filter(([, v]) => v.sends === 'marketing').map(([k]) => k);

@@ -1,0 +1,15 @@
+{
+ "moment": "usage_upsell",
+ "journey": 9,
+ "trigger": "usage_80",
+ "lane": "transactional",
+ "always": [
+  "link",
+  "next_data",
+  "next_plan",
+  "next_price"
+ ],
+ "optional": [],
+ "rows": [],
+ "note": "A transactional send sees only these values. This moment sends push only: the SMS and WhatsApp copy beside it is composed and never sent."
+}

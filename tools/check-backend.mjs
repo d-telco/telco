@@ -418,9 +418,18 @@ export const CHECKS = [
     async run() {
       const r = await j('dtelco-coupons');
       const b = r.json ?? {};
-      return { ok: r.status === 200 && b.function === 'dtelco-coupons' &&
-                   /never imports, takes or redeems/.test(b.note ?? ''),
-               detail: `prefix ${b.prefix}, list configured ${b.list_id_configured}` };
+      /* Two honest shapes. With no list id configured the bare GET describes itself and says it
+         never writes. With one configured, measured 5 September 2026 once the account owner set
+         DTELCO_COUPON_LIST_ID, the bare GET IS the live list read, and the assertion moves to
+         what the room needs from it: a count and the sentence naming who applies the discount. */
+      const health = b.function === 'dtelco-coupons' &&
+                     /never imports, takes or redeems/.test(b.note ?? '');
+      const listRead = b.ok === true && typeof b.available === 'number' &&
+                       /billing system/.test(b.redemption ?? '');
+      return { ok: r.status === 200 && (health || listRead),
+               detail: listRead
+                 ? `list ${b.list_id} ${b.name}: ${b.available} of ${b.total} available`
+                 : `prefix ${b.prefix}, list configured ${b.list_id_configured}` };
     },
   },
   {

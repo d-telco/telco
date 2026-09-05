@@ -1,0 +1,8 @@
+D-TELCO onsite copy: device_upgrade [campaign]
+Trigger: v_dtelco_upgrade_eligible (journey 15)
+Target one of the 13 slots in handoff/ONSITE-SLOTS.md: the slot table names the moment
+each one is there for. Tokens are left as {name}: whether onsite content resolves
+personalization tags is confirm item 6, and the creative is a canvas until it passes.
+
+Title: Your contract ends soon
+Body:  Trade up and keep your number.

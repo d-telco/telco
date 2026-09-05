@@ -1,8 +1,11 @@
 """Emit the paste ready panel content pack from one data structure.
 
 Reads panel/contents.json for the copy every channel shares and tools/message-content.py for the
-part only an email has, and writes one file per moment per channel under panel/. Nothing here is
-typed twice: change a sentence in contents.json and every channel that uses it changes together.
+part only an email has, and writes one file per moment per channel under panel/<lane>/<channel>/,
+where the lane is the moment's route: transactional for a service event sent the second it
+happens through /transactional/*, campaign for everything a journey or campaign sends. Nothing
+here is typed twice: change a sentence in contents.json and every channel that uses it changes
+together, and the folder itself answers which message goes which way.
 
 The output is what a person pastes into the panel, so it is Dengage's template language rather
 than the {token} shorthand the source files use. The two are mechanically related, which is the
@@ -103,7 +106,7 @@ def frame(moment: dict, spec_: dict, hero: str, middle: str, reads: str = "curre
            f"Paste the whole file. Values marked always in panel/values/{moment['id']}.json must be\n"
            "     sent on every call; the detail rows print only when their value is sent.")
 
-    return f"""<!-- {BRAND} email: {moment['id']} (journey {moment['journey']})
+    return f"""<!-- {BRAND} email: {moment['id']} ({moment['lane']} lane, journey {moment['journey']})
      Subject: {subject}
      Trigger: {moment['trigger']}
      {how} -->
@@ -313,22 +316,109 @@ def values_for(moment: dict, spec_: dict) -> dict:
     }
 
 
-def push_for(moment: dict) -> dict:
+def values_for_push(moment: dict) -> dict:
+    """What a transactional push call has to carry, for the moments that send no email.
+
+    The push title and body are the whole message, so every token in them is always. The SMS and
+    WhatsApp copy beside the same moment is composed and never sent, and its extra tokens are
+    listed as optional so this file still describes the moment completely.
+    """
     p = moment["push"]
-    media = p.get("media")
+    always = tokens(p["title"]) | tokens(p["body"])
+    always.add("link")
+    optional = (tokens(moment.get("sms", "")) | tokens(moment.get("whatsapp", ""))) - always
     return {
         "moment": moment["id"],
         "journey": moment["journey"],
-        "title": render(p["title"]),
-        "message": render(p["body"]),
-        "target_url": tag("link"),
-        "media": f"{mc.ASSETS}push/{media}.jpg" if media else None,
-        "title_length": len(p["title"]),
-        "message_length": len(p["body"]),
-        "note": "Title under 50 characters and message under 120, or a phone truncates it. "
-                "Target URL is a tag rather than an address: a shared content with an address in "
-                "it sends one brand's visitor to another brand's storefront.",
+        "trigger": moment["trigger"],
+        "lane": moment["lane"],
+        "always": sorted(always),
+        "optional": sorted(optional),
+        "rows": [],
+        "note": "A transactional send sees only these values. This moment sends push only: the "
+                "SMS and WhatsApp copy beside it is composed and never sent.",
     }
+
+
+def push_txt(moment: dict) -> str:
+    """One push content as a person pastes it, field by field.
+
+    Text rather than JSON by decision: the panel's push editor takes a title, a message, a target
+    URL and a media URL, so the file mirrors those fields and nothing else. The guardrails ride
+    along as prose, because a truncated push is the most common way this channel quietly fails.
+    """
+    p = moment["push"]
+    media = p.get("media")
+    lane = moment["lane"]
+    values = (f"Transactional: values travel in the call. See panel/values/{moment['id']}.json."
+              if lane == "transactional" else
+              "Campaign: $Current resolves from the journey's own event or audience columns.")
+    lines = [
+        f"D-TELCO push content: {moment['id']} [{lane}]",
+        f"Trigger: {moment['trigger']} (journey {moment['journey']})",
+        values,
+        "Create this content twice, once on the web application and once on the Android",
+        "application: they are two applications in the panel and nothing set up for one reaches",
+        "the other.",
+        f"Save To Inbox: {'on, expire 7 days' if moment.get('inbox') else 'off'}.",
+        "",
+        f"Title:      {render(p['title'])}",
+        f"Message:    {render(p['body'])}",
+        f"Target URL: {tag('link')}",
+    ]
+    if media:
+        lines.append(f"Media:      {mc.ASSETS}push/{media}.jpg")
+    lines += [
+        "",
+        f"Title {len(p['title'])} of 50 characters and message {len(p['body'])} of 120: inside "
+        "what a phone truncates.",
+        "The target URL is a tag rather than an address: a shared content with an address in it",
+        "sends one brand's visitor to another brand's storefront.",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def onsite_txt(entry: dict) -> str:
+    """One panel side onsite experience, written once here and created in the panel."""
+    lines = [
+        f"D-TELCO onsite experience: {entry['id']} [{entry['lane']}]",
+        f"Panel type: {entry['panel_type']}",
+        f"Placement: {entry['placement']}",
+        f"Trigger: {entry['trigger']}",
+        "",
+        f"Title: {entry['title']}",
+        f"Body:  {entry['body']}",
+    ]
+    if entry.get("segments"):
+        lines.append("Segments: " + " | ".join(entry["segments"]))
+    lines += [
+        f"Coupon: {entry['coupon']}",
+        "",
+        f"Verify: {entry['verify']}",
+        "The slot rules in handoff/ONSITE-SLOTS.md apply: padding 0, transparent background,",
+        "selectors namespaced under the creative root id, behaviour in onclick.",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def moment_onsite_txt(moment: dict) -> str:
+    """The onsite copy a moment carries, tokens left as {name} on purpose.
+
+    Whether onsite content resolves $Current or $from at all is confirm item 6 in
+    ACCOUNT-SETUP.md, so this file does not print a tag syntax the surface may not read. Until
+    the check passes, the served creative is shown as its canvas.
+    """
+    o = moment["onsite"]
+    return "\n".join([
+        f"D-TELCO onsite copy: {moment['id']} [{moment['lane']}]",
+        f"Trigger: {moment['trigger']} (journey {moment['journey']})",
+        "Target one of the 13 slots in handoff/ONSITE-SLOTS.md: the slot table names the moment",
+        "each one is there for. Tokens are left as {name}: whether onsite content resolves",
+        "personalization tags is confirm item 6, and the creative is a canvas until it passes.",
+        "",
+        f"Title: {o['title']}",
+        f"Body:  {o['body']}",
+    ]) + "\n"
 
 
 def tag_check(all_tokens) -> str:
@@ -362,19 +452,31 @@ def tag_check(all_tokens) -> str:
 """
 
 
+LANES = ("transactional", "campaign")
+
+
 def main():
     contents = json.load(open(f"{ROOT}/panel/contents.json", encoding="utf-8"))
     moments = {m["id"]: m for m in contents["moments"]}
 
-    made = {"email": 0, "push": 0, "sms": 0, "whatsapp": 0, "values": 0}
-    for name in ("email", "push", "sms", "whatsapp", "values"):
-        os.makedirs(f"{OUT}/{name}", exist_ok=True)
+    # The lane is load bearing: it decides the folder, and the folder is the answer to "which
+    # message goes which way". A moment without one would land somewhere by accident.
+    for mid, m in moments.items():
+        if m.get("lane") not in LANES:
+            raise SystemExit(f"{mid} carries no lane. Every moment is transactional or campaign.")
+
+    made = {"email": 0, "push": 0, "sms": 0, "whatsapp": 0, "onsite": 0, "values": 0}
+    for lane in LANES:
+        for name in ("email", "push", "sms", "whatsapp"):
+            os.makedirs(f"{OUT}/{lane}/{name}", exist_ok=True)
+    os.makedirs(f"{OUT}/campaign/onsite", exist_ok=True)
+    os.makedirs(f"{OUT}/values", exist_ok=True)
 
     for mid, spec_ in mc.EMAIL.items():
         moment = moments[mid]
         html = email_html(moment, spec_)
         assert "—" not in html and "–" not in html, mid
-        open(f"{OUT}/email/{mid}.html", "w", encoding="utf-8").write(html)
+        open(f"{OUT}/{moment['lane']}/email/{mid}.html", "w", encoding="utf-8").write(html)
         json.dump(values_for(moment, spec_), open(f"{OUT}/values/{mid}.json", "w", encoding="utf-8"),
                   indent=1, ensure_ascii=False)
         made["email"] += 1
@@ -385,9 +487,12 @@ def main():
     reco = moments[RECO_ID]
     if reco.get("reads") != "contact":
         raise SystemExit(f"{RECO_ID} must be marked reads: contact, since its body reads $Contact")
+    if reco.get("lane") != "campaign":
+        raise SystemExit(f"{RECO_ID} reads the contact and can only be campaign lane: contact "
+                         "columns cannot personalize a transactional message")
     html = reco_html(reco, mc.RECO)
     assert "—" not in html and "–" not in html, RECO_ID
-    open(f"{OUT}/email/{RECO_ID}.html", "w", encoding="utf-8").write(html)
+    open(f"{OUT}/campaign/email/{RECO_ID}.html", "w", encoding="utf-8").write(html)
     json.dump(reco_values(reco, mc.RECO), open(f"{OUT}/values/{RECO_ID}.json", "w",
               encoding="utf-8"), indent=1, ensure_ascii=False)
     made["email"] += 1
@@ -397,19 +502,38 @@ def main():
     # $Contact "can be null in Push sends", so a push whose copy resolves from the contact is a
     # push that can go out with three holes in it. Refusing here is cheaper than finding out.
     for mid, moment in moments.items():
+        lane = moment["lane"]
         reads = moment.get("reads", "current")
         if reads == "contact" and moment.get("push"):
             raise SystemExit(f"{mid} reads the contact and cannot carry a push: $Contact can be "
                              "null in Push sends")
+        if reads == "contact" and lane == "transactional":
+            raise SystemExit(f"{mid} reads the contact and cannot be transactional")
         if moment.get("push"):
-            json.dump(push_for(moment), open(f"{OUT}/push/{mid}.json", "w", encoding="utf-8"),
-                      indent=1, ensure_ascii=False)
+            open(f"{OUT}/{lane}/push/{mid}.txt", "w", encoding="utf-8").write(push_txt(moment))
             made["push"] += 1
         for channel in ("sms", "whatsapp"):
             if moment.get(channel):
                 text = render(moment[channel], reads)
-                open(f"{OUT}/{channel}/{mid}.txt", "w", encoding="utf-8").write(text + "\n")
+                open(f"{OUT}/{lane}/{channel}/{mid}.txt", "w", encoding="utf-8").write(text + "\n")
                 made[channel] += 1
+        if moment.get("onsite"):
+            open(f"{OUT}/campaign/onsite/{mid}.txt", "w", encoding="utf-8") \
+                .write(moment_onsite_txt(moment))
+            made["onsite"] += 1
+        # The three push only transactional moments still need a values file: the send passes
+        # values whether or not an email exists to derive them from.
+        if lane == "transactional" and mid not in mc.EMAIL and moment.get("push"):
+            json.dump(values_for_push(moment), open(f"{OUT}/values/{mid}.json", "w",
+                      encoding="utf-8"), indent=1, ensure_ascii=False)
+            made["values"] += 1
+
+    # The panel side experiences: the wheel, the countdown, the scratch card. Copy written once
+    # here, created in the panel from the gamification templates, canvas until G9 passes.
+    for entry in contents.get("onsite_experiences", []):
+        open(f"{OUT}/campaign/onsite/{entry['id']}.txt", "w", encoding="utf-8") \
+            .write(onsite_txt(entry))
+        made["onsite"] += 1
 
     # Every push title and message inside the limits a phone imposes, checked rather than assumed.
     over = [(m["id"], len(m["push"]["title"]), len(m["push"]["body"]))
@@ -426,7 +550,10 @@ def main():
             all_tokens |= tokens(text)
         all_tokens |= {t for _, t in spec_["rows"]}
         all_tokens.add(spec_["cta"][1])
-    open(f"{OUT}/email/_tag-check.html", "w", encoding="utf-8").write(tag_check(all_tokens))
+    # The tag check lives on the transactional side, because $Current resolution on a
+    # transactional send is exactly what it exists to settle.
+    open(f"{OUT}/transactional/email/_tag-check.html", "w", encoding="utf-8") \
+        .write(tag_check(all_tokens))
 
     print("wrote " + ", ".join(f"{v} {k}" for k, v in made.items()) +
           f", and a tag check covering {len(all_tokens)} values")

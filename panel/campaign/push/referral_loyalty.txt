@@ -1,0 +1,16 @@
+D-TELCO push content: referral_loyalty [campaign]
+Trigger: order count threshold or referral code (journey 24)
+Campaign: $Current resolves from the journey's own event or audience columns.
+Create this content twice, once on the web application and once on the Android
+application: they are two applications in the panel and nothing set up for one reaches
+the other.
+Save To Inbox: on, expire 7 days.
+
+Title:      Your referral code
+Message:    {%= $Current.code %}, worth {%= $Current.reward %} to you both.
+Target URL: {%= $Current.link || 'https://d-telco.github.io/telco/' %}
+Media:      https://d-telco.github.io/telco/assets/push/welcome.jpg
+
+Title 18 of 50 characters and message 35 of 120: inside what a phone truncates.
+The target URL is a tag rather than an address: a shared content with an address in it
+sends one brand's visitor to another brand's storefront.

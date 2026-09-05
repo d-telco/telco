@@ -171,7 +171,7 @@
     <span id="messages-summary" class="detail"></span>
   </div>
   <table id="messages-table"><thead><tr>
-    <th>#</th><th>Moment</th><th>Fires on</th><th>Channels</th><th>Paste from</th>
+    <th>#</th><th>Moment</th><th>Fires on</th><th>Lane</th><th>Channels</th><th>Paste from</th>
   </tr></thead><tbody></tbody></table>
 </section>
 
@@ -647,9 +647,17 @@
       run: function () {
         return fetchJson(FN + 'dtelco-coupons').then(function (r) {
           var b = r.json || {};
-          return { ok: r.status === 200 && b.function === 'dtelco-coupons' &&
-                       /never imports, takes or redeems/.test(b.note || ''),
-                   detail: 'prefix ' + b.prefix + ', list configured ' + b.list_id_configured };
+          /* Two honest shapes: the self description while no list id is configured, and the live
+             list read once the account owner set DTELCO_COUPON_LIST_ID. */
+          var health = b.function === 'dtelco-coupons' &&
+                       /never imports, takes or redeems/.test(b.note || '');
+          var listRead = b.ok === true && typeof b.available === 'number' &&
+                         /billing system/.test(b.redemption || '');
+          return { ok: r.status === 200 && (health || listRead),
+                   detail: listRead
+                     ? 'list ' + b.list_id + ' ' + b.name + ': ' + b.available + ' of ' +
+                       b.total + ' available'
+                     : 'prefix ' + b.prefix + ', list configured ' + b.list_id_configured };
         });
       }
     },
@@ -1049,13 +1057,18 @@
       tr.appendChild(el('td', null, m.journey));
       tr.appendChild(el('td', null, m.title));
       tr.appendChild(el('td', 'detail', m.trigger));
+      /* The lane says which route sends it: a transactional service message the second the event
+         happens, or a campaign that reads the audience. The folder below matches it. */
+      tr.appendChild(el('td', null, m.lane || 'campaign'));
       tr.appendChild(el('td', null, has.join(', ')));
       /* Where the file is, so a person setting the account up can go straight to it rather than
          reading copy off a screen and typing it back in. */
+      var lane = m.lane === 'transactional' ? 'transactional' : 'campaign';
       tr.appendChild(el('td', 'detail', has.map(function (c) {
-        if (c === 'email') { return 'panel/email/' + m.id + '.html'; }
-        if (c === 'push') { return 'panel/push/' + m.id + '.json'; }
-        if (c === 'sms' || c === 'whatsapp') { return 'panel/' + c + '/' + m.id + '.txt'; }
+        if (c === 'email') { return 'panel/' + lane + '/email/' + m.id + '.html'; }
+        if (c === 'push') { return 'panel/' + lane + '/push/' + m.id + '.txt'; }
+        if (c === 'sms' || c === 'whatsapp') { return 'panel/' + lane + '/' + c + '/' + m.id + '.txt'; }
+        if (c === 'onsite') { return 'panel/campaign/onsite/' + m.id + '.txt'; }
         return 'panel/contents.json';
       }).join('  ')));
       body.appendChild(tr);

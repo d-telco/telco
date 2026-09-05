@@ -18,6 +18,7 @@
       "id": "welcome_onboarding",
       "journey": 1,
       "trigger": "number_activated",
+      "lane": "transactional",
       "title": "Welcome to D·TELCO",
       "push": {
         "title": "Welcome to D·TELCO",
@@ -39,6 +40,7 @@
       "id": "abandoned_cart",
       "journey": 2,
       "trigger": "addToCart without order in 2 hours",
+      "lane": "campaign",
       "title": "Still in your basket",
       "push": {
         "title": "Still in your basket",
@@ -60,6 +62,7 @@
       "id": "abandoned_checkout",
       "journey": 3,
       "trigger": "beginCheckout without order in 30 minutes",
+      "lane": "campaign",
       "title": "Nearly there",
       "push": {
         "title": "Nearly there",
@@ -77,6 +80,7 @@
       "id": "browse_abandon",
       "journey": 4,
       "trigger": "two plan views, no cart, 24 hours",
+      "lane": "campaign",
       "title": "The two tariffs you compared",
       "email": {
         "subject": "GO 11.99 or GO 29.99?",
@@ -92,6 +96,7 @@
       "id": "price_drop",
       "journey": 5,
       "trigger": "price_dropped for a watched product",
+      "lane": "campaign",
       "title": "The price dropped",
       "push": {
         "title": "The price just dropped",
@@ -108,6 +113,7 @@
       "id": "back_in_stock",
       "journey": 6,
       "trigger": "back_in_stock for a watched product",
+      "lane": "campaign",
       "title": "It is back",
       "push": {
         "title": "It is back in stock",
@@ -124,6 +130,7 @@
       "id": "order_confirmation",
       "journey": 7,
       "trigger": "order for a device",
+      "lane": "transactional",
       "title": "Order confirmed",
       "email": {
         "subject": "Order {order_id} confirmed",
@@ -143,6 +150,7 @@
       "id": "esim_help",
       "journey": 8,
       "trigger": "esim_selected without esim_installed in 24 hours",
+      "lane": "campaign",
       "title": "eSIM not installed yet",
       "whatsapp": "Your eSIM is ready but not installed yet. Shall I send the QR code again?",
       "sms": "D-TELCO: your eSIM is waiting. Install it here: {link} STOP to opt out."
@@ -151,6 +159,7 @@
       "id": "usage_upsell",
       "journey": 9,
       "trigger": "usage_80",
+      "lane": "transactional",
       "title": "You are at 80 percent",
       "push": {
         "title": "You are at 80 percent",
@@ -167,6 +176,7 @@
       "id": "low_balance",
       "journey": 10,
       "trigger": "balance_low or plan_expiring",
+      "lane": "transactional",
       "title": "Balance running low",
       "sms": "D-TELCO: your balance is {balance}. Top up here: {link} STOP to opt out.",
       "push": {
@@ -180,6 +190,7 @@
       "id": "renewal_recovery",
       "journey": 11,
       "trigger": "renewal_failed",
+      "lane": "transactional",
       "title": "Renewal did not go through",
       "sms": "D-TELCO: your renewal payment did not go through. Fix it here: {link} STOP to opt out.",
       "push": {
@@ -197,6 +208,7 @@
       "id": "postpaid_billing",
       "journey": 12,
       "trigger": "bill_issued",
+      "lane": "transactional",
       "title": "Your bill is ready",
       "email": {
         "subject": "Your D·TELCO bill: {amount}",
@@ -213,6 +225,7 @@
       "id": "roaming_pretrip",
       "journey": 13,
       "trigger": "roaming_pack with a future date",
+      "lane": "campaign",
       "title": "Before you fly",
       "email": {
         "subject": "Before you fly to {destination}",
@@ -228,6 +241,7 @@
       "id": "roaming_arrival",
       "journey": 14,
       "trigger": "roaming_detected without a pack",
+      "lane": "transactional",
       "title": "Welcome to {destination}",
       "push": {
         "title": "Welcome to {destination}",
@@ -241,6 +255,7 @@
       "id": "device_upgrade",
       "journey": 15,
       "trigger": "v_dtelco_upgrade_eligible",
+      "lane": "campaign",
       "title": "Time for a new handset",
       "email": {
         "subject": "Your contract ends in {days} days",
@@ -260,6 +275,7 @@
       "id": "accessory_cross_sell",
       "journey": 16,
       "trigger": "order for a phone, 3 days later",
+      "lane": "campaign",
       "title": "Goes with your new phone",
       "email": {
         "subject": "Made for your {product}",
@@ -275,6 +291,7 @@
       "id": "family_bundle",
       "journey": 17,
       "trigger": "v_dtelco_family_candidates",
+      "lane": "campaign",
       "title": "One bill, every line",
       "email": {
         "subject": "You are paying for {lines} lines separately",
@@ -286,6 +303,7 @@
       "id": "convergence",
       "journey": 18,
       "trigger": "fiber_checked without order",
+      "lane": "campaign",
       "title": "Home and mobile together",
       "email": {
         "subject": "Fiber is available at your address",
@@ -301,6 +319,7 @@
       "id": "dormant_winback",
       "journey": 19,
       "trigger": "v_dtelco_dormant_30d",
+      "lane": "campaign",
       "title": "We have not seen you",
       "email": {
         "subject": "Your D·TELCO line is waiting",
@@ -313,6 +332,7 @@
       "id": "churn_save",
       "journey": 20,
       "trigger": "port_out_requested",
+      "lane": "campaign",
       "title": "Before you go",
       "sms": "D-TELCO: before you leave, {downsell} is {price}. {link} STOP to opt out.",
       "whatsapp": "Sorry to see you go. Would {downsell} at {price} suit you better?",
@@ -329,6 +349,7 @@
       "id": "care_nps",
       "journey": 21,
       "trigger": "complaint_resolved",
+      "lane": "campaign",
       "title": "How did we do?",
       "whatsapp": "Your case is closed. How likely are you to recommend D·TELCO, 0 to 10?",
       "onsite": {
@@ -340,6 +361,7 @@
       "id": "newsletter_welcome",
       "journey": 22,
       "trigger": "subscription form",
+      "lane": "transactional",
       "title": "You are on the list",
       "email": {
         "subject": "Welcome to D·TELCO news",
@@ -355,6 +377,7 @@
       "id": "seasonal",
       "journey": 23,
       "trigger": "segment plus date",
+      "lane": "campaign",
       "title": "Seasonal campaign",
       "email": {
         "subject": "{campaign} at D·TELCO",
@@ -374,6 +397,7 @@
       "id": "reco_for_you",
       "journey": 25,
       "trigger": "reco_product_id_1 is not empty",
+      "lane": "campaign",
       "title": "Picked for you",
       "reads": "contact",
       "reads_why": "The three ids the site's own engine chose, written to the contact by the relay. A message resolves them against the product table with $from, so the email, the on site message and the inbox card print the same three products the rail showed. Marketing channels only: a transactional send cannot read a contact column.",
@@ -397,6 +421,7 @@
       "id": "referral_loyalty",
       "journey": 24,
       "trigger": "order count threshold or referral code",
+      "lane": "campaign",
       "title": "Your code is ready",
       "email": {
         "subject": "Your D·TELCO referral code",
@@ -412,5 +437,50 @@
         "body": "{code}. Worth {reward} to you and to them."
       }
     }
-  ]
+  ],
+  "_lanes": "Every moment carries a lane. transactional: a service event sent the second it happens through /transactional/push or /transactional/email, printing only the values passed in the call, $Contact empty. campaign: sent by a journey or campaign that reads the audience, the contact or a segment. The pack is written into panel/<lane>/<channel>/ so the folder answers which message goes which way.",
+  "onsite_experiences": [
+    {
+      "id": "spin_the_wheel",
+      "panel_type": "Gamification: Spin to Win",
+      "lane": "campaign",
+      "placement": "offers.html, as a popup",
+      "trigger": "second page view of the session, once per visitor",
+      "title": "Spin for your reward",
+      "body": "One spin per visitor. Every winning segment is a real code from the D-TELCO coupon list.",
+      "segments": [
+        "5 dollars off",
+        "10 percent off accessories",
+        "Free shipping",
+        "Double data for a month",
+        "Try again",
+        "10 dollars off a device"
+      ],
+      "coupon": "the DTELCO- coupon list the account owner created. dtelco-coupons reads its stock live; a winning segment hands out a code of the visitor's own and the platform marks it taken",
+      "verify": "G9. Until the gamification template is confirmed enabled on the account, this is shown as its canvas and said so plainly"
+    },
+    {
+      "id": "countdown_offer",
+      "panel_type": "Gamification: Countdown",
+      "lane": "campaign",
+      "placement": "offers.html inline, and shop.html in the results grid slot",
+      "trigger": "while a seasonal offer window is open",
+      "title": "Ends in {countdown}",
+      "body": "The seasonal bundle at its offer price until the clock runs out.",
+      "coupon": "none. Urgency rather than discount: the price shown is the catalogue's own discounted_price, never a number typed into a creative",
+      "verify": "G9. Same handling as the wheel"
+    },
+    {
+      "id": "scratch_card",
+      "panel_type": "Gamification: Scratch Card",
+      "lane": "campaign",
+      "placement": "account.html, as a popup for identified visitors",
+      "trigger": "an NPS answer of 9 or 10, as the thank you",
+      "title": "Scratch to reveal your thank you",
+      "body": "A reward for the feedback. Scratch the card to reveal your code.",
+      "coupon": "the same DTELCO- coupon list. One code per contact, marked taken by the platform",
+      "verify": "G9. Same handling as the wheel"
+    }
+  ],
+  "_onsite_experiences_note": "Panel side gamification, proposed placements. The copy and the coupon linkage live here so the wheel, the countdown and the scratch card are written once; the account owner creates each from the panel's gamification templates. All three are campaign lane and verify item G9: anything unconfirmed is shown as a canvas."
 }

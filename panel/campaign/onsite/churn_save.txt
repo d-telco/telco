@@ -1,0 +1,8 @@
+D-TELCO onsite copy: churn_save [campaign]
+Trigger: port_out_requested (journey 20)
+Target one of the 13 slots in handoff/ONSITE-SLOTS.md: the slot table names the moment
+each one is there for. Tokens are left as {name}: whether onsite content resolves
+personalization tags is confirm item 6, and the creative is a canvas until it passes.
+
+Title: Before you go
+Body:  {downsell} at {price} might suit you better.

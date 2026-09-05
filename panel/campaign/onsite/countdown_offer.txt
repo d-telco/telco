@@ -1,0 +1,12 @@
+D-TELCO onsite experience: countdown_offer [campaign]
+Panel type: Gamification: Countdown
+Placement: offers.html inline, and shop.html in the results grid slot
+Trigger: while a seasonal offer window is open
+
+Title: Ends in {countdown}
+Body:  The seasonal bundle at its offer price until the clock runs out.
+Coupon: none. Urgency rather than discount: the price shown is the catalogue's own discounted_price, never a number typed into a creative
+
+Verify: G9. Same handling as the wheel
+The slot rules in handoff/ONSITE-SLOTS.md apply: padding 0, transparent background,
+selectors namespaced under the creative root id, behaviour in onclick.

@@ -1,0 +1,8 @@
+D-TELCO onsite copy: usage_upsell [transactional]
+Trigger: usage_80 (journey 9)
+Target one of the 13 slots in handoff/ONSITE-SLOTS.md: the slot table names the moment
+each one is there for. Tokens are left as {name}: whether onsite content resolves
+personalization tags is confirm item 6, and the creative is a canvas until it passes.
+
+Title: Running low on data
+Body:  {next_plan} gives you {next_data}.

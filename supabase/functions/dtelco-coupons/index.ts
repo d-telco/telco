@@ -64,9 +64,13 @@ function secret(names: string[]): string {
 }
 const USERKEY = secret(['DENGAGE_USERKEY', 'TELCO_API_USER', 'telco_api_user']);
 const PASSWORD = secret(['DENGAGE_PASSWORD', 'TELCO_API_PASSWORD', 'telco_api_password']);
-/* The list the abandoned checkout journey draws from. Set once in the function's environment so
-   the console reads the same list the panel content points at, rather than a number typed twice. */
-const LIST_ID = Deno.env.get('DTELCO_COUPON_LIST_ID') ?? '';
+/* The list the abandoned checkout journey and the gamification experiences draw from. Set once in
+   the function's environment so the console reads the same list the panel content points at,
+   rather than a number typed twice. Resolved under whichever name the account owner stored it,
+   which is the same rule the credentials follow: a value present under a different name should
+   read as configured rather than as missing. */
+const LIST_ID = secret(['DTELCO_COUPON_LIST_ID', 'COUPON_LIST_ID', 'DTELCO_COUPONS',
+                        'DENGAGE_COUPON_LIST_ID', 'dtelco_coupon_list_id']);
 
 /* The shape a generated code takes. docs/coupon, Coupon Code Generation: a prefix is optional and
    "the system automatically appends 8 random letters and numbers". So a code from a list whose
@@ -134,6 +138,10 @@ Deno.serve(async (req) => {
              'against the shape a generated code takes.',
       configured: !!(USERKEY && PASSWORD),
       list_id_configured: !!LIST_ID,
+      /* Names only, never values: when the id was saved under a name this function does not
+         read, the mismatch takes an afternoon to find from the outside and a second to see here. */
+      coupon_named_secrets_seen: Object.keys(Deno.env.toObject())
+        .filter((k) => /coupon/i.test(k)).sort(),
       prefix: PREFIX,
       endpoint: 'GET /contents/coupon-list/{listId}',
       note: 'This endpoint reads. It never imports, takes or redeems a coupon.',

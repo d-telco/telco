@@ -1,0 +1,14 @@
+{
+ "moment": "low_balance",
+ "journey": 10,
+ "trigger": "balance_low or plan_expiring",
+ "lane": "transactional",
+ "always": [
+  "link"
+ ],
+ "optional": [
+  "balance"
+ ],
+ "rows": [],
+ "note": "A transactional send sees only these values. This moment sends push only: the SMS and WhatsApp copy beside it is composed and never sent."
+}

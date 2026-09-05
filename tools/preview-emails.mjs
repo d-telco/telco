@@ -17,7 +17,15 @@ import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-const EMAIL = join(ROOT, 'panel/email');
+/* The pack is laid out by lane, transactional or campaign, so the folder answers which message
+   goes which way. The renderer reads both sides and keeps a map from body file to its home. */
+const LANES = ['transactional', 'campaign'];
+const EMAIL_OF = new Map();
+for (const lane of LANES) {
+  const dir = join(ROOT, 'panel', lane, 'email');
+  for (const f of readdirSync(dir)) { if (f.endsWith('.html')) EMAIL_OF.set(f, dir); }
+}
+const emailPath = (f) => join(EMAIL_OF.get(f), f);
 const VALUES = join(ROOT, 'panel/values');
 const PREVIEW = join(ROOT, 'panel/preview');
 
@@ -206,7 +214,7 @@ for (const [k, v] of Object.entries(DEMO)) {
   seen.set(v, k);
 }
 
-const bodies = readdirSync(EMAIL).filter(f => f.endsWith('.html') && !f.startsWith('_')).sort()
+const bodies = [...EMAIL_OF.keys()].filter(f => !f.startsWith('_')).sort()
   .map(f => f.replace(/\.html$/, ''));
 
 /* A count here was a trap waiting to be sprung: it passes whichever body is missing so long as
@@ -224,7 +232,7 @@ const files = bodies.filter(id => !marketing.includes(id)).map(id => `${id}.html
 
 for (const file of files) {
   const id = file.replace(/\.html$/, '');
-  const html = readFileSync(join(EMAIL, file), 'utf8');
+  const html = readFileSync(emailPath(file), 'utf8');
   const spec = JSON.parse(readFileSync(join(VALUES, `${id}.json`), 'utf8'));
 
   const all = Object.fromEntries([...spec.always, ...spec.optional]
@@ -278,7 +286,7 @@ for (const file of files) {
 
 /* The tag check is a diagnostic rather than a message, so it is allowed to print $Contact, and it
    is the one file that must. */
-const tagCheck = readFileSync(join(EMAIL, '_tag-check.html'), 'utf8');
+const tagCheck = readFileSync(emailPath('_tag-check.html'), 'utf8');
 ok('the tag check prints $Contact, which is what it is for', tagCheck.includes('$Contact.name'));
 ok('and covers every value any body names',
    [...new Set(files.flatMap(f => JSON.parse(
@@ -297,7 +305,7 @@ ok('and covers every value any body names',
 ok('exactly one email body reads the contact', marketing.length === 1, marketing.join(', '));
 
 for (const id of marketing) {
-  const template = readFileSync(join(EMAIL, `${id}.html`), 'utf8');
+  const template = readFileSync(emailPath(`${id}.html`), 'utf8');
   const spec = spec_of(id);
 
   /* Three real catalogue rows, taken from the feed this repository uploads to Dengage rather than
@@ -394,7 +402,7 @@ for (const id of marketing) {
    assertion above possible, and this is the guard against the split quietly widening. */
 for (const file of files) {
   ok(`${file.replace(/\.html$/, '')}: is not a marketing only body`,
-     !readFileSync(join(EMAIL, file), 'utf8').includes('$from('));
+     !readFileSync(emailPath(file), 'utf8').includes('$from('));
 }
 
 const failed = results.filter(r => !r.pass);

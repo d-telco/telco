@@ -189,7 +189,9 @@ for (const slug of pushMedia) {
 ok('every push image the content pack names is on disk', missingMedia.length === 0,
    missingMedia.join(', '));
 
-const emailFiles = (await readdir(join(ROOT, 'panel/email'))).filter(f => f.endsWith('.html'));
+const emailFiles = (await Promise.all(['transactional', 'campaign']
+  .map((lane) => readdir(join(ROOT, `panel/${lane}/email`)))))
+  .flat().filter(f => f.endsWith('.html'));
 const withEmail = moments.filter(m => m.email).map(m => m.id);
 ok('there is one generated body per moment with email copy',
    emailFiles.filter(f => !f.startsWith('_')).length === withEmail.length,

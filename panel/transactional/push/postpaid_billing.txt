@@ -1,0 +1,16 @@
+D-TELCO push content: postpaid_billing [transactional]
+Trigger: bill_issued (journey 12)
+Transactional: values travel in the call. See panel/values/postpaid_billing.json.
+Create this content twice, once on the web application and once on the Android
+application: they are two applications in the panel and nothing set up for one reaches
+the other.
+Save To Inbox: off.
+
+Title:      Bill overdue
+Message:    {%= $Current.amount %} is past due.
+Target URL: {%= $Current.link || 'https://d-telco.github.io/telco/' %}
+Media:      https://d-telco.github.io/telco/assets/push/low-balance.jpg
+
+Title 12 of 50 characters and message 21 of 120: inside what a phone truncates.
+The target URL is a tag rather than an address: a shared content with an address in it
+sends one brand's visitor to another brand's storefront.

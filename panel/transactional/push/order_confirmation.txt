@@ -1,0 +1,16 @@
+D-TELCO push content: order_confirmation [transactional]
+Trigger: order for a device (journey 7)
+Transactional: values travel in the call. See panel/values/order_confirmation.json.
+Create this content twice, once on the web application and once on the Android
+application: they are two applications in the panel and nothing set up for one reaches
+the other.
+Save To Inbox: on, expire 7 days.
+
+Title:      Order confirmed
+Message:    {%= $Current.product || 'your item' %} is on its way.
+Target URL: {%= $Current.link || 'https://d-telco.github.io/telco/' %}
+Media:      https://d-telco.github.io/telco/assets/push/welcome.jpg
+
+Title 15 of 50 characters and message 24 of 120: inside what a phone truncates.
+The target URL is a tag rather than an address: a shared content with an address in it
+sends one brand's visitor to another brand's storefront.

@@ -1,0 +1,16 @@
+D-TELCO push content: renewal_recovery [transactional]
+Trigger: renewal_failed (journey 11)
+Transactional: values travel in the call. See panel/values/renewal_recovery.json.
+Create this content twice, once on the web application and once on the Android
+application: they are two applications in the panel and nothing set up for one reaches
+the other.
+Save To Inbox: off.
+
+Title:      Renewal did not go through
+Message:    Your line stays on for 48 hours.
+Target URL: {%= $Current.link || 'https://d-telco.github.io/telco/' %}
+Media:      https://d-telco.github.io/telco/assets/push/low-balance.jpg
+
+Title 26 of 50 characters and message 32 of 120: inside what a phone truncates.
+The target URL is a tag rather than an address: a shared content with an address in it
+sends one brand's visitor to another brand's storefront.

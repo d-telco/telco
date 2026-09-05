@@ -1,0 +1,16 @@
+D-TELCO push content: low_balance [transactional]
+Trigger: balance_low or plan_expiring (journey 10)
+Transactional: values travel in the call. See panel/values/low_balance.json.
+Create this content twice, once on the web application and once on the Android
+application: they are two applications in the panel and nothing set up for one reaches
+the other.
+Save To Inbox: off.
+
+Title:      Balance running low
+Message:    Top up in one tap.
+Target URL: {%= $Current.link || 'https://d-telco.github.io/telco/' %}
+Media:      https://d-telco.github.io/telco/assets/push/low-balance.jpg
+
+Title 19 of 50 characters and message 18 of 120: inside what a phone truncates.
+The target URL is a tag rather than an address: a shared content with an address in it
+sends one brand's visitor to another brand's storefront.

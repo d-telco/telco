@@ -1,0 +1,13 @@
+D-TELCO onsite experience: spin_the_wheel [campaign]
+Panel type: Gamification: Spin to Win
+Placement: offers.html, as a popup
+Trigger: second page view of the session, once per visitor
+
+Title: Spin for your reward
+Body:  One spin per visitor. Every winning segment is a real code from the D-TELCO coupon list.
+Segments: 5 dollars off | 10 percent off accessories | Free shipping | Double data for a month | Try again | 10 dollars off a device
+Coupon: the DTELCO- coupon list the account owner created. dtelco-coupons reads its stock live; a winning segment hands out a code of the visitor's own and the platform marks it taken
+
+Verify: G9. Until the gamification template is confirmed enabled on the account, this is shown as its canvas and said so plainly
+The slot rules in handoff/ONSITE-SLOTS.md apply: padding 0, transparent background,
+selectors namespaced under the creative root id, behaviour in onclick.

@@ -1,0 +1,17 @@
+{
+ "moment": "roaming_arrival",
+ "journey": 14,
+ "trigger": "roaming_detected without a pack",
+ "lane": "transactional",
+ "always": [
+  "days",
+  "destination",
+  "link",
+  "pack"
+ ],
+ "optional": [
+  "price"
+ ],
+ "rows": [],
+ "note": "A transactional send sees only these values. This moment sends push only: the SMS and WhatsApp copy beside it is composed and never sent."
+}

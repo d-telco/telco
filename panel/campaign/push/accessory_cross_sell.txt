@@ -1,0 +1,16 @@
+D-TELCO push content: accessory_cross_sell [campaign]
+Trigger: order for a phone, 3 days later (journey 16)
+Campaign: $Current resolves from the journey's own event or audience columns.
+Create this content twice, once on the web application and once on the Android
+application: they are two applications in the panel and nothing set up for one reaches
+the other.
+Save To Inbox: off.
+
+Title:      Made for your {%= $Current.product || 'your item' %}
+Message:    The case and the earbuds that fit.
+Target URL: {%= $Current.link || 'https://d-telco.github.io/telco/' %}
+Media:      https://d-telco.github.io/telco/assets/push/cart.jpg
+
+Title 23 of 50 characters and message 34 of 120: inside what a phone truncates.
+The target URL is a tag rather than an address: a shared content with an address in it
+sends one brand's visitor to another brand's storefront.

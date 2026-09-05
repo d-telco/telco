@@ -665,13 +665,23 @@ const SCRIPTS = (await Promise.all(
      presenter hunting through a folder while a prospect waits. */
   const cells = await page.locator('#messages-table tbody tr td:last-child').allTextContents();
   const named = cells.join(' ');
-  const missingFile = pack.moments.filter((m) =>
-    (m.email && !named.includes(`panel/email/${m.id}.html`)) ||
-    (m.push && !named.includes(`panel/push/${m.id}.json`)) ||
-    (m.sms && !named.includes(`panel/sms/${m.id}.txt`)) ||
-    (m.whatsapp && !named.includes(`panel/whatsapp/${m.id}.txt`)));
+  const missingFile = pack.moments.filter((m) => {
+    const lane = m.lane === 'transactional' ? 'transactional' : 'campaign';
+    return (m.email && !named.includes(`panel/${lane}/email/${m.id}.html`)) ||
+      (m.push && !named.includes(`panel/${lane}/push/${m.id}.txt`)) ||
+      (m.sms && !named.includes(`panel/${lane}/sms/${m.id}.txt`)) ||
+      (m.whatsapp && !named.includes(`panel/${lane}/whatsapp/${m.id}.txt`));
+  });
   ok('and every row names the file each channel is pasted from', missingFile.length === 0,
      missingFile.map((m) => m.id).join(', '));
+
+  /* The lane column is the whole point of the split: a presenter reads which route sends a
+     moment without opening a file. Eight are service messages on the transactional path. */
+  const laneCells = await page.locator('#messages-table tbody tr td:nth-child(4)').allTextContents();
+  ok('and every row names its lane, eight of them transactional',
+     laneCells.every((c) => c === 'transactional' || c === 'campaign') &&
+     laneCells.filter((c) => c === 'transactional').length === 8,
+     `${laneCells.filter((c) => c === 'transactional').length} transactional of ${laneCells.length}`);
 
   ok('and says plainly which channels are never sent',
      /never sent/.test(await page.locator('#messages-summary').textContent()),

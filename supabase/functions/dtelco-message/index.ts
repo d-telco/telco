@@ -240,8 +240,9 @@ Deno.serve(async (req) => {
   if (SUPPRESSED.includes(channel)) {
     return new Response(JSON.stringify({
       ok: false, channel, sent: false,
-      why: `${channel} is composed and never sent. The copy is in panel/${channel}/, the audience ` +
-           'is a segment and the trigger is a journey. All three cost nothing to show.',
+      why: `${channel} is composed and never sent. The copy sits in the moment's lane folder, ` +
+           `panel/transactional/${channel}/ or panel/campaign/${channel}/; the audience is a ` +
+           'segment and the trigger is a journey. All three cost nothing to show.',
     }, null, 1), { headers });
   }
   if (channel !== 'push' && channel !== 'email') {

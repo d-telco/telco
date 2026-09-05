@@ -1,0 +1,8 @@
+D-TELCO onsite copy: care_nps [campaign]
+Trigger: complaint_resolved (journey 21)
+Target one of the 13 slots in handoff/ONSITE-SLOTS.md: the slot table names the moment
+each one is there for. Tokens are left as {name}: whether onsite content resolves
+personalization tags is confirm item 6, and the creative is a canvas until it passes.
+
+Title: How did we do?
+Body:  One question, and it takes a second.

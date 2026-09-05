@@ -1,0 +1,16 @@
+D-TELCO push content: usage_upsell [transactional]
+Trigger: usage_80 (journey 9)
+Transactional: values travel in the call. See panel/values/usage_upsell.json.
+Create this content twice, once on the web application and once on the Android
+application: they are two applications in the panel and nothing set up for one reaches
+the other.
+Save To Inbox: off.
+
+Title:      You are at 80 percent
+Message:    {%= $Current.next_plan %} has {%= $Current.next_data %} for {%= $Current.next_price %}.
+Target URL: {%= $Current.link || 'https://d-telco.github.io/telco/' %}
+Media:      https://d-telco.github.io/telco/assets/push/usage-80.jpg
+
+Title 21 of 50 characters and message 45 of 120: inside what a phone truncates.
+The target URL is a tag rather than an address: a shared content with an address in it
+sends one brand's visitor to another brand's storefront.

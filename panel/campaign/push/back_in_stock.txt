@@ -1,0 +1,16 @@
+D-TELCO push content: back_in_stock [campaign]
+Trigger: back_in_stock for a watched product (journey 6)
+Campaign: $Current resolves from the journey's own event or audience columns.
+Create this content twice, once on the web application and once on the Android
+application: they are two applications in the panel and nothing set up for one reaches
+the other.
+Save To Inbox: off.
+
+Title:      It is back in stock
+Message:    {%= $Current.product || 'your item' %} is available again.
+Target URL: {%= $Current.link || 'https://d-telco.github.io/telco/' %}
+Media:      https://d-telco.github.io/telco/assets/push/back-in-stock.jpg
+
+Title 19 of 50 characters and message 29 of 120: inside what a phone truncates.
+The target URL is a tag rather than an address: a shared content with an address in it
+sends one brand's visitor to another brand's storefront.
