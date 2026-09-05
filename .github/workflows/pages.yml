@@ -1,0 +1,69 @@
+# Deploy the storefront to GitHub Pages, from Actions rather than from the branch.
+#
+# The branch based build stopped firing on push on 5 September 2026: it built 849a539 at 06:28 UTC
+# and then nothing for the commits after, so the live site froze several commits back while the
+# work sat on main. Re-saving the Pages source forced a one off build each time, which is no way to
+# run a demo that is being iterated on. This workflow puts the deploy under the repository's own
+# control: every push to main builds and deploys, and it can be run by hand from the Actions tab.
+#
+# It needs the Pages source set to "GitHub Actions" once, under Settings, Pages. Until that is set
+# the deploy step has nowhere to publish and fails; after it, every push is live within a minute.
+#
+# The site is served straight from the repository root, so the staging step copies the tree as is
+# and drops only what a browser never asks for: the dependency folder, git's own directory, the
+# workflows, and the server and app source that are not part of the published site.
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# The token the deploy needs, and nothing wider.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time. A second push mid deploy queues rather than races, because two builds
+# publishing at once is how a half built site reaches the origin.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Stage the published site
+        # Everything the branch deploy served, minus what a browser never requests. Keeping the
+        # rest as is preserves the exact tree the site has always published, so this is a change of
+        # mechanism and not of content.
+        run: |
+          mkdir -p _site
+          rsync -a \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'node_modules' \
+            --exclude 'android' \
+            --exclude 'supabase' \
+            ./ _site/
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload the artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
